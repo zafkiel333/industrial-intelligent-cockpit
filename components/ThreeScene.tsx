@@ -715,7 +715,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
         const sheaveMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.5, metalness: 0.6 });
         disposables.push(sheaveMat);
         const sheave = new THREE.Mesh(sheaveGeo, sheaveMat);
-        sheave.position.y = 5.5;
+        sheave.position.y = 4;
         hoistGroup.add(sheave);
         animatables.hoistSheave = sheave;
         const cageGroup = new THREE.Group();
@@ -735,8 +735,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
         const ropeGeo = new THREE.BufferGeometry();
         const ropePos = new Float32Array([
             -2.5, 0, 0, 
-            -2.5, 5.5, 0, 
-            2.5, 5.5, 0,  
+            -2.5, 4, 0, 
+            2.5, 4, 0,  
             2.5, -2, 0  
         ]);
         ropeGeo.setAttribute('position', new THREE.BufferAttribute(ropePos, 3));
