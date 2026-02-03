@@ -1,0 +1,116 @@
+
+import React, { useEffect, useRef } from 'react';
+import * as THREE from 'three';
+// @ts-ignore
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { initRepairScene, animateRepairScene } from './RepairSceneBuilder';
+import { RepairAnimatables, RepairStep } from './three-types';
+
+interface ThreeSceneProps {
+  step: RepairStep;
+}
+
+export const ThreeScene: React.FC<ThreeSceneProps> = ({ step }) => {
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mountRef.current) return;
+
+    const width = mountRef.current.clientWidth;
+    const height = mountRef.current.clientHeight;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f172a); 
+    scene.fog = new THREE.FogExp2(0x0f172a, 0.05);
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(8, 6, 8);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    mountRef.current.appendChild(renderer.domElement);
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(5, 10, 5);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    const blueLight = new THREE.PointLight(0x3b82f6, 5, 20);
+    blueLight.position.set(-5, 2, -5);
+    scene.add(blueLight);
+
+    // Welding Light (Dynamic)
+    const weldLight = new THREE.PointLight(0xffaa00, 0, 10);
+    weldLight.position.set(0, 0, 0);
+    scene.add(weldLight);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const animatables: RepairAnimatables = {};
+    const disposables: { dispose: () => void }[] = [];
+    
+    initRepairScene(group, animatables, disposables);
+
+    // Grid floor
+    const grid = new THREE.GridHelper(20, 20, 0x334155, 0x1e293b);
+    grid.position.y = -2.5;
+    scene.add(grid);
+
+    let animationId: number;
+    let time = 0;
+    
+    const animate = () => {
+      animationId = requestAnimationFrame(animate);
+      time += 0.02;
+      
+      controls.update();
+      animateRepairScene(animatables, step, time);
+
+      // Flicker weld light
+      if (step === 'WELDING') {
+          weldLight.intensity = 2 + Math.random() * 3;
+          // Follow robot head if possible, else random center
+          weldLight.position.set(Math.sin(time)*2, 0, Math.cos(time)*2);
+      } else {
+          weldLight.intensity = 0;
+      }
+
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    const handleResize = () => {
+        if (!mountRef.current) return;
+        const w = mountRef.current.clientWidth;
+        const h = mountRef.current.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
+      if (mountRef.current && mountRef.current.contains(renderer.domElement)) {
+        mountRef.current.removeChild(renderer.domElement);
+      }
+      disposables.forEach(d => d.dispose());
+      renderer.dispose();
+    };
+  }, [step]);
+
+  return <div ref={mountRef} className="w-full h-full cursor-move" />;
+};
