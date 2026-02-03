@@ -701,7 +701,7 @@ export const animateSmartOpsScene = (type: SceneType, animatables: Animatables, 
   if (type === 'mine-hoist') {
       const cycleTime = 10; 
       const progress = (time % cycleTime) / cycleTime; 
-      const yPos = Math.sin(progress * Math.PI * 2) * 3 - 2; 
+      const yPos = Math.sin(progress * Math.PI * 2) * 3; 
       if (animatables.hoistSheave) animatables.hoistSheave.rotation.x -= 0.05 * Math.cos(progress * Math.PI * 2);
       if (animatables.cage) animatables.cage.position.y = yPos;
       if (animatables.counterWeight) animatables.counterWeight.position.y = -yPos + 1;

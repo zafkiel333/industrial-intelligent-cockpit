@@ -715,7 +715,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
         const sheaveMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.5, metalness: 0.6 });
         disposables.push(sheaveMat);
         const sheave = new THREE.Mesh(sheaveGeo, sheaveMat);
-        sheave.position.y = 4;
+        sheave.position.y = 5.5;
         hoistGroup.add(sheave);
         animatables.hoistSheave = sheave;
         const cageGroup = new THREE.Group();
@@ -735,8 +735,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
         const ropeGeo = new THREE.BufferGeometry();
         const ropePos = new Float32Array([
             -2.5, 0, 0, 
-            -2.5, 4, 0, 
-            2.5, 4, 0,  
+            -2.5, 5.5, 0, 
+            2.5, 5.5, 0,  
             2.5, -2, 0  
         ]);
         ropeGeo.setAttribute('position', new THREE.BufferAttribute(ropePos, 3));
@@ -961,7 +961,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
       // 3. 核心冲突解决：判断使用哪种动画模式
       if (SmartOps.isSmartOpsScene(currentType)) {
           // 如果是新版的 SmartOps 场景，调用自动化动画接口
-          //console.log("=== SmartOpsScene animate ===");
+          console.log("=== SmartOpsScene animate ===");
           SmartOps.animateSmartOpsScene(currentType, animatables, time);
       } else {
           // 如果是旧版的常规场景，保留原有的简单旋转逻辑
@@ -971,18 +971,25 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
       //renderer.render(scene, camera);
 
       if (MaritimeSafety.isMaritimeSafetyScene(sceneType)) {
+        console.log("=== MaritimeSafetyScene animate ===");
         MaritimeSafety.animateMaritimeSafetyScene(sceneType, animatables, time);
       } else if (GreenPort.isGreenPortScene(sceneType)) {
+        console.log("=== GreenPortScene animate ===");
         GreenPort.animateGreenPortScene(sceneType, animatables, time);
       } else if (InlandWaterway.isInlandWaterwayScene(sceneType)) {
+        console.log("=== InlandWaterwayScene animate ===");
         InlandWaterway.animateInlandWaterwayScene(sceneType, animatables, time);
       } else if (ContainerTerminal.isContainerTerminalScene(sceneType)) {
+        console.log("=== ContainerTerminalScene animate ===");
         ContainerTerminal.animateContainerTerminalScene(sceneType, animatables, time);
       } else if (Irrigation.isIrrigationScene(sceneType)) {
+        console.log("=== IrrigationScene animate ===");
         Irrigation.animateIrrigationScene(sceneType, animatables, time);
       } else if (SmartWater.isSmartWaterScene(sceneType)) {
+        console.log("=== SmartWaterScene animate ===");
         SmartWater.animateSmartWaterScene(sceneType, animatables, time);
       } else if (Cockpit.isCockpitScene(sceneType)) {
+        console.log("=== CockpitScene animate ===");
         Cockpit.animateCockpitScene(sceneType, animatables, time);
       } 
       // else if (SmartOps.isSmartOpsScene(sceneType)) {
@@ -1025,9 +1032,10 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
       //     animatables.toneRing.rotation.y -= 0.5;
       // }
       // if (type === 'mine-hoist') {
+      //     console.log("=== mine-hoist single animate ===")
       //     const cycleTime = 10; 
       //     const progress = (time % cycleTime) / cycleTime; 
-      //     const yPos = Math.sin(progress * Math.PI * 2) * 3 - 2; 
+      //     const yPos = Math.sin(progress * Math.PI * 2) * 3 - 6; 
       //     if (animatables.hoistSheave) animatables.hoistSheave.rotation.x -= 0.05 * Math.cos(progress * Math.PI * 2);
       //     if (animatables.cage) animatables.cage.position.y = yPos;
       //     if (animatables.counterWeight) animatables.counterWeight.position.y = -yPos + 1;
