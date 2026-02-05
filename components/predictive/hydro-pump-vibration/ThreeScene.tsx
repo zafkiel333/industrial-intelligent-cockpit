@@ -39,6 +39,13 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
+    console.log("=== hydro-pump-vibrration excute clear canvas ===");
+    //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
+    // 新增：清空挂载节点，避免多canvas（修改逻辑：仅当有两个及以上canvas时，删除第一个）
+    const allCanvas = mountRef.current.querySelectorAll('canvas'); // 获取所有canvas节点（返回NodeList集合）
+    if (allCanvas.length >= 2) { // 判断是否存在两个及以上canvas
+      mountRef.current.removeChild(allCanvas[0]); // 删除第一个canvas（索引为0）
+    }
     mountRef.current.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);

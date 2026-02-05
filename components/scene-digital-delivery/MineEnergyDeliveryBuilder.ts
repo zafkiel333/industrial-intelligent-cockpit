@@ -7,8 +7,9 @@ export const isMineEnergyDeliveryScene = (type: SceneType): boolean => {
 };
 
 export const setupMineEnergyDeliveryCamera = (camera: THREE.PerspectiveCamera) => {
-  camera.position.set(20, 25, 20);
-  camera.lookAt(0, 0, 0);
+    console.log("=== MineEnergy DeliveryBuilder setupMineEnergyDeliveryCamera ===");
+    camera.position.set(20, 25, 20);
+    camera.lookAt(0, 0, 0);
 };
 
 export const initMineEnergyDeliveryScene = (
@@ -17,6 +18,12 @@ export const initMineEnergyDeliveryScene = (
   disposables: { dispose: () => void }[]
 ) => {
   if (!animatables) return;
+
+//   console.log("=== MineEnergy DeliveryBuilder initMineEnergyDeliveryScene ===");
+//   console.log("=== init 函数 - 初始 disposables ===");
+//   console.log("引用标识（toString）：", disposables.toString());
+//   console.log("数组长度：", disposables.length);
+//   console.log("数组本身（查看引用地址）：", disposables); // 浏览器/终端会显示数组的唯一引用标
 
   const group = new THREE.Group();
   scene.add(group);
@@ -143,11 +150,18 @@ export const initMineEnergyDeliveryScene = (
   scanner.position.y = 0.5;
   group.add(scanner);
   animatables.medScanner = scanner;
+
+//   console.log("=== init 函数 - 填充后 disposables ===");
+//   console.log("引用标识（toString）：", disposables.toString());
+//   console.log("数组长度：", disposables.length);
+//   console.log("数组本身（查看引用地址）：", disposables); // 浏览器/终端会显示数组的唯一引用标
+
 };
 
 export const animateMineEnergyDeliveryScene = (animatables: GeoAnimatables, time: number) => {
   // 1. Energy Flow
   if (animatables.medEnergyFlow) {
+    // console.log("=== MineEnergy DeliveryBuilder Energy Flow animate ===");
       const positions = animatables.medEnergyFlow.geometry.attributes.position.array as Float32Array;
       const routes = animatables.medEnergyFlow.geometry.attributes.route.array as Float32Array;
       
@@ -157,7 +171,7 @@ export const animateMineEnergyDeliveryScene = (animatables: GeoAnimatables, time
           const ex = routes[i*4+2];
           const ez = routes[i*4+3];
           
-          // Progress cycling
+          // Progress cyclingq
           let t = (time * 0.5 + i * 0.01) % 1;
           
           positions[i*3] = sx + (ex - sx) * t;
@@ -169,6 +183,7 @@ export const animateMineEnergyDeliveryScene = (animatables: GeoAnimatables, time
 
   // 2. Carbon Clouds
   if (animatables.medCarbonClouds) {
+    // console.log("=== MineEnergy DeliveryBuilder Carbon Clouds animate ===");
       const positions = animatables.medCarbonClouds.geometry.attributes.position.array as Float32Array;
       const info = animatables.medCarbonClouds.geometry.attributes.info.array as Float32Array;
 
@@ -197,4 +212,5 @@ export const animateMineEnergyDeliveryScene = (animatables: GeoAnimatables, time
       animatables.medScanner.scale.set(s, 1, s);
       animatables.medScanner.rotation.y = -time * 0.2;
   }
+
 };

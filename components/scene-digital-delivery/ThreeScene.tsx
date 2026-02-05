@@ -104,6 +104,13 @@ export const GeoThreeScene: React.FC<GeoSceneProps> = ({ type = 'geo', data }) =
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
+
+    //2026.02.04,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
+    // 新增：清空挂载节点，避免多canvas
+    const existingCanvas = mountRef.current.querySelector('canvas');
+    if (existingCanvas) {
+      mountRef.current.removeChild(existingCanvas);
+    }
     mountRef.current.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -235,13 +242,28 @@ export const GeoThreeScene: React.FC<GeoSceneProps> = ({ type = 'geo', data }) =
     resizeObserver.observe(mountRef.current);
 
     return () => {
+      console.log("=== scene-digital-delivery cleanup ===");
       resizeObserver.disconnect();
       cancelAnimationFrame(animationId);
       if (mountRef.current && mountRef.current.contains(renderer.domElement)) {
         mountRef.current.removeChild(renderer.domElement);
       }
+      if(scene&&scene.group){
+        scene.remove(group)
+      }
+      if(scene){
+        scene.clear();
+      }
       controls.dispose();
+    //   console.log("=== cleanup 函数 - 读取 disposables ===");
+    //   console.log("引用标识（toString）：", disposables.toString());
+    //   console.log("数组长度：", disposables.length);
+    //   console.log("数组本身（查看引用地址）：", disposables);
       disposables.forEach(d => d.dispose());
+    //   console.log("=== cleanup 函数 - clear后 disposables ===");
+    //   console.log("引用标识（toString）：", disposables.toString());
+    //   console.log("数组长度：", disposables.length);
+    //   console.log("数组本身（查看引用地址）：", disposables);
       renderer.dispose();
     };
   }, [type]);

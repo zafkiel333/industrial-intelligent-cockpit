@@ -30,6 +30,12 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ globalRiskFactor }) => {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
+    //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
+    // 新增：清空挂载节点，避免多canvas
+    const existingCanvas = mountRef.current.querySelector('canvas');
+    if (existingCanvas) {
+      mountRef.current.removeChild(existingCanvas);
+    }
     mountRef.current.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);

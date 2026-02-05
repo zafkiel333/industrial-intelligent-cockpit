@@ -36,6 +36,13 @@ export const RiskPredictionScene: React.FC<RiskSceneProps> = ({
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
     renderer.toneMappingExposure = 1.5;
+    //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
+    // 新增：清空挂载节点，避免多canvas
+    console.log("=== hydro-risk excute clear canvas ===");
+    // const existingCanvas = mountRef.current.querySelector('canvas');
+    // if (existingCanvas) {
+    //   mountRef.current.removeChild(existingCanvas);
+    // }
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -224,6 +231,7 @@ export const RiskPredictionScene: React.FC<RiskSceneProps> = ({
               }
           });
       });
+      console.log("=== hydro-risk excute animate ===");
 
       renderer.render(scene, camera);
     };
@@ -242,6 +250,7 @@ export const RiskPredictionScene: React.FC<RiskSceneProps> = ({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      console.log("=== hydro-risk excute cleanup ===");
       window.removeEventListener('resize', handleResize);
       mountRef.current?.removeEventListener('click', onMouseClick);
       cancelAnimationFrame(frameId);
