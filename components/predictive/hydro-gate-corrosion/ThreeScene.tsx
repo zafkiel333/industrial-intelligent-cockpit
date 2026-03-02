@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -17,8 +16,25 @@ export const GateCorrosionScene: React.FC<CorrosionSceneProps> = ({
   const structureRef = useRef<THREE.Group | null>(null);
   const crackRef = useRef<THREE.Group | null>(null);
 
+  // 2026.03.02 - Bug修复：创建ref保存实时props值，避免依赖项变化触发useEffect重复执行
+  // Bug情况：模型渲染时出现闪烁问题，频繁重新创建3D场景和渲染循环
+  // Bug原因：useEffect依赖项（ageYears/stressLoad等）频繁变化，导致useEffect反复触发，重复初始化3D场景、创建几何体/材质、启动动画循环，最终引发模型闪烁
+  const ageYearsRef = useRef(ageYears);
+  const stressLoadRef = useRef(stressLoad);
+  const showStressRef = useRef(showStress);
+  const showCracksRef = useRef(showCracks);
+  const corrosionRateRef = useRef(corrosionRate);
+
+  // 实时更新ref值，不触发useEffect，保证动画循环能读取最新props
+  ageYearsRef.current = ageYears;
+  stressLoadRef.current = stressLoad;
+  showStressRef.current = showStress;
+  showCracksRef.current = showCracks;
+  corrosionRateRef.current = corrosionRate;
+
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-gate-corrosion useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -142,8 +158,8 @@ export const GateCorrosionScene: React.FC<CorrosionSceneProps> = ({
       controls.update();
 
       // 1. Corrosion Visualization (Age Effect)
-      // Interpolate material color and roughness based on age
-      const rustFactor = Math.min(1, (ageYears / 50) * corrosionRate * 1.5);
+      // 读取ref中的实时值，替代原直接使用props的方式
+      const rustFactor = Math.min(1, (ageYearsRef.current / 50) * corrosionRateRef.current * 1.5);
       
       mainGroup.children.forEach((child) => {
           if (child instanceof THREE.Mesh) {
@@ -159,8 +175,8 @@ export const GateCorrosionScene: React.FC<CorrosionSceneProps> = ({
               m.metalness = 0.6 - rustFactor * 0.5;
 
               // 2. Stress Visualization (Heatmap overlay)
-              if (showStress) {
-                  const stressBase = stressLoad / 100;
+              if (showStressRef.current) {
+                  const stressBase = stressLoadRef.current / 100;
                   // Stress highest near hub (x=0)
                   // We simulate this by emissive color
                   m.emissive.setHex(0x3b82f6); // Blue stress lines
@@ -173,12 +189,12 @@ export const GateCorrosionScene: React.FC<CorrosionSceneProps> = ({
       });
 
       // 3. Crack Visibility
-      if (showCracks && ageYears > 30) {
-           const crackOpacity = Math.min(1, (ageYears - 30) / 10);
+      if (showCracksRef.current && ageYearsRef.current > 30) {
+           const crackOpacity = Math.min(1, (ageYearsRef.current - 30) / 10);
            crackGroup.children.forEach((line: any) => {
                line.material.opacity = crackOpacity;
                // Pulse effect
-               if (stressLoad > 80) line.material.opacity = crackOpacity * (0.5 + Math.sin(Date.now() * 0.01)*0.5);
+               if (stressLoadRef.current > 80) line.material.opacity = crackOpacity * (0.5 + Math.sin(Date.now() * 0.01)*0.5);
            });
       } else {
            crackGroup.children.forEach((line: any) => {
@@ -188,7 +204,7 @@ export const GateCorrosionScene: React.FC<CorrosionSceneProps> = ({
 
       // Lights
       rustLight.intensity = rustFactor * 3;
-      stressLight.intensity = showStress ? (stressLoad / 100) * 2 : 0;
+      stressLight.intensity = showStressRef.current ? (stressLoadRef.current / 100) * 2 : 0;
 
       renderer.render(scene, camera);
     };
@@ -213,7 +229,7 @@ export const GateCorrosionScene: React.FC<CorrosionSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [ageYears, stressLoad, showStress, showCracks, corrosionRate]);
+  }, []); // 剔除所有依赖项，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

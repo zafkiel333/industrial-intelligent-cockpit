@@ -199,7 +199,7 @@ export const HydroThreeScene: React.FC<HydroSceneProps> = ({
       if (rotorGroup) {
           rotorGroup.rotation.y -= 0.02 * rotationSpeed;
       }
-
+      console.log("=== hydro animate ===");
       // Vibration Effect
       if (vibrationLevel > 0 && groupRef.current) {
           groupRef.current.position.x = (Math.random() - 0.5) * 0.02 * vibrationLevel;

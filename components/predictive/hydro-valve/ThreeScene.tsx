@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,8 +17,27 @@ export const ValveStictionScene: React.FC<ValveSceneProps> = ({
   const particlesRef = useRef<THREE.Points | null>(null);
   const frictionGlowRef = useRef<THREE.Mesh | null>(null);
 
+  // 2026.03.02 - Bug修复：创建ref存储实时props值，避免依赖项变化触发useEffect重建3D场景
+  // Bug情况：3D模型渲染时出现频繁闪烁，每次props变量更新都会触发场景销毁重建
+  // Bug原因：主useEffect依赖数组包含spoolPosition/commandSignal等频繁变化的props，导致useEffect反复执行，重新创建渲染器/几何体/灯光等核心元素
+  const spoolPositionRef = useRef(spoolPosition);
+  const commandSignalRef = useRef(commandSignal);
+  const stictionLevelRef = useRef(stictionLevel);
+  const oilQualityRef = useRef(oilQuality);
+  const isDitheringRef = useRef(isDithering);
+
+  // 2026.03.02 - 仅更新ref值，不触发3D场景重建
+  useEffect(() => {
+    spoolPositionRef.current = spoolPosition;
+    commandSignalRef.current = commandSignal;
+    stictionLevelRef.current = stictionLevel;
+    oilQualityRef.current = oilQuality;
+    isDitheringRef.current = isDithering;
+  }, [spoolPosition, commandSignal, stictionLevel, oilQuality, isDithering]);
+
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-valve useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -168,34 +186,34 @@ export const ValveStictionScene: React.FC<ValveSceneProps> = ({
       time += 0.02;
       controls.update();
 
-      // 1. Spool Movement
+      // 1. Spool Movement - 读取ref中的实时值
       if (spoolRef.current) {
           // Map -100..100 to physical position limits approx -1.0 to 1.0
-          const targetX = (spoolPosition / 100) * 1.0; 
+          const targetX = (spoolPositionRef.current / 100) * 1.0; 
           
           // Dither vibration
-          const dither = isDithering ? Math.sin(time * 50) * 0.05 : 0;
+          const dither = isDitheringRef.current ? Math.sin(time * 50) * 0.05 : 0;
           
           // Smooth interpolation
           spoolRef.current.position.x += (targetX + dither - spoolRef.current.position.x) * 0.2;
       }
 
-      // 2. Friction/Stiction Glow
+      // 2. Friction/Stiction Glow - 读取ref中的实时值
       if (frictionGlowRef.current) {
           // Intensity based on Stiction Level AND Velocity (Friction acts when moving, stiction acts when starting)
           // Simplified: Glow intense if stiction level is high and position changes
-          const diff = Math.abs(commandSignal - spoolPosition);
-          const frictionIntensity = (stictionLevel / 100) * 0.8 + (diff > 5 ? 0.2 : 0);
+          const diff = Math.abs(commandSignalRef.current - spoolPositionRef.current);
+          const frictionIntensity = (stictionLevelRef.current / 100) * 0.8 + (diff > 5 ? 0.2 : 0);
           
           (frictionGlowRef.current.material as THREE.MeshBasicMaterial).opacity = frictionIntensity;
           (frictionGlowRef.current.material as THREE.MeshBasicMaterial).color.setHSL(0.05, 1.0, 0.5 + frictionIntensity*0.5); // Orange to White hot
       }
 
-      // 3. Particle Flow
+      // 3. Particle Flow - 读取ref中的实时值
       if (particlesRef.current) {
           const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
           // Flow speed depends on valve opening (abs position)
-          const flowSpeed = Math.abs(spoolPosition) * 0.001 + 0.01; 
+          const flowSpeed = Math.abs(spoolPositionRef.current) * 0.001 + 0.01; 
           
           for(let i=0; i<pCount; i++) {
               // Flow towards ports or through valve
@@ -206,7 +224,7 @@ export const ValveStictionScene: React.FC<ValveSceneProps> = ({
               if (Math.abs(positions[i*3]) > 4) positions[i*3] = 0;
               
               // Jitter based on Oil Quality (Dirtier = more chaotic)
-              const jitter = (100 - oilQuality) * 0.0002;
+              const jitter = (100 - oilQualityRef.current) * 0.0002;
               positions[i*3+1] += (Math.random()-0.5) * jitter;
           }
           particlesRef.current.geometry.attributes.position.needsUpdate = true;
@@ -214,7 +232,7 @@ export const ValveStictionScene: React.FC<ValveSceneProps> = ({
           // Color dirty oil darker
           const cleanColor = new THREE.Color(0x0ea5e9);
           const dirtyColor = new THREE.Color(0x57534e);
-          (particlesRef.current.material as THREE.PointsMaterial).color.lerpColors(dirtyColor, cleanColor, oilQuality/100);
+          (particlesRef.current.material as THREE.PointsMaterial).color.lerpColors(dirtyColor, cleanColor, oilQualityRef.current/100);
       }
 
       renderer.render(scene, camera);
@@ -240,7 +258,7 @@ export const ValveStictionScene: React.FC<ValveSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [spoolPosition, commandSignal, stictionLevel, oilQuality, isDithering]);
+  }, []); // 2026.03.02 - 清空依赖数组，确保3D场景只初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

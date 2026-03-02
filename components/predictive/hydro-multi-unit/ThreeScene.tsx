@@ -18,6 +18,7 @@ export const MultiUnitThreeScene: React.FC<MultiUnitSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-multi-unit useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

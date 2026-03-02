@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -20,6 +19,30 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
   const particlesRef = useRef<THREE.Points | null>(null);
   const mainGroupRef = useRef<THREE.Group | null>(null);
 
+  // 2026.03.02 修复bug：因useEffect依赖项（rpm/pressure等）频繁变化导致useEffect反复触发，场景重建引发模型闪烁
+  // bug原因：原逻辑中初始化场景的useEffect依赖实时变化的props变量，每次props更新都会重新执行useEffect，
+  // 重建整个Three.js场景、相机、渲染器、几何体等，导致视觉上的模型闪烁/重绘问题
+  // 修复方案：使用refs保存实时props值，初始化场景的useEffect仅执行一次（依赖数组为空），
+  // 动画循环中读取refs的current值获取最新props，避免场景反复重建
+  // 2026.03.02 补充修复：Props初始值无容错导致NaN阻塞动画，Canvas清理逻辑不彻底
+  const rpmRef = useRef(rpm);
+  const pressureRef = useRef(pressure);
+  const vibrationRef = useRef(vibration);
+  const temperatureRef = useRef(temperature);
+  const cavitationRef = useRef(cavitation);
+  const flowRateRef = useRef(flowRate);
+
+  // 仅更新ref值，不触发场景重建
+  useEffect(() => {
+    rpmRef.current = rpm;
+    pressureRef.current = pressure;
+    vibrationRef.current = vibration;
+    temperatureRef.current = temperature;
+    cavitationRef.current = cavitation;
+    flowRateRef.current = flowRate;
+  }, [rpm, pressure, vibration, temperature, cavitation, flowRate]);
+
+  // 初始化Three.js场景，仅执行一次（依赖数组为空）
   useEffect(() => {
     if (!mountRef.current) return;
 
@@ -40,18 +63,17 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
     console.log("=== hydro-pump-vibrration excute clear canvas ===");
-    //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas（修改逻辑：仅当有两个及以上canvas时，删除第一个）
-    const allCanvas = mountRef.current.querySelectorAll('canvas'); // 获取所有canvas节点（返回NodeList集合）
-    if (allCanvas.length >= 2) { // 判断是否存在两个及以上canvas
-      mountRef.current.removeChild(allCanvas[0]); // 删除第一个canvas（索引为0）
-    }
+    
+    // 2026.03.02 修复：彻底清空所有旧canvas，避免残留导致渲染层覆盖
+    const allCanvas = mountRef.current.querySelectorAll('canvas');
+    allCanvas.forEach(canvas => mountRef.current!.removeChild(canvas));
     mountRef.current.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.5;
+    controls.update(); // 初始化时强制更新控制器
 
     // --- Lights ---
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -118,7 +140,6 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
     gearsRef.current = [gear1, gear2];
 
     // 2. Housing
-    // Simple box shape with rounded look roughly
     const housingGeo = new THREE.BoxGeometry(5.5, 3.5, 2);
     const housing = new THREE.Mesh(housingGeo, housingMat);
     housingRef.current = housing;
@@ -161,10 +182,17 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
     const animate = () => {
       frameId = requestAnimationFrame(animate);
       time += 0.02;
-      controls.update();
+      controls.update(); // 必须持续更新控制器才能启用阻尼/自动旋转
+
+      // 2026.03.02 修复：添加容错处理，确保所有值为有效数字，避免NaN
+      const currentRpm = Number(rpmRef.current) || 100; // 默认100rpm保证初始旋转
+      const currentPressure = Number(pressureRef.current) || 2.5; // 默认压力值
+      const currentVibration = Number(vibrationRef.current) || 1; // 默认轻微振动
+      const currentCavitation = Boolean(cavitationRef.current) || false;
+      const currentFlowRate = Number(flowRateRef.current) || 50; // 默认流速
 
       // 1. Rotate Gears
-      const rotSpeed = rpm / 60 * 0.1;
+      const rotSpeed = currentRpm / 60 * 0.1; // 转速转成每秒旋转速度
       if (gearsRef.current.length === 2) {
           gearsRef.current[0].rotation.z -= rotSpeed;
           gearsRef.current[1].rotation.z += rotSpeed;
@@ -172,18 +200,23 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
 
       // 2. Vibration Shake
       if (mainGroupRef.current) {
-          const shake = vibration * 0.01; // Scale factor
+          const shake = currentVibration * 0.01; // 缩放振动幅度
           mainGroupRef.current.position.x = (Math.random() - 0.5) * shake;
           mainGroupRef.current.position.y = (Math.random() - 0.5) * shake;
+          mainGroupRef.current.position.z = (Math.random() - 0.5) * shake; // 补充Z轴振动更自然
       }
 
       // 3. Pressure Color Effect on Housing
       if (housingRef.current) {
           const mat = housingRef.current.material as THREE.MeshPhysicalMaterial;
-          // Pressure 2.0 to 6.0 MPa map to color
-          const pNorm = Math.min(1, Math.max(0, (pressure - 2.5) / 3.5));
-          const targetColor = new THREE.Color().lerpColors(new THREE.Color(0x475569), new THREE.Color(0xff0000), pNorm);
-          mat.color.lerp(targetColor, 0.1);
+          // 压力范围 2.5-6.0 MPa 映射到颜色（红→蓝）
+          const pNorm = Math.min(1, Math.max(0, (currentPressure - 2.5) / 3.5));
+          const targetColor = new THREE.Color().lerpColors(
+              new THREE.Color(0x475569), // 初始蓝色
+              new THREE.Color(0xff0000), // 高压红色
+              pNorm
+          );
+          mat.color.lerp(targetColor, 0.1); // 平滑过渡颜色
           mat.emissive.lerp(targetColor, 0.1);
           mat.emissiveIntensity = pNorm * 0.5;
       }
@@ -191,19 +224,18 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
       // 4. Particle Flow
       if (particlesRef.current) {
           const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
-          const flowSpeed = flowRate * 0.001; 
+          const flowSpeed = currentFlowRate * 0.001; 
           for(let i=0; i<pCount; i++) {
-              // Flow downwards (Pump suction to discharge usually, let's say top to bottom for visual)
-              // Actually pumps usually suck bottom discharge top or side-side. Let's do top-down for gravity feel or bottom-up.
-              // Let's do Top(In) to Bottom(Out) visual flow
+              // 粒子从上到下流动（泵进口→出口）
               positions[i*3+1] -= flowSpeed;
               
-              // Cavitation Bubbles (expand/contract jitter)
-              if (cavitation) {
+              // 气蚀效果：粒子随机抖动
+              if (currentCavitation) {
                   positions[i*3] += (Math.random()-0.5)*0.05;
+                  positions[i*3+2] += (Math.random()-0.5)*0.05;
               }
 
-              // Reset
+              // 粒子流出底部后重置到顶部
               if (positions[i*3+1] < -3) {
                   positions[i*3+1] = 3;
                   positions[i*3] = (Math.random() - 0.5) * 4;
@@ -212,13 +244,15 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
           }
           particlesRef.current.geometry.attributes.position.needsUpdate = true;
           
-          // Cavitation Color change
-          (particlesRef.current.material as THREE.PointsMaterial).color.setHex(cavitation ? 0xffffff : 0xffaa00);
+          // 气蚀时粒子变白色，正常时黄色
+          (particlesRef.current.material as THREE.PointsMaterial).color.setHex(
+              currentCavitation ? 0xffffff : 0xffaa00
+          );
       }
 
       renderer.render(scene, camera);
     };
-    animate();
+    animate(); // 启动动画循环
 
     const handleResize = () => {
       if (mountRef.current && renderer && camera) {
@@ -233,13 +267,18 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(frameId);
+      cancelAnimationFrame(frameId); // 销毁时终止动画循环
       if (mountRef.current && renderer.domElement) {
         mountRef.current.removeChild(renderer.domElement);
       }
+      // 释放Three.js资源，避免内存泄漏
       renderer.dispose();
+      scene.traverse((obj: any) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+      });
     };
-  }, [rpm, pressure, vibration, temperature, cavitation, flowRate]);
+  }, []); // 依赖数组为空，仅初始化一次
 
-  return <div ref={mountRef} className="w-full h-full cursor-move" />;
+  return <div ref={mountRef} className="w-full h-full cursor-move" style={{ minHeight: '400px' }} />;
 };

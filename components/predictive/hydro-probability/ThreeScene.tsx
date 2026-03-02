@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -15,9 +14,24 @@ export const ProbabilityTimeScene: React.FC<ProbabilitySceneProps> = ({
   const compMeshesRef = useRef<THREE.Group[]>([]);
   const particleSystemRef = useRef<THREE.Points | null>(null);
   const timeRingRef = useRef<THREE.Group | null>(null);
+  
+  // 2026.02.28 - Bug修复：创建ref保存实时props值，避免依赖项变化触发主渲染useEffect反复执行
+  // Bug情况：3D模型出现闪烁问题
+  // Bug原因：useEffect依赖项（timeHorizon、components、showParticles）反复变化，导致useEffect频繁执行并重建3D场景，引发模型闪烁
+  const timeHorizonRef = useRef<number>(timeHorizon);
+  const componentsRef = useRef<ProbabilitySceneProps['components']>(components);
+  const showParticlesRef = useRef<boolean>(showParticles);
+
+  // 仅用于更新ref值，不触发3D场景重建
+  useEffect(() => {
+    timeHorizonRef.current = timeHorizon;
+    componentsRef.current = components;
+    showParticlesRef.current = showParticles;
+  }, [timeHorizon, components, showParticles]);
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-probability useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -124,40 +138,56 @@ export const ProbabilityTimeScene: React.FC<ProbabilitySceneProps> = ({
     createPart('runner', new THREE.TorusGeometry(2, 0.6, 16, 32), -3.5, '#ef4444');
 
     // --- Particles (Entropy/Chaos representation) ---
-    if (showParticles) {
-        const pCount = 500;
-        const pGeo = new THREE.BufferGeometry();
-        const pPos = new Float32Array(pCount * 3);
-        const pUserData = []; // store initial positions and speeds
-        
-        for(let i=0; i<pCount; i++) {
-            const r = 2 + Math.random() * 3;
-            const theta = Math.random() * Math.PI * 2;
-            const y = (Math.random() - 0.5) * 8;
-            
-            pPos[i*3] = r * Math.cos(theta);
-            pPos[i*3+1] = y;
-            pPos[i*3+2] = r * Math.sin(theta);
-            
-            pUserData.push({
-                r, theta, y, 
-                speed: 0.005 + Math.random() * 0.01,
-                drift: (Math.random() - 0.5) * 0.01
-            });
-        }
-        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-        const pMat = new THREE.PointsMaterial({
-            color: 0xcccccc,
-            size: 0.05,
-            transparent: true,
-            opacity: 0.4,
-            blending: THREE.AdditiveBlending
-        });
-        const particles = new THREE.Points(pGeo, pMat);
-        particles.userData = { info: pUserData };
-        particleSystemRef.current = particles;
-        scene.add(particles);
-    }
+    // 初始化粒子系统（如果初始需要显示）
+    const initParticles = () => {
+      if (!showParticlesRef.current || particleSystemRef.current) return;
+      
+      const pCount = 500;
+      const pGeo = new THREE.BufferGeometry();
+      const pPos = new Float32Array(pCount * 3);
+      const pUserData = []; // store initial positions and speeds
+      
+      for(let i=0; i<pCount; i++) {
+          const r = 2 + Math.random() * 3;
+          const theta = Math.random() * Math.PI * 2;
+          const y = (Math.random() - 0.5) * 8;
+          
+          pPos[i*3] = r * Math.cos(theta);
+          pPos[i*3+1] = y;
+          pPos[i*3+2] = r * Math.sin(theta);
+          
+          pUserData.push({
+              r, theta, y, 
+              speed: 0.005 + Math.random() * 0.01,
+              drift: (Math.random() - 0.5) * 0.01
+          });
+      }
+      pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+      const pMat = new THREE.PointsMaterial({
+          color: 0xcccccc,
+          size: 0.05,
+          transparent: true,
+          opacity: 0.4,
+          blending: THREE.AdditiveBlending
+      });
+      const particles = new THREE.Points(pGeo, pMat);
+      particles.userData = { info: pUserData };
+      particleSystemRef.current = particles;
+      scene.add(particles);
+    };
+
+    // 销毁粒子系统
+    const destroyParticles = () => {
+      if (particleSystemRef.current) {
+        scene.remove(particleSystemRef.current);
+        particleSystemRef.current.geometry.dispose();
+        (particleSystemRef.current.material as THREE.PointsMaterial).dispose();
+        particleSystemRef.current = null;
+      }
+    };
+
+    // 初始化粒子系统
+    initParticles();
 
     // --- Animation Loop ---
     let frameId: number;
@@ -168,15 +198,22 @@ export const ProbabilityTimeScene: React.FC<ProbabilitySceneProps> = ({
       time += 0.01;
       controls.update();
 
-      // 1. Time Horizon Effect on Components
+      // 实时检查粒子系统显示状态
+      if (showParticlesRef.current && !particleSystemRef.current) {
+        initParticles();
+      } else if (!showParticlesRef.current && particleSystemRef.current) {
+        destroyParticles();
+      }
+
+      // 1. Time Horizon Effect on Components (使用ref读取实时值)
       compMeshesRef.current.forEach(group => {
           const { id, baseColor } = group.userData;
-          const compDef = components.find(c => c.id === id);
+          const compDef = componentsRef.current.find(c => c.id === id);
           
           if (compDef) {
               // Calculate Failure Probability: P(t) = 1 - exp(-(t/eta)^beta)
               // timeHorizon is in days.
-              const t = timeHorizon * 24; // convert to hours approx for scale
+              const t = timeHorizonRef.current * 24; // convert to hours approx for scale
               const prob = 1 - Math.exp(-Math.pow(t / compDef.eta, compDef.beta));
               
               // Visual changes based on probability
@@ -202,13 +239,13 @@ export const ProbabilityTimeScene: React.FC<ProbabilitySceneProps> = ({
           }
       });
 
-      // 2. Particle Animation (Chaos increases with timeHorizon)
+      // 2. Particle Animation (Chaos increases with timeHorizon) (使用ref读取实时值)
       if (particleSystemRef.current) {
           const positions = particleSystemRef.current.geometry.attributes.position.array as Float32Array;
           const info = particleSystemRef.current.userData.info;
           
-          // Chaos factor
-          const chaos = 1 + (timeHorizon / 365) * 5; 
+          // Chaos factor (使用ref读取实时timeHorizon)
+          const chaos = 1 + (timeHorizonRef.current / 365) * 5; 
 
           for(let i=0; i<info.length; i++) {
               const p = info[i];
@@ -224,8 +261,8 @@ export const ProbabilityTimeScene: React.FC<ProbabilitySceneProps> = ({
           }
           particleSystemRef.current.geometry.attributes.position.needsUpdate = true;
           
-          // Color shift for particles too
-          (particleSystemRef.current.material as THREE.PointsMaterial).color.setHSL(0.6 - (timeHorizon/700), 0.5, 0.5);
+          // Color shift for particles too (使用ref读取实时timeHorizon)
+          (particleSystemRef.current.material as THREE.PointsMaterial).color.setHSL(0.6 - (timeHorizonRef.current/700), 0.5, 0.5);
       }
 
       // 3. Time Ring Animation
@@ -257,9 +294,23 @@ export const ProbabilityTimeScene: React.FC<ProbabilitySceneProps> = ({
       if (mountRef.current && renderer.domElement) {
         mountRef.current.removeChild(renderer.domElement);
       }
+      // 清理粒子系统资源
+      destroyParticles();
       renderer.dispose();
+      // 清理场景资源
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose();
+          if (obj.material instanceof THREE.Material) {
+            obj.material.dispose();
+          }
+        } else if (obj instanceof THREE.LineSegments) {
+          obj.geometry.dispose();
+          obj.material.dispose();
+        }
+      });
     };
-  }, [timeHorizon, components, showParticles]);
+  }, []); // 2026.02.28 - 移除所有依赖项，避免反复触发useEffect
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

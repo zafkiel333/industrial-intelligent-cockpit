@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,8 +17,30 @@ export const DisconnectSwitchScene: React.FC<DisconnectSceneProps> = ({
   const rightArmRef = useRef<THREE.Group | null>(null);
   const contactGlowRef = useRef<THREE.PointLight[]>([]);
 
+  // 2026.03.02 - Bug修复：创建ref存储实时props值，避免依赖项变化触发useEffect重复执行
+  // Bug情况：3D模型频繁闪烁，场景反复初始化
+  // Bug原因：useEffect依赖数组包含bladeAngle/contactTemp等频繁变化的props，导致每次变量更新都会重新创建场景、渲染器等核心对象
+  const switchStateRef = useRef(switchState);
+  const bladeAngleRef = useRef(bladeAngle);
+  const contactTempRef = useRef(contactTemp);
+  const wearLevelRef = useRef(wearLevel);
+  const sparkIntensityRef = useRef(sparkIntensity);
+  const showThermalRef = useRef(showThermal);
+
+  // 单独更新ref值，确保动画循环能获取最新props，且不触发场景重建
+  useEffect(() => {
+    switchStateRef.current = switchState;
+    bladeAngleRef.current = bladeAngle;
+    contactTempRef.current = contactTemp;
+    wearLevelRef.current = wearLevel;
+    sparkIntensityRef.current = sparkIntensity;
+    showThermalRef.current = showThermal;
+  }, [switchState, bladeAngle, contactTemp, wearLevel, sparkIntensity, showThermal]);
+
+  // 核心场景初始化逻辑：仅依赖mountRef，确保只在挂载/卸载时执行一次
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-disconnect useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -30,7 +51,7 @@ export const DisconnectSwitchScene: React.FC<DisconnectSceneProps> = ({
     scene.fog = new THREE.FogExp2(0x050505, 0.04);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 6, 10);
+    camera.position.set(0, 12, 10);
     camera.lookAt(0, 2, 0);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -151,7 +172,6 @@ export const DisconnectSwitchScene: React.FC<DisconnectSceneProps> = ({
     contactL.name = "contact";
     leftArmGroup.add(contactL);
 
-
     // Right Arm Group
     const rightArmGroup = new THREE.Group();
     rightArmGroup.position.set(3, 4, 0);
@@ -184,7 +204,6 @@ export const DisconnectSwitchScene: React.FC<DisconnectSceneProps> = ({
     const sparks = new THREE.Points(pGeo, pMat);
     scene.add(sparks);
 
-
     // --- Animation Loop ---
     let frameId: number;
     let time = 0;
@@ -194,22 +213,18 @@ export const DisconnectSwitchScene: React.FC<DisconnectSceneProps> = ({
       time += 0.02;
       controls.update();
 
-      // Blade Rotation
-      // Angle 0 = Closed (Straight), Angle 90 = Open (Vertical or sideways depending on type)
-      // For Center Break, they rotate horizontally typically.
-      // Left arm rotates clockwise, Right arm counter-clockwise to open.
-      
-      const rad = bladeAngle * Math.PI / 180;
+      // Blade Rotation - 读取ref中最新的bladeAngle值
+      const rad = bladeAngleRef.current * Math.PI / 180;
       if (leftArmRef.current && rightArmRef.current) {
           leftArmRef.current.rotation.y = -rad;
           rightArmRef.current.rotation.y = rad;
       }
 
-      // Thermal & Wear Visualization
+      // Thermal & Wear Visualization - 读取ref中最新的热/磨损/显示状态值
       const targetColor = new THREE.Color(0xffffff);
-      if (showThermal) {
+      if (showThermalRef.current) {
           // Heat map logic: Temp > 50 starts glowing orange -> red
-          const tNorm = Math.min(1, Math.max(0, (contactTemp - 40) / 100)); // 40C to 140C range
+          const tNorm = Math.min(1, Math.max(0, (contactTempRef.current - 40) / 100)); // 40C to 140C range
           const heatColor = new THREE.Color().setHSL(0.1 - tNorm * 0.1, 1.0, 0.5 + tNorm * 0.3); // Orange to White Hot
           
           mainGroup.traverse((child) => {
@@ -226,22 +241,22 @@ export const DisconnectSwitchScene: React.FC<DisconnectSceneProps> = ({
               contactGlowRef.current[0].color = heatColor;
           }
       } else {
-          // Standard view: Wear shows as darkening/roughness
+          // Standard view: Wear shows as darkening/roughness - 读取ref中最新的磨损值
           mainGroup.traverse((child) => {
               if (child.name === 'contact' && child instanceof THREE.Mesh) {
                   const m = child.material as THREE.MeshStandardMaterial;
                   m.color.setHex(0xb45309); // Copper/Silver base
                   m.emissive.setHex(0x000000);
                   // Wear -> darker
-                  const darkening = 1 - (wearLevel / 200);
+                  const darkening = 1 - (wearLevelRef.current / 200);
                   m.color.multiplyScalar(darkening);
               }
           });
           if (contactGlowRef.current[0]) contactGlowRef.current[0].intensity = 0;
       }
 
-      // Spark Animation
-      if (sparkIntensity > 0) {
+      // Spark Animation - 读取ref中最新的火花强度值
+      if (sparkIntensityRef.current > 0) {
           const positions = sparks.geometry.attributes.position.array as Float32Array;
           for(let i=0; i<pCount; i++) {
               if (Math.random() > 0.9) {
@@ -257,7 +272,7 @@ export const DisconnectSwitchScene: React.FC<DisconnectSceneProps> = ({
               }
           }
           sparks.geometry.attributes.position.needsUpdate = true;
-          (sparks.material as THREE.PointsMaterial).opacity = sparkIntensity;
+          (sparks.material as THREE.PointsMaterial).opacity = sparkIntensityRef.current;
       } else {
           (sparks.material as THREE.PointsMaterial).opacity = 0;
       }
@@ -284,8 +299,17 @@ export const DisconnectSwitchScene: React.FC<DisconnectSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 清理几何体和材质，防止内存泄漏
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose();
+          if (obj.material instanceof THREE.Material) {
+            obj.material.dispose();
+          }
+        }
+      });
     };
-  }, [switchState, bladeAngle, contactTemp, wearLevel, sparkIntensity, showThermal]);
+  }, [mountRef]); // 仅依赖mountRef，确保场景只初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

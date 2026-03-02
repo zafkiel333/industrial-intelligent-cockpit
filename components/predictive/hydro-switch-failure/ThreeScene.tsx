@@ -18,6 +18,7 @@ export const SwitchStationScene: React.FC<SwitchStationSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-switch-failure useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -52,7 +53,7 @@ export const SwitchStationScene: React.FC<SwitchStationSceneProps> = ({
     controls.autoRotateSpeed = 0.5;
 
     // --- 增强光影系统 ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // 增加基础环境光
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // 增加基础环境光
     scene.add(ambientLight);
 
     const moonLight = new THREE.DirectionalLight(0x4c6ef5, 1.2); // 增强模拟月光/背景光

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,8 +17,26 @@ export const WindingThermalScene: React.FC<WindingSceneProps> = ({
   const lvCoilRef = useRef<THREE.Mesh | null>(null);
   const oilParticlesRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.02 - Bug修复：创建ref保存实时变化的props值，避免依赖项变化触发useEffect重渲染
+  // Bug情况：模型频繁闪烁，useEffect反复执行导致重复创建场景/渲染器等
+  // Bug原因：useEffect依赖项（hvTemp/lvTemp/oilTemp/loadFactor/hotspotHeight）频繁变化，触发useEffect重新执行，重复初始化3D场景导致闪烁
+  const hvTempRef = useRef(hvTemp);
+  const lvTempRef = useRef(lvTemp);
+  const oilTempRef = useRef(oilTemp);
+  const loadFactorRef = useRef(loadFactor);
+  const hotspotHeightRef = useRef(hotspotHeight);
+
+  // 每次组件渲染时更新ref值，保证动画循环能获取最新的props值
+  hvTempRef.current = hvTemp;
+  lvTempRef.current = lvTemp;
+  oilTempRef.current = oilTemp;
+  loadFactorRef.current = loadFactor;
+  hotspotHeightRef.current = hotspotHeight;
+
+  // 2026.03.02 - 移除useEffect的props依赖项，改为空数组，只初始化一次3D场景
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-transformer-winding useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -162,26 +179,27 @@ export const WindingThermalScene: React.FC<WindingSceneProps> = ({
           return color;
       };
 
+      // 2026.03.02 - 使用ref.current获取最新的props值，而非直接使用props依赖项
       if (hvCoilRef.current) {
-          const color = getHeatColor(hvTemp);
+          const color = getHeatColor(hvTempRef.current);
           (hvCoilRef.current.material as THREE.MeshStandardMaterial).color.copy(color);
           (hvCoilRef.current.material as THREE.MeshStandardMaterial).emissive.copy(color);
           // Pulse emissivity with load
-          (hvCoilRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.2 + loadFactor * 0.3 * (Math.sin(time*2)+1)/2;
+          (hvCoilRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.2 + loadFactorRef.current * 0.3 * (Math.sin(time*2)+1)/2;
       }
 
       if (lvCoilRef.current) {
-          const color = getHeatColor(lvTemp);
+          const color = getHeatColor(lvTempRef.current);
           (lvCoilRef.current.material as THREE.MeshStandardMaterial).color.copy(color);
           (lvCoilRef.current.material as THREE.MeshStandardMaterial).emissive.copy(color);
-          (lvCoilRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.1 + loadFactor * 0.2;
+          (lvCoilRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.1 + loadFactorRef.current * 0.2;
       }
 
       // 2. Oil Flow Animation (Convection)
       if (oilParticlesRef.current) {
           const positions = oilParticlesRef.current.geometry.attributes.position.array as Float32Array;
           // Speed increases with temp/load
-          const speed = 0.02 + loadFactor * 0.05;
+          const speed = 0.02 + loadFactorRef.current * 0.05;
           
           for(let i=0; i<pCount; i++) {
               positions[i*3+1] += speed;
@@ -218,8 +236,21 @@ export const WindingThermalScene: React.FC<WindingSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 清理几何体和材质，防止内存泄漏
+      if (hvCoilRef.current) {
+        (hvCoilRef.current.geometry as THREE.BufferGeometry).dispose();
+        ((hvCoilRef.current.material as THREE.MeshStandardMaterial)).dispose();
+      }
+      if (lvCoilRef.current) {
+        (lvCoilRef.current.geometry as THREE.BufferGeometry).dispose();
+        ((lvCoilRef.current.material as THREE.MeshStandardMaterial)).dispose();
+      }
+      if (oilParticlesRef.current) {
+        (oilParticlesRef.current.geometry as THREE.BufferGeometry).dispose();
+        ((oilParticlesRef.current.material as THREE.PointsMaterial)).dispose();
+      }
     };
-  }, [hvTemp, lvTemp, oilTemp, loadFactor, hotspotHeight]);
+  }, []); // 2026.03.02 - 依赖项改为空数组，只初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

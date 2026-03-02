@@ -21,6 +21,7 @@ export const GateStictionScene: React.FC<StictionSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-gate-stiction useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;

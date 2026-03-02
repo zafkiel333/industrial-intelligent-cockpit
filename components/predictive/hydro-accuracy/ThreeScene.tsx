@@ -20,6 +20,7 @@ export const AccuracyThreeScene: React.FC<AccuracySceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-accuracy useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

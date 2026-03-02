@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -14,9 +13,29 @@ export const GovernorRulScene: React.FC<GovernorRulSceneProps> = ({
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const compGroupsRef = useRef<THREE.Group[]>([]);
+  
+  // 2026.03.02 bug修复：新增ref保存实时值，避免依赖项变化触发useEffect重渲染
+  // bug情况：3D模型频繁闪烁，原因是useEffect依赖项(components/selectedId/explodeLevel)反复变化，导致useEffect频繁触发，重新创建场景/渲染器/模型等资源
+  const componentsRef = useRef(components);
+  const selectedIdRef = useRef(selectedId);
+  const explodeLevelRef = useRef(explodeLevel);
+
+  // 2026.03.02 bug修复：单独监听依赖项变化，仅更新ref值，不触发主渲染逻辑
+  useEffect(() => {
+    componentsRef.current = components;
+  }, [components]);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
+
+  useEffect(() => {
+    explodeLevelRef.current = explodeLevel;
+  }, [explodeLevel]);
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-governor-rul useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -102,49 +121,59 @@ export const GovernorRulScene: React.FC<GovernorRulSceneProps> = ({
     // --- Geometry Construction ---
     const mainGroup = new THREE.Group();
     scene.add(mainGroup);
-    compGroupsRef.current = [];
 
-    components.forEach((comp) => {
-        const group = new THREE.Group();
-        group.userData = { id: comp.id, basePos: new THREE.Vector3(...comp.position) };
-        
-        let mesh;
-        // Simple distinct shapes for different components
-        if (comp.type === 'servo') {
-            const geo = new THREE.CylinderGeometry(0.8, 0.8, 4, 32);
-            geo.rotateZ(Math.PI/2);
-            mesh = new THREE.Mesh(geo, baseMat.clone());
-        } else if (comp.type === 'pump') {
-            const geo = new THREE.BoxGeometry(2, 2, 2);
-            mesh = new THREE.Mesh(geo, baseMat.clone());
-        } else if (comp.type === 'valve') {
-            const geo = new THREE.SphereGeometry(1, 16, 16);
-            mesh = new THREE.Mesh(geo, baseMat.clone());
-        } else if (comp.type === 'accumulator') {
-            const geo = new THREE.CapsuleGeometry(0.8, 3, 4, 16);
-            mesh = new THREE.Mesh(geo, baseMat.clone());
-        } else {
-            const geo = new THREE.ConeGeometry(1, 2, 16);
-            mesh = new THREE.Mesh(geo, baseMat.clone());
-        }
+    // --- 模型重建方法（用于components更新时复用） ---
+    const rebuildComponents = () => {
+      // 清空原有组件
+      mainGroup.clear();
+      compGroupsRef.current = [];
+      const currentComponents = componentsRef.current;
+      
+      currentComponents.forEach((comp) => {
+          const group = new THREE.Group();
+          group.userData = { id: comp.id, basePos: new THREE.Vector3(...comp.position) };
+          
+          let mesh;
+          // Simple distinct shapes for different components
+          if (comp.type === 'servo') {
+              const geo = new THREE.CylinderGeometry(0.8, 0.8, 4, 32);
+              geo.rotateZ(Math.PI/2);
+              mesh = new THREE.Mesh(geo, baseMat.clone());
+          } else if (comp.type === 'pump') {
+              const geo = new THREE.BoxGeometry(2, 2, 2);
+              mesh = new THREE.Mesh(geo, baseMat.clone());
+          } else if (comp.type === 'valve') {
+              const geo = new THREE.SphereGeometry(1, 16, 16);
+              mesh = new THREE.Mesh(geo, baseMat.clone());
+          } else if (comp.type === 'accumulator') {
+              const geo = new THREE.CapsuleGeometry(0.8, 3, 4, 16);
+              mesh = new THREE.Mesh(geo, baseMat.clone());
+          } else {
+              const geo = new THREE.ConeGeometry(1, 2, 16);
+              mesh = new THREE.Mesh(geo, baseMat.clone());
+          }
 
-        group.add(mesh);
-        
-        // Add a "Life Bar" floating above
-        const barBg = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.1), new THREE.MeshBasicMaterial({color: 0x000000}));
-        barBg.position.y = 2;
-        group.add(barBg);
-        
-        const barFg = new THREE.Mesh(new THREE.BoxGeometry(1, 0.08, 0.12), new THREE.MeshBasicMaterial({color: 0x00ff00}));
-        barFg.position.y = 2;
-        barFg.scale.x = comp.health / 100;
-        barFg.position.x = -0.5 + (comp.health/100)*0.5; // Left align roughly
-        group.add(barFg);
-        group.userData.healthBar = barFg;
+          group.add(mesh);
+          
+          // Add a "Life Bar" floating above
+          const barBg = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.1), new THREE.MeshBasicMaterial({color: 0x000000}));
+          barBg.position.y = 2;
+          group.add(barBg);
+          
+          const barFg = new THREE.Mesh(new THREE.BoxGeometry(1, 0.08, 0.12), new THREE.MeshBasicMaterial({color: 0x00ff00}));
+          barFg.position.y = 2;
+          barFg.scale.x = comp.health / 100;
+          barFg.position.x = -0.5 + (comp.health/100)*0.5; // Left align roughly
+          group.add(barFg);
+          group.userData.healthBar = barFg;
 
-        mainGroup.add(group);
-        compGroupsRef.current.push(group);
-    });
+          mainGroup.add(group);
+          compGroupsRef.current.push(group);
+      });
+    };
+
+    // 初始化组件
+    rebuildComponents();
 
     // --- Interaction ---
     const raycaster = new THREE.Raycaster();
@@ -180,20 +209,24 @@ export const GovernorRulScene: React.FC<GovernorRulSceneProps> = ({
       frameId = requestAnimationFrame(animate);
       controls.update();
 
+      // 2026.03.02 bug修复：从ref读取实时值，而非闭包中的旧值
+      const currentExplodeLevel = explodeLevelRef.current;
+      const currentSelectedId = selectedIdRef.current;
+      const currentComponents = componentsRef.current;
+
       compGroupsRef.current.forEach((group) => {
           const { id, basePos } = group.userData;
-          const compData = components.find(c => c.id === id);
+          const compData = currentComponents.find(c => c.id === id);
           if (!compData) return;
 
-          // 1. Explode Effect
-          // Move away from center (0,0,0) based on explodeLevel
+          // 1. Explode Effect (读取实时爆炸等级)
           const direction = basePos.clone().normalize();
-          const targetPos = basePos.clone().add(direction.multiplyScalar(explodeLevel * 5));
+          const targetPos = basePos.clone().add(direction.multiplyScalar(currentExplodeLevel * 5));
           group.position.lerp(targetPos, 0.1);
 
-          // 2. Material Update
+          // 2. Material Update (读取实时选中状态和组件数据)
           const mesh = group.children[0] as THREE.Mesh;
-          if (id === selectedId) {
+          if (id === currentSelectedId) {
               mesh.material = selectedMat;
               group.rotation.y += 0.02; // Rotate selected
           } else {
@@ -203,11 +236,13 @@ export const GovernorRulScene: React.FC<GovernorRulSceneProps> = ({
               group.rotation.y = 0; // Reset
           }
 
-          // 3. Health Bar Color
+          // 3. Health Bar Update (读取实时健康值)
           const bar = group.userData.healthBar as THREE.Mesh;
           (bar.material as THREE.MeshBasicMaterial).color.setHex(
               compData.health > 70 ? 0x10b981 : compData.health > 40 ? 0xf59e0b : 0xef4444
           );
+          bar.scale.x = compData.health / 100;
+          bar.position.x = -0.5 + (compData.health/100)*0.5;
       });
 
       renderer.render(scene, camera);
@@ -225,6 +260,22 @@ export const GovernorRulScene: React.FC<GovernorRulSceneProps> = ({
     };
     window.addEventListener('resize', handleResize);
 
+    // 2026.03.02 bug修复：监听components变化时重建模型，而非重新执行整个useEffect
+    const componentsObserver = () => {
+      rebuildComponents();
+    };
+    // 监听componentsRef的变化（简化版，实际可结合useCallback）
+    const originalSetComponents = Object.getOwnPropertyDescriptor(componentsRef, 'current')?.set;
+    if (originalSetComponents) {
+      Object.defineProperty(componentsRef, 'current', {
+        get: () => componentsRef.current,
+        set: (newVal) => {
+          originalSetComponents.call(componentsRef, newVal);
+          componentsObserver();
+        }
+      });
+    }
+
     return () => {
       window.removeEventListener('resize', handleResize);
       mountRef.current?.removeEventListener('click', onMouseClick);
@@ -233,8 +284,10 @@ export const GovernorRulScene: React.FC<GovernorRulSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 清理材质缓存
+      [baseMat, criticalMat, warningMat, goodMat, selectedMat].forEach(mat => mat.dispose());
     };
-  }, [components, selectedId, explodeLevel]);
+  }, []); // 2026.03.02 bug修复：清空依赖数组，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
 };

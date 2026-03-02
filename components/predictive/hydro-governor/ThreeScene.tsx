@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -23,8 +22,42 @@ export const GovernorHydraulicScene: React.FC<GovernorSceneProps> = ({
   const servoRodRef = useRef<THREE.Mesh | null>(null);
   const pipesRef = useRef<THREE.Mesh | null>(null);
 
+  // 2026.02.28 修复bug：使用ref保存实时props状态，避免依赖项触发useEffect重建场景
+  // 作用：将实时变化的props值存入ref，在动画循环中读取最新值，而非依赖useEffect重新执行
+  const stateRef = useRef({
+    systemPressure,
+    tankLevel,
+    oilTemp,
+    pumpA_State,
+    pumpB_State,
+    accumulatorLevel,
+    servoPosition
+  });
+
+  // 2026.02.28 单独更新状态ref，保证能获取最新props值，不触发主渲染逻辑重建
+  useEffect(() => {
+    stateRef.current = {
+      systemPressure,
+      tankLevel,
+      oilTemp,
+      pumpA_State,
+      pumpB_State,
+      accumulatorLevel,
+      servoPosition
+    };
+  }, [systemPressure, tankLevel, oilTemp, pumpA_State, pumpB_State, accumulatorLevel, servoPosition]);
+
+  // 主渲染逻辑useEffect - 核心修复点
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-governor useEffect===");
+
+    // 2026.02.28 修复bug：useEffect依赖项包含实时变化的props导致反复触发，场景频繁重建引发模型闪烁
+    // bug情况：3D模型渲染时出现频繁闪烁，控制台可观察到useEffect反复执行
+    // bug原因：原代码useEffect依赖项包含systemPressure/tankLevel等实时变化的props，这些props每次变化都会触发useEffect重新执行，
+    //         导致Three.js场景、渲染器、几何体等被反复创建和销毁，表现为模型闪烁
+    // 修复方案：1. 使用ref保存实时变化的props状态，在动画循环中读取最新值；2. 将主useEffect依赖项改为空数组，确保场景只初始化一次；
+    //         3. 单独用useEffect更新状态ref，保证能获取最新的props值
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -208,6 +241,9 @@ export const GovernorHydraulicScene: React.FC<GovernorSceneProps> = ({
       time += 0.02;
       controls.update();
 
+      // 2026.02.28 读取最新的状态值，替代直接使用props
+      const { tankLevel, pumpA_State, pumpB_State, accumulatorLevel, servoPosition } = stateRef.current;
+
       // 1. Fluid Dynamics Visuals
       if (fluidRef.current) {
           // Scale fluid Y based on tankLevel (0-100)
@@ -217,6 +253,9 @@ export const GovernorHydraulicScene: React.FC<GovernorSceneProps> = ({
           // Bubbling effect on top surface if pumps running
           if (pumpA_State === 'running' || pumpB_State === 'running') {
              // Subtle jitter
+             fluidRef.current.position.y = 0.1 + Math.sin(time * 2) * 0.01;
+          } else {
+            fluidRef.current.position.y = 0.1;
           }
       }
 
@@ -228,6 +267,7 @@ export const GovernorHydraulicScene: React.FC<GovernorSceneProps> = ({
                   if (state === 'running') {
                       (light.material as THREE.MeshStandardMaterial).color.setHex(0x22c55e);
                       (light.material as THREE.MeshStandardMaterial).emissive.setHex(0x22c55e);
+                      (light.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5;
                       // Vibration
                       ref.current.position.x += Math.sin(time * 50) * 0.002;
                   } else if (state === 'fault') {
@@ -238,6 +278,7 @@ export const GovernorHydraulicScene: React.FC<GovernorSceneProps> = ({
                   } else {
                       (light.material as THREE.MeshStandardMaterial).color.setHex(0x64748b);
                       (light.material as THREE.MeshStandardMaterial).emissive.setHex(0x000000);
+                      (light.material as THREE.MeshStandardMaterial).emissiveIntensity = 0;
                   }
               }
           }
@@ -285,8 +326,17 @@ export const GovernorHydraulicScene: React.FC<GovernorSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 2026.02.28 新增：清理Three.js资源，防止内存泄漏
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose();
+          if (obj.material instanceof THREE.Material) {
+            obj.material.dispose();
+          }
+        }
+      });
     };
-  }, [systemPressure, tankLevel, oilTemp, pumpA_State, pumpB_State, accumulatorLevel, servoPosition]);
+  }, []); // 2026.02.28 核心修复：依赖项改为空数组，确保场景只初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

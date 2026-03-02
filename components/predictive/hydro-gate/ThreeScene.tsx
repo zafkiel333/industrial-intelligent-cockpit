@@ -19,8 +19,29 @@ export const GateStructureScene: React.FC<GateSceneProps> = ({
   const waterDownRef = useRef<THREE.Mesh | null>(null);
   const trunnionRef = useRef<THREE.Mesh | null>(null);
 
+  // 2026.03.02 - Bug修复：创建ref缓存实时props值，避免依赖项变化触发useEffect重渲染
+  // Bug情况：3D模型渲染时出现闪烁问题
+  // Bug原因：useEffect依赖项（openingHeight、waterLevelUpstream等）频繁变化导致useEffect反复触发，模型频繁重新初始化渲染
+  const openingHeightRef = useRef(openingHeight);
+  const waterLevelUpstreamRef = useRef(waterLevelUpstream);
+  const waterLevelDownstreamRef = useRef(waterLevelDownstream);
+  const stressMapRef = useRef(stressMap);
+  const vibrationIntensityRef = useRef(vibrationIntensity);
+  const trunnionHealthRef = useRef(trunnionHealth);
+
+  // 2026.03.02 - 仅更新ref值，不触发模型重渲染
+  useEffect(() => {
+    openingHeightRef.current = openingHeight;
+    waterLevelUpstreamRef.current = waterLevelUpstream;
+    waterLevelDownstreamRef.current = waterLevelDownstream;
+    stressMapRef.current = stressMap;
+    vibrationIntensityRef.current = vibrationIntensity;
+    trunnionHealthRef.current = trunnionHealth;
+  }, [openingHeight, waterLevelUpstream, waterLevelDownstream, stressMap, vibrationIntensity, trunnionHealth]);
+
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-gate useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -31,7 +52,7 @@ export const GateStructureScene: React.FC<GateSceneProps> = ({
     scene.fog = new THREE.FogExp2(0x020610, 0.02);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
-    camera.position.set(15, 12, 18);
+    camera.position.set(15, 24, 18);
     camera.lookAt(0, 4, 0);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -181,35 +202,38 @@ export const GateStructureScene: React.FC<GateSceneProps> = ({
       controls.update();
 
       // 1. Gate Opening Animation
+      // 2026.03.02 - 读取ref缓存的实时值，而非直接使用props
       if (gateGroupRef.current) {
           // openingHeight 0-100% -> Angle rotation
           // Closed at approx 0 rotation (based on geometry setup)
           // Open pulls the skin plate UP. Since pivot is at top-back (0,6,4), 
           // Skin plate is forward-down. Rotating X-axis positive lifts it.
-          const targetRot = (openingHeight / 100) * 0.8; // 0 to ~45 deg
+          const targetRot = (openingHeightRef.current / 100) * 0.8; // 0 to ~45 deg
           gateGroupRef.current.rotation.x = targetRot;
 
           // Vibration effect
-          if (vibrationIntensity > 0) {
-              gateGroupRef.current.position.y = 6 + Math.sin(time * 20) * 0.05 * vibrationIntensity;
+          if (vibrationIntensityRef.current > 0) {
+              gateGroupRef.current.position.y = 6 + Math.sin(time * 20) * 0.05 * vibrationIntensityRef.current;
+          } else {
+              gateGroupRef.current.position.y = 6; // 重置位置，避免振动停止后位置偏移
           }
       }
 
       // 2. Water Levels
       if (waterUpRef.current) {
           // Scale based on waterLevelUpstream (relative to floor)
-          const h = Math.max(0.1, waterLevelUpstream);
+          const h = Math.max(0.1, waterLevelUpstreamRef.current);
           waterUpRef.current.scale.y = h;
           waterUpRef.current.position.y = h / 2;
           // Waves
           waterUpRef.current.position.y += Math.sin(time) * 0.05;
       }
       if (waterDownRef.current) {
-          const h = Math.max(0.1, waterLevelDownstream);
+          const h = Math.max(0.1, waterLevelDownstreamRef.current);
           waterDownRef.current.scale.y = h;
           waterDownRef.current.position.y = h / 2;
           // Turbulence
-          waterDownRef.current.scale.y += Math.sin(time * 3) * 0.02 * (openingHeight > 0 ? 1 : 0);
+          waterDownRef.current.scale.y += Math.sin(time * 3) * 0.02 * (openingHeightRef.current > 0 ? 1 : 0);
       }
 
       // 3. Stress & Health Coloring
@@ -217,9 +241,9 @@ export const GateStructureScene: React.FC<GateSceneProps> = ({
           const skin = gateGroupRef.current.children.find(c => c.type === 'Mesh' && (c as THREE.Mesh).geometry.type === 'CylinderGeometry') as THREE.Mesh;
           if (skin) {
               const mat = skin.material as THREE.MeshStandardMaterial;
-              if (stressMap) {
+              if (stressMapRef.current) {
                   // Pulse red based on opening (load)
-                  const stress = (waterLevelUpstream / 10) * 0.8 + Math.sin(time)*0.1;
+                  const stress = (waterLevelUpstreamRef.current / 10) * 0.8 + Math.sin(time)*0.1;
                   mat.emissive.setHex(0xff0000);
                   mat.emissiveIntensity = stress;
                   mat.color.setHex(0x555555);
@@ -234,10 +258,10 @@ export const GateStructureScene: React.FC<GateSceneProps> = ({
       // Trunnion Health Color
       if (trunnionRef.current) {
           const tMat = trunnionRef.current.material as THREE.MeshStandardMaterial;
-          if (trunnionHealth < 60) {
+          if (trunnionHealthRef.current < 60) {
               tMat.emissive.setHex(0xff0000);
               tMat.emissiveIntensity = 0.5 + Math.sin(time * 5) * 0.5;
-          } else if (trunnionHealth < 80) {
+          } else if (trunnionHealthRef.current < 80) {
               tMat.emissive.setHex(0xf59e0b);
               tMat.emissiveIntensity = 0.3;
           } else {
@@ -268,8 +292,17 @@ export const GateStructureScene: React.FC<GateSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 清理材质和几何体，防止内存泄漏
+      concreteMat.dispose();
+      steelGateMat.dispose();
+      armMat.dispose();
+      waterMat.dispose();
+      floorGeo.dispose();
+      pierGeo.dispose();
+      trunnionGeo.dispose();
+      skinGeo.dispose();
     };
-  }, [openingHeight, waterLevelUpstream, waterLevelDownstream, stressMap, vibrationIntensity, trunnionHealth]);
+  }, []); // 2026.03.02 - 清空依赖项，避免反复触发useEffect
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

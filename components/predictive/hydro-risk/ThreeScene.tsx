@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -15,6 +14,25 @@ export const RiskPredictionScene: React.FC<RiskSceneProps> = ({
   const sceneRef = useRef<THREE.Scene | null>(null);
   const partsRef = useRef<THREE.Group[]>([]);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  
+  // 2026.02.28 bug修复：缓存实时变化的props值，避免作为useEffect依赖触发重复渲染
+  // bug情况：3D模型频繁闪烁，原因是useEffect依赖项（explodeFactor/components/activeComponentId）频繁变化，导致useEffect反复执行，场景被重复初始化
+  const stateRef = useRef({
+    explodeFactor,
+    components,
+    activeComponentId,
+    onComponentSelect
+  });
+  
+  // 实时更新缓存的props值，不触发useEffect
+  useEffect(() => {
+    stateRef.current = {
+      explodeFactor,
+      components,
+      activeComponentId,
+      onComponentSelect
+    };
+  }, [explodeFactor, components, activeComponentId, onComponentSelect]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -39,10 +57,10 @@ export const RiskPredictionScene: React.FC<RiskSceneProps> = ({
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
     // 新增：清空挂载节点，避免多canvas
     console.log("=== hydro-risk excute clear canvas ===");
-    // const existingCanvas = mountRef.current.querySelector('canvas');
-    // if (existingCanvas) {
-    //   mountRef.current.removeChild(existingCanvas);
-    // }
+    const existingCanvas = mountRef.current.querySelector('canvas');
+    if (existingCanvas) {
+      mountRef.current.removeChild(existingCanvas);
+    }
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -158,10 +176,11 @@ export const RiskPredictionScene: React.FC<RiskSceneProps> = ({
         if (intersects.length > 0) {
             const group = intersects[0].object.parent;
             if (group && group.userData.id) {
-                onComponentSelect(group.userData.id);
+                // 读取缓存的最新回调函数
+                stateRef.current.onComponentSelect(group.userData.id);
             }
         } else {
-            onComponentSelect('');
+            stateRef.current.onComponentSelect('');
         }
     };
     mountRef.current.addEventListener('click', onMouseClick);
@@ -174,6 +193,9 @@ export const RiskPredictionScene: React.FC<RiskSceneProps> = ({
       frameId = requestAnimationFrame(animate);
       time += 0.01;
       controls.update();
+
+      // 2026.02.28 bug修复：从ref中读取最新的props值，而非依赖useEffect传参
+      const { explodeFactor, components, activeComponentId } = stateRef.current;
 
       // Update Part Positions (Explosion) and Colors
       partsRef.current.forEach(group => {
@@ -259,7 +281,9 @@ export const RiskPredictionScene: React.FC<RiskSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [explodeFactor, components, activeComponentId]);
+  }, [onComponentSelect]); // 仅保留稳定的回调依赖（或移除，通过ref完全隔离）
+  // 注：如果onComponentSelect是父组件每次渲染都新建的函数，可将其也纳入stateRef缓存，彻底移除该依赖
+  
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
 };

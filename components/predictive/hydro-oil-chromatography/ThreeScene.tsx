@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -16,8 +15,25 @@ export const OilChromatographyScene: React.FC<OilSceneProps> = ({
   const particlesRef = useRef<THREE.Points | null>(null);
   const faultGlowRef = useRef<THREE.PointLight | null>(null);
 
+  // 2026.03.02 - Bug修复：创建ref存储实时props值，避免依赖项变化触发useEffect重建场景
+  // Bug情况：模型频繁闪烁，原因是useEffect依赖项(oilTemp/gasData/faultLocation/oilClarity)反复变化，导致场景被反复创建和销毁
+  const oilTempRef = useRef(oilTemp);
+  const gasDataRef = useRef(gasData);
+  const faultLocationRef = useRef(faultLocation);
+  const oilClarityRef = useRef(oilClarity);
+
+  // 2026.03.02 - 仅更新ref值，不触发场景重建
+  useEffect(() => {
+    oilTempRef.current = oilTemp;
+    gasDataRef.current = gasData;
+    faultLocationRef.current = faultLocation;
+    oilClarityRef.current = oilClarity;
+  }, [oilTemp, gasData, faultLocation, oilClarity]);
+
+  // 2026.03.02 - 清空依赖项，仅初始化一次场景，避免反复触发导致闪烁
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-oil-chromatography useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -156,6 +172,12 @@ export const OilChromatographyScene: React.FC<OilSceneProps> = ({
       time += 0.01;
       controls.update();
 
+      // 2026.03.02 - 读取ref中的最新props值，替代直接使用props
+      const currentOilTemp = oilTempRef.current;
+      const currentGasData = gasDataRef.current;
+      const currentFaultLocation = faultLocationRef.current;
+      const currentOilClarity = oilClarityRef.current;
+
       // 1. Particle Logic
       if (particlesRef.current) {
           const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
@@ -166,7 +188,7 @@ export const OilChromatographyScene: React.FC<OilSceneProps> = ({
           // H2 -> Fast, upward
           // C2H2 -> Generated at fault location
           
-          const totalPPM = gasData.reduce((a, b) => a + b.concentration, 0);
+          const totalPPM = currentGasData.reduce((a, b) => a + b.concentration, 0);
           const maxPPM = 1000; // Visual scale cap
           const particleDensity = Math.min(1.0, totalPPM / maxPPM);
 
@@ -193,18 +215,18 @@ export const OilChromatographyScene: React.FC<OilSceneProps> = ({
               colors[i*3+2] = typeColor.b;
               sizes[i] = 0.1 + (Math.sin(time*2 + i)*0.02);
 
-              // Movement
-              positions[i*3+1] += speed * (1 + (oilTemp - 20)/100); // Temp affects speed
+              // Movement - 使用最新油温
+              positions[i*3+1] += speed * (1 + (currentOilTemp - 20)/100); // Temp affects speed
 
               // Reset
               if (positions[i*3+1] > 2.5) {
                   positions[i*3+1] = -2.5;
                   
                   // If fault location is defined, emit fault gases from there
-                  if (faultLocation && isFaultGas) {
-                      positions[i*3] = faultLocation[0] * 3 + (Math.random()-0.5)*0.5;
-                      positions[i*3+1] = faultLocation[1] * 2.5;
-                      positions[i*3+2] = faultLocation[2] * 2 + (Math.random()-0.5)*0.5;
+                  if (currentFaultLocation && isFaultGas) {
+                      positions[i*3] = currentFaultLocation[0] * 3 + (Math.random()-0.5)*0.5;
+                      positions[i*3+1] = currentFaultLocation[1] * 2.5;
+                      positions[i*3+2] = currentFaultLocation[2] * 2 + (Math.random()-0.5)*0.5;
                   } else {
                       positions[i*3] = (Math.random() - 0.5) * 5.5;
                       positions[i*3+2] = (Math.random() - 0.5) * 3.5;
@@ -217,18 +239,18 @@ export const OilChromatographyScene: React.FC<OilSceneProps> = ({
           particlesRef.current.geometry.attributes.size.needsUpdate = true;
       }
 
-      // 2. Fault Light Pulse
-      if (faultGlowRef.current && faultLocation) {
-          faultGlowRef.current.position.set(faultLocation[0]*3, faultLocation[1]*2.5, faultLocation[2]*2);
+      // 2. Fault Light Pulse - 使用最新故障位置和气体数据
+      if (faultGlowRef.current && currentFaultLocation) {
+          faultGlowRef.current.position.set(currentFaultLocation[0]*3, currentFaultLocation[1]*2.5, currentFaultLocation[2]*2);
           // Intensity based on C2H2 content roughly
-          const c2h2 = gasData.find(g => g.type === 'C2H2')?.concentration || 0;
+          const c2h2 = currentGasData.find(g => g.type === 'C2H2')?.concentration || 0;
           faultGlowRef.current.intensity = (c2h2 > 0 ? 2 : 0) + Math.sin(time * 10) * 1;
       }
 
-      // 3. Oil Clarity (Tank opacity)
+      // 3. Oil Clarity (Tank opacity) - 使用最新油透明度
       // Dirtier oil = more opaque / darker
-      tankMat.opacity = 0.3 + (1 - oilClarity) * 0.5;
-      tankMat.color.setHSL(0.08, 1.0, 0.5 * oilClarity); // Darken if dirty
+      tankMat.opacity = 0.3 + (1 - currentOilClarity) * 0.5;
+      tankMat.color.setHSL(0.08, 1.0, 0.5 * currentOilClarity); // Darken if dirty
 
       renderer.render(scene, camera);
     };
@@ -253,7 +275,7 @@ export const OilChromatographyScene: React.FC<OilSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [oilTemp, gasData, faultLocation, oilClarity]);
+  }, []); // 2026.03.02 - 清空依赖项，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

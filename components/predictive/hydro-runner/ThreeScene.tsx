@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -16,10 +15,32 @@ export const RunnerCavitationScene: React.FC<RunnerSceneProps> = ({
   const sceneRef = useRef<THREE.Scene | null>(null);
   const runnerGroupRef = useRef<THREE.Group | null>(null);
   const bubblesRef = useRef<THREE.Points | null>(null);
+  
+  // 2026.02.28 - Bug修复：缓存实时更新的props值，避免依赖项变化触发useEffect重渲染
+  // Bug情况：useEffect依赖项（rpm/cavitationIntensity等）频繁变化导致组件反复执行初始化逻辑，模型闪烁
+  // Bug原因：useEffect依赖数组包含易变的props变量，每次变量更新都会触发整个3D场景重新初始化，导致渲染闪烁
+  const propsRef = useRef({
+    rpm,
+    cavitationIntensity,
+    crackSeverity,
+    showStressMap,
+    viewMode
+  });
+  
+  // 实时更新ref中的props值，不触发useEffect
+  useEffect(() => {
+    propsRef.current = {
+      rpm,
+      cavitationIntensity,
+      crackSeverity,
+      showStressMap,
+      viewMode
+    };
+  }, [rpm, cavitationIntensity, crackSeverity, showStressMap, viewMode]);
 
   useEffect(() => {
     if (!mountRef.current) return;
-
+    console.log("===hydro-runner useEffect===");
     // --- Setup ---
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -133,6 +154,8 @@ export const RunnerCavitationScene: React.FC<RunnerSceneProps> = ({
     }
     bladeGeo.computeVertexNormals();
 
+    // 存储叶片引用，用于后续裂纹更新
+    const bladeRefs: THREE.Mesh[] = [];
     for(let i=0; i<bladeCount; i++) {
         const angle = (i / bladeCount) * Math.PI * 2;
         const blade = new THREE.Mesh(bladeGeo, steelMaterial);
@@ -144,33 +167,11 @@ export const RunnerCavitationScene: React.FC<RunnerSceneProps> = ({
         blade.rotation.x = 0.2; // Tilt
         
         runnerGroup.add(blade);
+        bladeRefs.push(blade);
 
-        // Crack Visualization (Overlay on blade root)
-        if (crackSeverity > 0) {
-            const crackGeo = new THREE.BufferGeometry();
-            // Jagged line at root
-            const pts = [];
-            for(let k=0; k<10; k++) {
-                pts.push(new THREE.Vector3((k-5)*0.2, -1.2 + Math.random()*0.1, 0.06));
-            }
-            crackGeo.setFromPoints(pts);
-            const crackMat = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 });
-            const crack = new THREE.Line(crackGeo, crackMat);
-            
-            // Only add cracks to some blades randomly based on severity
-            if (Math.random() < (crackSeverity/100)) {
-                blade.add(crack);
-                // Highlight blade material slightly
-                if (showStressMap) {
-                    const highlight = new THREE.Mesh(
-                        new THREE.BoxGeometry(1, 0.5, 0.12),
-                        new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.4 })
-                    );
-                    highlight.position.set(0, -1.2, 0);
-                    blade.add(highlight);
-                }
-            }
-        }
+        // 初始化裂纹（后续根据crackSeverity动态更新）
+        blade.userData.crack = null;
+        blade.userData.stressHighlight = null;
     }
 
     // 4. Cavitation Bubbles Particle System
@@ -205,6 +206,45 @@ export const RunnerCavitationScene: React.FC<RunnerSceneProps> = ({
     bubblesRef.current = bubbles;
     scene.add(bubbles);
 
+    // --- 裂纹更新函数（2026.02.28 新增） ---
+    const updateCracks = (severity: number, showStress: boolean) => {
+        bladeRefs.forEach(blade => {
+            // 清除原有裂纹和高亮
+            if (blade.userData.crack) {
+                blade.remove(blade.userData.crack);
+                blade.userData.crack = null;
+            }
+            if (blade.userData.stressHighlight) {
+                blade.remove(blade.userData.stressHighlight);
+                blade.userData.stressHighlight = null;
+            }
+
+            // 根据严重度生成新裂纹
+            if (severity > 0 && Math.random() < (severity/100)) {
+                const crackGeo = new THREE.BufferGeometry();
+                const pts = [];
+                for(let k=0; k<10; k++) {
+                    pts.push(new THREE.Vector3((k-5)*0.2, -1.2 + Math.random()*0.1, 0.06));
+                }
+                crackGeo.setFromPoints(pts);
+                const crackMat = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 });
+                const crack = new THREE.Line(crackGeo, crackMat);
+                blade.add(crack);
+                blade.userData.crack = crack;
+
+                // 应力高亮
+                if (showStress) {
+                    const highlight = new THREE.Mesh(
+                        new THREE.BoxGeometry(1, 0.5, 0.12),
+                        new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.4 })
+                    );
+                    highlight.position.set(0, -1.2, 0);
+                    blade.add(highlight);
+                    blade.userData.stressHighlight = highlight;
+                }
+            }
+        });
+    };
 
     // --- Animation Loop ---
     let frameId: number;
@@ -215,21 +255,24 @@ export const RunnerCavitationScene: React.FC<RunnerSceneProps> = ({
       time += 0.01;
       controls.update();
 
-      // Rotate Runner
+      // 2026.02.28 - 读取缓存的最新props值
+      const { rpm: currentRpm, cavitationIntensity: currentCavIntensity, crackSeverity: currentCrackSeverity, showStressMap: currentShowStress } = propsRef.current;
+
+      // Rotate Runner（使用缓存的rpm值）
       if (runnerGroupRef.current) {
-          runnerGroupRef.current.rotation.y -= (rpm / 60) * 0.1;
+          runnerGroupRef.current.rotation.y -= (currentRpm / 60) * 0.03;
       }
 
-      // Animate Cavitation Bubbles
+      // Animate Cavitation Bubbles（使用缓存的空化强度值）
       if (bubblesRef.current) {
           const positions = bubblesRef.current.geometry.attributes.position.array as Float32Array;
           const lives = bubblesRef.current.geometry.attributes.life.array as Float32Array;
           
           // Intensity determines how many particles are visible/active
-          const activeThreshold = cavitationIntensity / 100;
+          const activeThreshold = currentCavIntensity / 100;
           
           // Bubbles rotate with runner but slightly slower (slip) and move down
-          const rotSpeed = (rpm / 60) * 0.1;
+          const rotSpeed = (currentRpm / 60) * 0.1;
 
           for(let i=0; i<pCount; i++) {
               if (i > pCount * activeThreshold) {
@@ -265,11 +308,15 @@ export const RunnerCavitationScene: React.FC<RunnerSceneProps> = ({
           (bubblesRef.current.material as THREE.PointsMaterial).size = 0.05 + (activeThreshold * 0.1);
       }
 
-      // Pulse red light if cracks exist
-      if (crackSeverity > 0) {
-          redAlertLight.intensity = (Math.sin(time * 10) + 1) * (crackSeverity / 20);
+      // Pulse red light if cracks exist（使用缓存的裂纹严重度值）
+      if (currentCrackSeverity > 0) {
+          redAlertLight.intensity = (Math.sin(time * 10) + 1) * (currentCrackSeverity / 20);
+          // 动态更新裂纹显示
+          updateCracks(currentCrackSeverity, currentShowStress);
       } else {
           redAlertLight.intensity = 0;
+          // 清除所有裂纹
+          updateCracks(0, false);
       }
 
       renderer.render(scene, camera);
@@ -294,8 +341,15 @@ export const RunnerCavitationScene: React.FC<RunnerSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 释放几何和材质内存
+      bladeRefs.forEach(blade => {
+          blade.geometry.dispose();
+          (blade.material as THREE.Material).dispose();
+      });
+      pGeo.dispose();
+      pMat.dispose();
     };
-  }, [rpm, cavitationIntensity, crackSeverity, showStressMap, viewMode]);
+  }, []); // 2026.02.28 - 移除所有易变依赖项，仅在挂载/卸载时执行
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

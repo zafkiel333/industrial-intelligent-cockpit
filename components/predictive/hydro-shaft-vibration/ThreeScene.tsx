@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -22,9 +21,40 @@ export const ShaftVibrationScene: React.FC<ShaftVibrationProps> = ({
   const centerlineRef = useRef<THREE.Line | null>(null);
   const orbitTrailsRef = useRef<THREE.Group | null>(null);
 
+  // 2026.02.28 - Bug修复：缓存实时变化的参数到ref，避免useEffect因依赖项频繁变化反复执行
+  // Bug情况：模型渲染时出现闪烁，原因是useEffect依赖项（rpm/vibUpper等原始类型变量）频繁变化，导致整个Three.js场景反复初始化/销毁
+  const paramsRef = useRef({
+    rpm,
+    vibUpper,
+    vibLower,
+    vibWater,
+    phaseUpper,
+    phaseLower,
+    phaseWater,
+    showCenterline
+  });
+
+  // 实时更新ref中的参数值，不触发useEffect
+  useEffect(() => {
+    paramsRef.current = {
+      rpm,
+      vibUpper,
+      vibLower,
+      vibWater,
+      phaseUpper,
+      phaseLower,
+      phaseWater,
+      showCenterline
+    };
+    // 仅当showCenterline变化时更新显隐状态，避免重复创建/删除中心线
+    if (centerlineRef.current) {
+      centerlineRef.current.visible = showCenterline;
+    }
+  }, [rpm, vibUpper, vibLower, vibWater, phaseUpper, phaseLower, phaseWater, showCenterline]);
+
   useEffect(() => {
     if (!mountRef.current) return;
-
+    console.log("===hydro-shaft-vibration===");
     // --- Setup ---
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -142,8 +172,9 @@ export const ShaftVibrationScene: React.FC<ShaftVibrationProps> = ({
     const lineGeo = new THREE.BufferGeometry();
     const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: 2 });
     const centerline = new THREE.Line(lineGeo, lineMat);
+    centerline.visible = paramsRef.current.showCenterline; // 初始显隐状态
     centerlineRef.current = centerline;
-    if (showCenterline) scene.add(centerline);
+    scene.add(centerline); // 始终添加到场景，通过visible控制显隐
 
     // --- Orbit Trails ---
     const orbitGroup = new THREE.Group();
@@ -186,7 +217,10 @@ export const ShaftVibrationScene: React.FC<ShaftVibrationProps> = ({
 
     const animate = () => {
       frameId = requestAnimationFrame(animate);
-      time += (rpm / 60) * 0.1; // Scale time by RPM
+      // 读取最新的参数值（关键修复：从ref中获取，而非依赖项）
+      const { rpm, vibUpper, vibLower, vibWater, phaseUpper, phaseLower, phaseWater } = paramsRef.current;
+      
+      time += (rpm / 60) * 0.008; // Scale time by RPM
       controls.update();
 
       // Calculate Displacement for each height
@@ -300,7 +334,13 @@ export const ShaftVibrationScene: React.FC<ShaftVibrationProps> = ({
       }
       renderer.dispose();
     };
-  }, [rpm, vibUpper, vibLower, vibWater, phaseUpper, phaseLower, phaseWater, showCenterline]);
-
-  return <div ref={mountRef} className="w-full h-full cursor-move" />;
+  }, [mountRef]); // 仅保留固定引用依赖，避免重复执行
+  // 关键修复：组件必须返回JSX元素（ReactNode），这里返回挂载Three.js的div容器
+  return (
+    <div 
+      ref={mountRef} 
+      style={{ width: '100%', height: '100%', overflow: 'hidden' }}
+      className="shaft-vibration-scene"
+    />
+  );
 };

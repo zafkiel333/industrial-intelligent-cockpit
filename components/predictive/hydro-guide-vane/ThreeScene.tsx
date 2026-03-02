@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,8 +17,28 @@ export const GuideVaneScene: React.FC<GuideVaneSceneProps> = ({
   const vanesRef = useRef<THREE.Group[]>([]);
   const servosRef = useRef<THREE.Group[]>([]);
 
+  // 2026.03.02 - Bug修复：使用ref保存实时props值，避免依赖项变化触发useEffect重渲染导致模型闪烁
+  // Bug情况：原代码useEffect依赖props变量（opening/servoPressure等），这些变量频繁变化会导致useEffect反复执行，重新创建3D场景/渲染循环，引发模型闪烁
+  // Bug原因：useEffect依赖项包含频繁更新的props，每次变化都会重新初始化整个3D场景（创建相机、渲染器、几何体等），导致视觉闪烁
+  const openingRef = useRef(opening);
+  const servoPressureRef = useRef(servoPressure);
+  const frictionIndexRef = useRef(frictionIndex);
+  const isMovingRef = useRef(isMoving);
+  const showForcesRef = useRef(showForces);
+
+  // 仅更新ref值，不触发3D场景重建
+  useEffect(() => {
+    openingRef.current = opening;
+    servoPressureRef.current = servoPressure;
+    frictionIndexRef.current = frictionIndex;
+    isMovingRef.current = isMoving;
+    showForcesRef.current = showForces;
+  }, [opening, servoPressure, frictionIndex, isMoving, showForces]);
+
+  // 核心3D场景初始化逻辑：仅执行一次（依赖项为空数组）
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-guide-vane useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -27,18 +46,21 @@ export const GuideVaneScene: React.FC<GuideVaneSceneProps> = ({
 
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.fog = new THREE.FogExp2(0x0a0500, 0.04); // Dark amber/brown fog
+    // 2026.03.02 - 优化：降低雾的浓度，提升整体亮度，让叶片更清晰
+    scene.fog = new THREE.FogExp2(0x0a0500, 0.02); // 雾浓度从0.04降至0.02
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 12, 10);
+    // 2026.03.02 - 优化：调整相机位置，让叶片视角更清晰（稍微拉近+降低高度）
+    camera.position.set(0, 8, 12); 
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
+    // 2026.03.02 - 优化：提升渲染器亮度（toneMappingExposure）
+    renderer.toneMappingExposure = 1.2; // 默认1.0，提升至1.2增强整体亮度
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -51,16 +73,26 @@ export const GuideVaneScene: React.FC<GuideVaneSceneProps> = ({
     controls.maxPolarAngle = Math.PI / 2;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    // 2026.03.02 - 优化：提升环境光强度（从0.3→0.6），让整体亮度提高
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const amberLight = new THREE.PointLight(0xf59e0b, 2, 20);
-    amberLight.position.set(5, 5, 5);
+    // 2026.03.02 - 优化：提升琥珀色点光源强度（从2→3），调整位置更贴近叶片
+    const amberLight = new THREE.PointLight(0xf59e0b, 3, 30); // 强度+范围提升
+    amberLight.position.set(3, 8, 6); // 位置调整，更聚焦叶片区域
     scene.add(amberLight);
 
-    const blueLight = new THREE.PointLight(0x3b82f6, 1, 20); // Contrast light
-    blueLight.position.set(-5, 2, -5);
+    // 2026.03.02 - 优化：提升蓝色补光强度（从1→2），增加叶片细节对比度
+    const blueLight = new THREE.PointLight(0x3b82f6, 2, 30); 
+    blueLight.position.set(-3, 8, -6); 
     scene.add(blueLight);
+
+    // 2026.03.02 - 新增：添加定向光，专门照射叶片，增强轮廓感
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(0, 10, 8); // 从斜上方照射叶片
+    directionalLight.target.position.set(0, 0, 0); // 指向场景中心
+    scene.add(directionalLight);
+    scene.add(directionalLight.target);
 
     // --- Materials ---
     const steelMat = new THREE.MeshStandardMaterial({ 
@@ -131,7 +163,6 @@ export const GuideVaneScene: React.FC<GuideVaneSceneProps> = ({
         armGroup.add(arm);
 
         // Store ref to vane group to rotate it
-        // Store the mesh to color it
         vaneGroup.userData = { mesh: vane, baseAngle: -angle };
         vanesRef.current.push(vaneGroup);
     }
@@ -172,16 +203,19 @@ export const GuideVaneScene: React.FC<GuideVaneSceneProps> = ({
       frameId = requestAnimationFrame(animate);
       controls.update();
 
+      // 读取ref中的实时值，而非直接使用props
+      const currentOpening = openingRef.current;
+      const currentServoPressure = servoPressureRef.current;
+      const currentFrictionIndex = frictionIndexRef.current;
+      const currentIsMoving = isMovingRef.current;
+
       // 1. Regulating Ring Rotation (Based on Opening %)
-      // 0% -> 0 deg, 100% -> 15 deg (approx 0.26 rad)
-      const targetRot = (opening / 100) * 0.26;
+      const targetRot = (currentOpening / 100) * 0.26;
       if (ringRef.current) {
-          // Smooth interpolation
           ringRef.current.rotation.y += (targetRot - ringRef.current.rotation.y) * 0.1;
       }
 
       // 2. Vane Rotation (Linked to Ring)
-      // Vanes rotate more than the ring due to linkage leverage
       const currentRingRot = ringRef.current ? ringRef.current.rotation.y : 0;
       
       vanesRef.current.forEach((vaneGroup, i) => {
@@ -191,8 +225,7 @@ export const GuideVaneScene: React.FC<GuideVaneSceneProps> = ({
           vaneGroup.rotation.y = baseAngle + currentRingRot * 1.5; 
 
           // Friction Heat Visualization
-          // If this vane index has high friction in props, glow red
-          const friction = frictionIndex[i] || 0;
+          const friction = currentFrictionIndex[i] || 0;
           const mat = mesh.material as THREE.MeshStandardMaterial;
           if (friction > 0.5) {
               // High friction -> Red/Orange
@@ -209,14 +242,12 @@ export const GuideVaneScene: React.FC<GuideVaneSceneProps> = ({
       servosRef.current.forEach(g => {
           const rod = g.getObjectByName("rod");
           if (rod) {
-              // Map opening to extension
-              const ext = 1.5 + (opening / 100) * 1.0; 
+              const ext = 1.5 + (currentOpening / 100) * 1.0; 
               rod.position.x += (ext - rod.position.x) * 0.1;
               
-              // Pulse intensity if moving and high pressure
               const mat = rod.material as THREE.MeshStandardMaterial;
-              if (isMoving) {
-                  mat.emissiveIntensity = 0.5 + (servoPressure / 20) * 0.5; // Pressure glows
+              if (currentIsMoving) {
+                  mat.emissiveIntensity = 0.5 + (currentServoPressure / 20) * 0.5;
               } else {
                   mat.emissiveIntensity = 0.2;
               }
@@ -246,7 +277,7 @@ export const GuideVaneScene: React.FC<GuideVaneSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [opening, servoPressure, frictionIndex, isMoving, showForces]);
+  }, []); // 依赖项为空数组，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

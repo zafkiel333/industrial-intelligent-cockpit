@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -16,15 +15,33 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
   const jointsRef = useRef<THREE.Mesh[]>([]);
   const heatParticlesRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.02 - Bug修复：创建ref存储实时props值，避免依赖项变化触发useEffect重渲染
+  // Bug情况：3D模型频繁闪烁，useEffect反复执行导致场景被重复创建/销毁
+  // Bug原因：useEffect依赖项（phaseTemps/loadCurrent/hotspotLocation/viewMode）为引用类型/频繁更新的基本类型，
+  // 每次变化都会触发useEffect重新执行，重建Three.js场景和渲染逻辑，导致视觉闪烁
+  const phaseTempsRef = useRef(phaseTemps);
+  const loadCurrentRef = useRef(loadCurrent);
+  const hotspotLocationRef = useRef(hotspotLocation);
+  const viewModeRef = useRef(viewMode);
+
+  // 同步最新props值到ref，避免闭包陷阱且不触发场景重建
+  useEffect(() => {
+    phaseTempsRef.current = phaseTemps;
+    loadCurrentRef.current = loadCurrent;
+    hotspotLocationRef.current = hotspotLocation;
+    viewModeRef.current = viewMode;
+  }, [phaseTemps, loadCurrent, hotspotLocation, viewMode]);
+
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-busbar useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
-    // Dark environment for heat glow visibility
+    // Dark environment for heat glow visibility（保留雾效，仅调整光线）
     scene.fog = new THREE.FogExp2(0x050202, 0.05);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
@@ -34,11 +51,11 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
-    // Use tone mapping to allow bright emissive colors to bloom (simulated)
+    // 2026.03.02 - 调整曝光度提亮整体画面（不修改材质/模型颜色）
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.8; // 原1.2 → 提升至1.8，增强整体亮度
+
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -51,18 +68,27 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
     controls.autoRotateSpeed = 0.5;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    // 1. 环境光：提升强度，照亮整体暗部（原0.2 → 0.5）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1);
-    mainLight.position.set(5, 10, 5);
+    // 2. 主方向光：提升强度+调整位置，增强主要照明（原强度1 → 2）
+    const mainLight = new THREE.DirectionalLight(0xffffff, 2);
+    mainLight.position.set(8, 12, 8); // 原(5,10,5) → 稍调整位置，减少阴影死角
+    mainLight.castShadow = true; // 开启阴影（可选，增强立体感）
     scene.add(mainLight);
 
-    const heatLight = new THREE.PointLight(0xff4500, 0, 20); // Dynamic heat source
+    // 3. 新增补光：辅助照亮主光源的阴影区域，避免局部过暗
+    const fillLight = new THREE.DirectionalLight(0xf8f8f8, 1.0);
+    fillLight.position.set(-6, 8, -6); // 与主光源相反方向
+    scene.add(fillLight);
+
+    // 4. 热光源：保留原有逻辑，仅调整默认基础强度（原0 → 0.5，提升基础热区亮度）
+    const heatLight = new THREE.PointLight(0xff4500, 0.5, 20);
     heatLight.position.set(0, 2, 0);
     scene.add(heatLight);
 
-    // --- Materials ---
+    // --- Materials ---（完全保留原有材质，未做任何修改）
     const copperMat = new THREE.MeshStandardMaterial({ 
       color: 0xb87333, metalness: 0.8, roughness: 0.3 
     });
@@ -79,7 +105,7 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
         color: 0x888888, metalness: 0.9, roughness: 0.2
     });
 
-    // --- Geometry Construction ---
+    // --- Geometry Construction ---（完全保留原有模型构建逻辑）
     const mainGroup = new THREE.Group();
     scene.add(mainGroup);
     busbarsRef.current = [];
@@ -99,7 +125,6 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
         busbarsRef.current.push(bar);
 
         // 2. Joint (The connection point in the middle)
-        // Two plates bolted together
         const plateGeo = new THREE.BoxGeometry(0.8, 1.0, 1.2);
         const joint = new THREE.Mesh(plateGeo, copperMat.clone());
         joint.userData = { phaseIndex: i, type: 'joint' };
@@ -114,7 +139,6 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
             const bx = (b%2===0 ? -0.2 : 0.2);
             const bz = (b<2 ? -0.3 : 0.3);
             bolt.position.set(0, 0, bz);
-            // Slightly offset Y based on b
             bolt.position.y = (b%2===0 ? 0.2 : -0.2); 
             joint.add(bolt);
         }
@@ -156,31 +180,30 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
       time += 0.02;
       controls.update();
 
-      // 1. Material & Temperature Update
+      const currentPhaseTemps = phaseTempsRef.current;
+      const currentHotspotLocation = hotspotLocationRef.current;
+      const currentViewMode = viewModeRef.current;
+
+      // 1. Material & Temperature Update（完全保留原有逻辑，未修改材质/颜色）
       [...busbarsRef.current, ...jointsRef.current].forEach(mesh => {
           const { phaseIndex, type } = mesh.userData;
-          const temp = phaseTemps[phaseIndex];
-          const isHotspot = (hotspotLocation === phaseIndex + 1) && (type === 'joint');
+          const temp = currentPhaseTemps[phaseIndex];
+          const isHotspot = (currentHotspotLocation === phaseIndex + 1) && (type === 'joint');
           
-          // Calculate effective temp for visualization
-          // Joints are hotter than bars generally, hotspot is much hotter
           let effTemp = temp;
           if (type === 'joint') effTemp += 5; 
-          if (isHotspot) effTemp += 30; // Significant rise
+          if (isHotspot) effTemp += 30;
 
-          // Color Mapping
-          // 40C (Blue) -> 60C (Green) -> 80C (Yellow) -> 100C+ (Red/White)
           const tNorm = Math.min(1, Math.max(0, (effTemp - 40) / 100));
           const heatColor = new THREE.Color().setHSL(0.66 - tNorm * 0.66, 1.0, 0.5 + tNorm*0.2);
 
-          if (viewMode === 'thermal') {
+          if (currentViewMode === 'thermal') {
               (mesh.material as THREE.MeshStandardMaterial).color.copy(heatColor);
               (mesh.material as THREE.MeshStandardMaterial).emissive.copy(heatColor);
               (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.8;
               (mesh.material as THREE.MeshStandardMaterial).metalness = 0.1;
           } else {
-              // Visual Mode: Only glow if really hot
-              (mesh.material as THREE.MeshStandardMaterial).color.setHex(0xb87333); // Copper
+              (mesh.material as THREE.MeshStandardMaterial).color.setHex(0xb87333);
               (mesh.material as THREE.MeshStandardMaterial).metalness = 0.8;
               
               if (effTemp > 80) {
@@ -193,41 +216,33 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
           }
       });
 
-      // 2. Particle System (Heat Shimmer)
+      // 2. Particle System (Heat Shimmer)（完全保留原有逻辑）
       if (heatParticlesRef.current) {
           const positions = heatParticlesRef.current.geometry.attributes.position.array as Float32Array;
           let pIdx = 0;
           
-          // Emit particles only from the hotspot phase if exists
-          if (hotspotLocation > 0) {
-              const phaseX = (hotspotLocation - 2) * 2; // Map 1,2,3 to -2, 0, 2
-              // Only simulate for a subset to create rising effect
+          if (currentHotspotLocation > 0) {
+              const phaseX = (currentHotspotLocation - 2) * 2;
               for(let i=0; i<pCount; i++) {
                   if (positions[i*3+1] > 4 || positions[i*3+1] < -10) {
-                      // Reset to source
                       positions[i*3] = phaseX + (Math.random()-0.5)*0.8;
                       positions[i*3+1] = 0.5 + (Math.random()*0.5);
                       positions[i*3+2] = (Math.random()-0.5)*0.8;
                   }
                   
-                  // Rise up
                   positions[i*3+1] += 0.05 + Math.random()*0.02;
-                  // Drift
                   positions[i*3] += Math.sin(time + i)*0.01;
                   
-                  // Hide if no hotspot
-                  if (hotspotLocation === 0) positions[i*3+1] = -100;
+                  if (currentHotspotLocation === 0) positions[i*3+1] = -100;
               }
               heatParticlesRef.current.geometry.attributes.position.needsUpdate = true;
               
-              // Color based on temp
-              const hotTemp = phaseTemps[hotspotLocation-1] + 30;
+              const hotTemp = currentPhaseTemps[currentHotspotLocation-1] + 30;
               const tNorm = Math.min(1, Math.max(0, (hotTemp - 40) / 100));
-              const heatColor = new THREE.Color().setHSL(0.1, 1.0, 0.5); // Orange/Red sparks
+              const heatColor = new THREE.Color().setHSL(0.1, 1.0, 0.5);
               (heatParticlesRef.current.material as THREE.PointsMaterial).color.copy(heatColor);
               (heatParticlesRef.current.material as THREE.PointsMaterial).opacity = tNorm * 0.5;
           } else {
-              // Hide all
                for(let i=0; i<pCount; i++) positions[i*3+1] = -100;
                heatParticlesRef.current.geometry.attributes.position.needsUpdate = true;
           }
@@ -256,7 +271,7 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [phaseTemps, loadCurrent, hotspotLocation, viewMode]);
+  }, [mountRef]);
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -16,8 +15,28 @@ export const TransformerFaultScene: React.FC<TransformerFaultSceneProps> = ({
   const groupsRef = useRef<THREE.Group[]>([]);
   const particlesRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.02 修复bug：useEffect依赖项（components/activeComponentId/simulationProgress）频繁变化导致useEffect反复执行，3D场景重建引发模型闪烁
+  // 修复方案：通过ref保存变量最新值，移除原useEffect的动态依赖项，保证场景只初始化一次，同时在动画循环中读取ref获取实时值
+  const componentsRef = useRef(components);
+  const activeComponentIdRef = useRef(activeComponentId);
+  const simulationProgressRef = useRef(simulationProgress);
+
+  // 监听变量变化，更新ref的最新值（不会触发3D场景重建）
+  useEffect(() => {
+    componentsRef.current = components;
+  }, [components]);
+
+  useEffect(() => {
+    activeComponentIdRef.current = activeComponentId;
+  }, [activeComponentId]);
+
+  useEffect(() => {
+    simulationProgressRef.current = simulationProgress;
+  }, [simulationProgress]);
+
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-transformer-fault useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -34,6 +53,11 @@ export const TransformerFaultScene: React.FC<TransformerFaultSceneProps> = ({
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
+    
+    // 2026.03.02 光线优化：提升渲染器曝光度，全局提亮（不修改材质/色彩）
+    renderer.toneMapping = THREE.ReinhardToneMapping;
+    renderer.toneMappingExposure = 1.3; // 曝光度从默认1.0提升，全局提亮且不改变色彩基调
+    
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
     // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
@@ -48,16 +72,26 @@ export const TransformerFaultScene: React.FC<TransformerFaultSceneProps> = ({
     controls.autoRotateSpeed = 0.5;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    // 2026.03.02 光线优化：提升环境光强度（从0.2→0.6），均匀提亮整个场景暗部
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const blueLight = new THREE.PointLight(0x06b6d4, 2, 20);
+    // 2026.03.02 光线优化：提升蓝色点光源强度（从2→3.5）、扩大照射范围（从20→30）
+    const blueLight = new THREE.PointLight(0x06b6d4, 3.5, 30);
     blueLight.position.set(5, 5, 5);
     scene.add(blueLight);
 
-    const magentaLight = new THREE.PointLight(0xd946ef, 2, 20);
+    // 2026.03.02 光线优化：提升品红色点光源强度（从2→3）、扩大照射范围（从20→30）
+    const magentaLight = new THREE.PointLight(0xd946ef, 3, 30);
     magentaLight.position.set(-5, 2, -5);
     scene.add(magentaLight);
+
+    // 2026.03.02 光线优化：新增定向补光，专门提亮模型暗部（不改变原有色彩/材质）
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    fillLight.position.set(0, 12, 6); // 斜上方照射，避免产生新的阴影死角
+    fillLight.target.position.set(0, 1, 0); // 指向模型中心
+    scene.add(fillLight);
+    scene.add(fillLight.target);
 
     // --- Materials ---
     const ghostMat = new THREE.MeshPhysicalMaterial({
@@ -226,14 +260,17 @@ export const TransformerFaultScene: React.FC<TransformerFaultSceneProps> = ({
       controls.update();
 
       // 1. Update Components visual state based on Probability
+      // 读取ref中的最新值，而非直接使用原变量
+      const currentComponents = componentsRef.current;
+      const currentActiveId = activeComponentIdRef.current;
       groupsRef.current.forEach(group => {
           const { id } = group.userData;
-          const data = components.find(c => c.id === id);
+          const data = currentComponents.find(c => c.id === id);
           const mesh = group.getObjectByName('mesh') as THREE.Mesh;
           
           if (!data || !mesh) return;
 
-          const isSelected = activeComponentId === id;
+          const isSelected = currentActiveId === id;
           const isHighRisk = data.probability > 70;
 
           if (isSelected) {
@@ -253,8 +290,8 @@ export const TransformerFaultScene: React.FC<TransformerFaultSceneProps> = ({
           const colors = particlesRef.current.geometry.attributes.color.array as Float32Array;
           const sizes = particlesRef.current.geometry.attributes.size.array as Float32Array;
           
-          // Map simulationProgress to turbulence/visibility
-          const intensity = simulationProgress * 0.8 + 0.2;
+          // 读取ref中的最新模拟进度值
+          const intensity = simulationProgressRef.current * 0.8 + 0.2;
 
           for(let i=0; i<pCount; i++) {
               // Basic movement
@@ -262,14 +299,14 @@ export const TransformerFaultScene: React.FC<TransformerFaultSceneProps> = ({
               
               // Find closest component
               // Simplified: concentrate around high risk components
-              const highRiskComp = components.find(c => c.probability > 60);
+              const highRiskComp = currentComponents.find(c => c.probability > 60);
               if (highRiskComp) {
                  // Move particles towards high risk area slightly
               }
 
               // Color based on risk context (simulated here with random)
               // If simProgress is high, make more red particles
-              const isRisk = i < pCount * simulationProgress && Math.random() > 0.5;
+              const isRisk = i < pCount * simulationProgressRef.current && Math.random() > 0.5;
               
               colors[i*3] = 1; // R
               colors[i*3+1] = isRisk ? 0 : 0.5; // G (Red if risk)
@@ -307,7 +344,7 @@ export const TransformerFaultScene: React.FC<TransformerFaultSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [components, activeComponentId, simulationProgress]);
+  }, []); // 2026.03.02 移除动态依赖项，保证场景只初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
 };

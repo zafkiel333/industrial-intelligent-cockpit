@@ -24,8 +24,9 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
 
   useEffect(() => {
     if (!mountRef.current) return;
-    console.log('=== ThreeScene useEffect ===', Date.now()); 
+    //console.log('=== ThreeScene useEffect ===', Date.now()); 
     // 清理容器中可能存在的旧 Canvas (针对 HMR)
+    console.log("===three model universary useEffect===");
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);

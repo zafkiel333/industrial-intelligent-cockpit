@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -19,9 +18,43 @@ export const ShaftBearingScene: React.FC<ShaftSceneProps> = ({
   const oilParticlesRef = useRef<THREE.Points | null>(null);
   const padsRef = useRef<THREE.Mesh[]>([]);
 
+  // 2026.02.28 - Bug修复：使用ref缓存实时props值，避免因依赖项频繁变化触发useEffect重渲染
+  // Bug情况：useEffect依赖项（rpm/runoutX/runoutY/padTemperatures等）频繁变化导致3D模型反复初始化，出现闪烁
+  // Bug原因：原代码将所有动态props放入useEffect依赖数组，每次props变化都会重建整个3D场景，引发渲染闪烁
+  const propsRef = useRef({
+    rpm,
+    runoutX,
+    runoutY,
+    oilFilmThickness,
+    padTemperatures,
+    showOilFlow
+  });
+
+  // 实时更新ref中的props值，不触发useEffect
+  useEffect(() => {
+    propsRef.current = {
+      rpm,
+      runoutX,
+      runoutY,
+      oilFilmThickness,
+      padTemperatures,
+      showOilFlow
+    };
+
+    // 处理oilFlow显示/隐藏的即时切换
+    if (oilParticlesRef.current) {
+      if (showOilFlow && !oilParticlesRef.current.parent) {
+        const housingGroup = oilParticlesRef.current.parent || sceneRef.current?.children.find(child => (child as THREE.Group).name === 'housingGroup');
+        housingGroup && housingGroup.add(oilParticlesRef.current);
+      } else if (!showOilFlow && oilParticlesRef.current.parent) {
+        oilParticlesRef.current.removeFromParent();
+      }
+    }
+  }, [rpm, runoutX, runoutY, oilFilmThickness, padTemperatures, showOilFlow]);
+
   useEffect(() => {
     if (!mountRef.current) return;
-
+    console.log("===hydro-shaft useEffect===");
     // --- Setup ---
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -176,6 +209,7 @@ export const ShaftBearingScene: React.FC<ShaftSceneProps> = ({
     floor.position.y = -1;
     
     const housingGroup = new THREE.Group();
+    housingGroup.name = 'housingGroup'; // 增加名称便于查找
     housingGroup.add(tank);
     housingGroup.add(floor);
     mainGroup.add(housingGroup);
@@ -220,21 +254,25 @@ export const ShaftBearingScene: React.FC<ShaftSceneProps> = ({
       time += 0.02;
       controls.update();
 
+      // 2026.02.28 - 读取ref中的最新props值，避免依赖项触发重渲染
+      const currentProps = propsRef.current;
+
       // Shaft Rotation
       if (shaftRef.current) {
-          const rotSpeed = (rpm / 60) * Math.PI * 2 * 0.016; // approx per frame
+          // 使用ref中的最新rpm值
+          const rotSpeed = (currentProps.rpm / 60) * Math.PI * 2 * 0.016; // approx per frame
           shaftRef.current.rotation.y -= rotSpeed;
 
           // Vibration / Runout simulation
-          // Apply a tiny offset to the shaft group based on "Runout" props
-          shaftRef.current.position.x = Math.sin(time * 10) * (runoutX / 1000); // Scale factor for visuals
-          shaftRef.current.position.z = Math.cos(time * 10) * (runoutY / 1000);
+          // 使用ref中的最新runoutX/runoutY值
+          shaftRef.current.position.x = Math.sin(time * 10) * (currentProps.runoutX / 1000); // Scale factor for visuals
+          shaftRef.current.position.z = Math.cos(time * 10) * (currentProps.runoutY / 1000);
       }
 
       // Pad Heat Color
-      if (padTemperatures.length === padCount) {
+      if (currentProps.padTemperatures.length === padCount) {
           padsRef.current.forEach((pad, i) => {
-              const temp = padTemperatures[i];
+              const temp = currentProps.padTemperatures[i];
               const mat = pad.material as THREE.MeshStandardMaterial;
               // Map temp 40-100 to Color
               if (temp > 90) mat.color.setHex(0xef4444); // Red
@@ -248,7 +286,7 @@ export const ShaftBearingScene: React.FC<ShaftSceneProps> = ({
       }
 
       // Oil Flow
-      if (oilParticlesRef.current && showOilFlow) {
+      if (oilParticlesRef.current && currentProps.showOilFlow) {
           oilParticlesRef.current.rotation.y -= 0.005; // Slow swirl
           const pos = oilParticlesRef.current.geometry.attributes.position.array as Float32Array;
           for(let i=0; i<pCount; i++) {
@@ -262,26 +300,43 @@ export const ShaftBearingScene: React.FC<ShaftSceneProps> = ({
     };
     animate();
 
+    // 2026.02.28 - 增加防抖优化，减少resize触发频率
+    let resizeTimeout: number;
     const handleResize = () => {
-      if (mountRef.current && renderer && camera) {
-        const w = mountRef.current.clientWidth;
-        const h = mountRef.current.clientHeight;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
-      }
+      clearTimeout(resizeTimeout);
+      resizeTimeout = window.setTimeout(() => {
+        if (mountRef.current && renderer && camera) {
+          const w = mountRef.current.clientWidth;
+          const h = mountRef.current.clientHeight;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        }
+      }, 100);
     };
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout); // 清理防抖定时器
       cancelAnimationFrame(frameId);
       if (mountRef.current && renderer.domElement) {
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 清理几何体和材质，防止内存泄漏
+      scene.traverse((obj: any) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach(mat => mat.dispose());
+          } else {
+            obj.material.dispose();
+          }
+        }
+      });
     };
-  }, [rpm, runoutX, runoutY, oilFilmThickness, padTemperatures, showOilFlow]);
+  }, [showOilFlow]); // 仅保留初始化相关的依赖项，动态值通过ref读取
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

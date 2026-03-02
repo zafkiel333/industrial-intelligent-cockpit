@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -21,8 +20,32 @@ export const GateHoistScene: React.FC<HoistSceneProps> = ({
   const leakParticlesRef = useRef<THREE.Points | null>(null);
   const armRef = useRef<THREE.Group | null>(null);
 
+  // 2026.03.02 - Bug修复：创建ref存储实时props值，避免依赖项频繁变化触发useEffect重建场景
+  // Bug情况：3D模型频繁闪烁，动画卡顿
+  // Bug原因：原useEffect依赖数组包含extension/pressureHead等频繁变化的props，导致useEffect反复执行，场景被重复创建/销毁
+  const extensionRef = useRef(extension);
+  const pressureHeadRef = useRef(pressureHead);
+  const pressureRodRef = useRef(pressureRod);
+  const sealWearRef = useRef(sealWear);
+  const rodScoreRef = useRef(rodScore);
+  const temperatureRef = useRef(temperature);
+  const isMovingRef = useRef(isMoving);
+
+  // 2026.03.02 - 仅更新ref值，不触发场景重建
+  useEffect(() => {
+    extensionRef.current = extension;
+    pressureHeadRef.current = pressureHead;
+    pressureRodRef.current = pressureRod;
+    sealWearRef.current = sealWear;
+    rodScoreRef.current = rodScore;
+    temperatureRef.current = temperature;
+    isMovingRef.current = isMoving;
+  }, [extension, pressureHead, pressureRod, sealWear, rodScore, temperature, isMoving]);
+
+  // 2026.03.02 - 清空依赖数组，确保场景只初始化一次
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-gate-hoist useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -56,7 +79,7 @@ export const GateHoistScene: React.FC<HoistSceneProps> = ({
     controls.maxPolarAngle = Math.PI / 1.5;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
     const spotLight = new THREE.SpotLight(0xffffff, 2);
@@ -182,10 +205,8 @@ export const GateHoistScene: React.FC<HoistSceneProps> = ({
 
       // 1. Rod Extension Animation
       if (rodRef.current) {
-          // Extension ranges from -4 (retracted) to +4 (extended) relative to base
-          // Base position of rod mesh was 0 (starts at internal).
-          // Let's say extension 0% = x: -4, 100% = x: 2
-          const targetX = -4 + (extension / 100) * 6;
+          // 2026.03.02 - 读取ref.current获取实时extension值
+          const targetX = -4 + (extensionRef.current / 100) * 6;
           rodRef.current.position.x += (targetX - rodRef.current.position.x) * 0.1;
 
           // Update Arm position to follow rod end
@@ -193,8 +214,8 @@ export const GateHoistScene: React.FC<HoistSceneProps> = ({
               // Rod end world position approx: rod.pos.x + 12 (length)
               const rodTipX = rodRef.current.position.x + 12;
               armRef.current.position.set(rodTipX, 0, 0);
-              // Slight rotation to simulate arc movement
-              const arcAngle = -0.2 + (extension / 100) * 0.4; // -0.2 to 0.2 rad
+              // 2026.03.02 - 读取ref.current获取实时extension值
+              const arcAngle = -0.2 + (extensionRef.current / 100) * 0.4; // -0.2 to 0.2 rad
               armRef.current.rotation.z = arcAngle;
               
               // Correct rod rotation slightly to match (pivot at -5)
@@ -202,20 +223,21 @@ export const GateHoistScene: React.FC<HoistSceneProps> = ({
           }
           
           // Rod Scoring Visual
-          // Increase roughness if score is high
+          // 2026.03.02 - 读取ref.current获取实时rodScore值
           const rMat = rodRef.current.material as THREE.MeshPhysicalMaterial;
-          rMat.roughness = 0.1 + (rodScore / 100) * 0.6;
-          rMat.metalness = 0.9 - (rodScore / 100) * 0.4;
+          rMat.roughness = 0.1 + (rodScoreRef.current / 100) * 0.6;
+          rMat.metalness = 0.9 - (rodScoreRef.current / 100) * 0.4;
           // Darken color with wear
           const baseColor = new THREE.Color(0xe2e8f0);
-          rMat.color.lerpColors(baseColor, new THREE.Color(0x3f3f46), rodScore/100);
+          rMat.color.lerpColors(baseColor, new THREE.Color(0x3f3f46), rodScoreRef.current/100);
       }
 
       // 2. Heat Map on Gland (Seal Friction)
       if (glandRef.current) {
+          // 2026.03.02 - 读取ref.current获取实时temperature值
           const mat = glandRef.current.material as THREE.MeshStandardMaterial;
           // Temp 20C -> 100C maps to Blue -> Red
-          const tNorm = Math.min(1, Math.max(0, (temperature - 20) / 80));
+          const tNorm = Math.min(1, Math.max(0, (temperatureRef.current - 20) / 80));
           const color = new THREE.Color().setHSL(0.6 - tNorm * 0.6, 1.0, 0.5); 
           mat.emissive.copy(color);
           mat.emissiveIntensity = tNorm * 0.8;
@@ -223,11 +245,12 @@ export const GateHoistScene: React.FC<HoistSceneProps> = ({
 
       // 3. Leakage Particles
       if (leakParticlesRef.current) {
+          // 2026.03.02 - 读取ref.current获取实时sealWear值
           const positions = leakParticlesRef.current.geometry.attributes.position.array as Float32Array;
           const mat = leakParticlesRef.current.material as THREE.PointsMaterial;
           
-          if (sealWear > 40) { // Only leak if wear is significant
-              mat.opacity = (sealWear - 40) / 60;
+          if (sealWearRef.current > 40) { // Only leak if wear is significant
+              mat.opacity = (sealWearRef.current - 40) / 60;
               for(let i=0; i<pCount; i++) {
                   // Drop down
                   positions[i*3+1] -= 0.02 + Math.random() * 0.02;
@@ -266,7 +289,7 @@ export const GateHoistScene: React.FC<HoistSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [extension, pressureHead, pressureRod, sealWear, rodScore, temperature, isMoving]);
+  }, []); // 2026.03.02 - 清空依赖数组，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

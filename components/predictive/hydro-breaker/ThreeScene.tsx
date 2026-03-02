@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -22,6 +21,7 @@ export const BreakerScene: React.FC<BreakerSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-breaker useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -39,7 +39,8 @@ export const BreakerScene: React.FC<BreakerSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.5;
+    // 调整1：提高整体曝光度（核心提亮手段）
+    renderer.toneMappingExposure = 2.0; // 原1.5 → 2.0
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
     // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
@@ -52,20 +53,38 @@ export const BreakerScene: React.FC<BreakerSceneProps> = ({
     controls.enableDamping = true;
     controls.autoRotate = false;
     controls.target.set(0, 2, 0);
+    // 2026.03.02 bug修复：初始渲染视角偏右，重新进入正常
+    // bug原因：OrbitControls启用阻尼后，初始未执行update()同步状态，导致初始帧视角未应用target设置
+    controls.update(); // 强制同步控件状态，确保初始视角正确
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    // 调整2：增强环境光（基础照明）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // 原0.2 → 0.5
     scene.add(ambientLight);
 
-    const spotLight = new THREE.SpotLight(0xffffff, 5);
-    spotLight.position.set(5, 10, 5);
-    spotLight.angle = 0.5;
-    spotLight.penumbra = 0.5;
+    // 调整3：增强聚光灯强度+优化照射范围
+    const spotLight = new THREE.SpotLight(0xffffff, 10); // 原5 → 10
+    spotLight.position.set(8, 12, 8); // 原(5,10,5) → 更高更广的位置
+    spotLight.angle = 0.8; // 原0.5 → 0.8（照射范围更大）
+    spotLight.penumbra = 0.3; // 原0.5 → 0.3（边缘更柔和）
+    spotLight.castShadow = true; // 新增：开启阴影增强立体感
     scene.add(spotLight);
 
-    const blueLight = new THREE.PointLight(0x0ea5e9, 2, 20);
-    blueLight.position.set(-5, 5, -5);
+    // 调整4：增强蓝色点光强度+扩大范围
+    const blueLight = new THREE.PointLight(0x0ea5e9, 4, 30); // 原2/20 → 4/30
+    blueLight.position.set(-5, 8, -5); // 原-5,5,-5 → 稍高位置
     scene.add(blueLight);
+
+    // 新增5：补充暖色调点光（平衡冷色，提亮暗部）
+    const warmLight = new THREE.PointLight(0xfbbf24, 3, 25); 
+    warmLight.position.set(5, 7, 5);
+    scene.add(warmLight);
+
+    // 新增6：添加平行光（模拟自然光，整体提亮）
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(3, 15, 7);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
 
     // --- Materials ---
     const porcelainMat = new THREE.MeshPhysicalMaterial({

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,10 +17,42 @@ export const RotorUnbalanceScene: React.FC<RotorUnbalanceProps> = ({
   const rotorGroupRef = useRef<THREE.Group | null>(null);
   const vectorGroupRef = useRef<THREE.Group | null>(null);
   const orbitLineRef = useRef<THREE.Line | null>(null);
+  // 2026.02.28 - Bug修复：新增ref存储动态参数，避免依赖项变化触发useEffect重渲染
+  // Bug情况：依赖项（rpm/vibrationAmp等）频繁变化导致useEffect反复执行，3D模型销毁重建引发闪烁
+  // 原因：useEffect依赖数组包含动态变化的props变量，每次变量更新都会触发组件卸载重建，导致模型闪烁
+  const paramsRef = useRef({
+    rpm,
+    vibrationAmp,
+    phaseAngle,
+    heavySpotAngle,
+    showVectors,
+    showOrbit
+  });
+
+  // 2026.02.28 - 实时更新ref中的参数值，不触发useEffect
+  useEffect(() => {
+    paramsRef.current = {
+      rpm,
+      vibrationAmp,
+      phaseAngle,
+      heavySpotAngle,
+      showVectors,
+      showOrbit
+    };
+    // 处理showOrbit动态切换（仅当值变化且场景已初始化时）
+    if (sceneRef.current && orbitLineRef.current !== null) {
+      const orbitLine = orbitLineRef.current;
+      if (showOrbit && !sceneRef.current.children.includes(orbitLine)) {
+        sceneRef.current.add(orbitLine);
+      } else if (!showOrbit && sceneRef.current.children.includes(orbitLine)) {
+        sceneRef.current.remove(orbitLine);
+      }
+    }
+  }, [rpm, vibrationAmp, phaseAngle, heavySpotAngle, showVectors, showOrbit]);
 
   useEffect(() => {
     if (!mountRef.current) return;
-
+    console.log("===hydro-rotor useEffect===");
     // --- Setup ---
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -121,7 +152,8 @@ export const RotorUnbalanceScene: React.FC<RotorUnbalanceProps> = ({
     rotorGroup.add(massMarker); 
 
     // --- Orbit Visualization (Stationary Frame) ---
-    if (showOrbit) {
+    let orbitLine: THREE.Line | null = null;
+    if (paramsRef.current.showOrbit) {
         const orbitPoints = [];
         for (let i = 0; i <= 64; i++) {
             const th = (i / 64) * Math.PI * 2;
@@ -129,7 +161,7 @@ export const RotorUnbalanceScene: React.FC<RotorUnbalanceProps> = ({
         }
         const orbitGeo = new THREE.BufferGeometry().setFromPoints(orbitPoints);
         const orbitMat = new THREE.LineBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.6 });
-        const orbitLine = new THREE.Line(orbitGeo, orbitMat);
+        orbitLine = new THREE.Line(orbitGeo, orbitMat);
         orbitLine.rotation.x = Math.PI / 2; // Flat on XZ plane initially? No, Cylinder is Y-up.
         // Actually rotor is Y-up. Orbit represents shaft center movement on XZ plane.
         orbitLine.position.y = 2.5; // Above rotor
@@ -149,9 +181,12 @@ export const RotorUnbalanceScene: React.FC<RotorUnbalanceProps> = ({
       frameId = requestAnimationFrame(animate);
       controls.update();
 
+      // 2026.02.28 - 从ref中读取实时参数，而非直接使用props
+      const { rpm, vibrationAmp, phaseAngle, heavySpotAngle } = paramsRef.current;
+
       if (rotorGroupRef.current) {
           // Rotation
-          const speedRad = (rpm / 60) * Math.PI * 2 * 0.016; 
+          const speedRad = (rpm / 60) * Math.PI * 2 * 0.004; 
           rotorGroupRef.current.rotation.y -= speedRad;
 
           // Wobble / Unbalance Simulation
@@ -207,7 +242,7 @@ export const RotorUnbalanceScene: React.FC<RotorUnbalanceProps> = ({
       }
       renderer.dispose();
     };
-  }, [rpm, vibrationAmp, phaseAngle, heavySpotAngle, showVectors, showOrbit]);
+  }, []); // 2026.02.28 - 清空依赖数组，避免useEffect反复触发
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

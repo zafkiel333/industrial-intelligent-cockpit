@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -15,10 +14,29 @@ export const DegradationEvolutionScene: React.FC<DegradationSceneProps> = ({
   const sceneRef = useRef<THREE.Scene | null>(null);
   const pathGeoRef = useRef<THREE.BufferGeometry | null>(null);
   const currentMarkerRef = useRef<THREE.Mesh | null>(null);
+  
+  // 2026.02.28 - Bug修复：使用ref缓存实时更新的props值，避免依赖项变化触发useEffect重渲染
+  // Bug情况：3D模型频繁闪烁，useEffect因依赖项（currentPoint/historyPath/predictionPaths/showEnvelope）反复变化被频繁触发
+  // Bug原因：依赖项为引用类型（数组/对象），每次父组件渲染都会生成新引用，导致useEffect反复执行，3D场景被重复初始化
+  const propsRef = useRef({
+    currentPoint,
+    historyPath,
+    predictionPaths,
+    showEnvelope
+  });
+  // 实时更新ref中的props值，不触发useEffect
+  useEffect(() => {
+    propsRef.current = {
+      currentPoint,
+      historyPath,
+      predictionPaths,
+      showEnvelope
+    };
+  }, [currentPoint, historyPath, predictionPaths, showEnvelope]);
 
   useEffect(() => {
     if (!mountRef.current) return;
-
+    console.log("===hydro-degradation useEffect===");
     // --- Setup ---
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -90,7 +108,8 @@ export const DegradationEvolutionScene: React.FC<DegradationSceneProps> = ({
     scene.add(predGroup);
 
     // 4. Safety Envelope (Wireframe Box/Sphere representing limits)
-    if (showEnvelope) {
+    // 2026.02.28 - 从propsRef读取showEnvelope值，避免直接依赖
+    if (propsRef.current.showEnvelope) {
         const envGeo = new THREE.BoxGeometry(15, 10, 15);
         const envMat = new THREE.MeshBasicMaterial({ 
             color: 0xff0000, 
@@ -109,14 +128,17 @@ export const DegradationEvolutionScene: React.FC<DegradationSceneProps> = ({
       frameId = requestAnimationFrame(animate);
       controls.update();
 
+      // 2026.02.28 - 从propsRef读取实时props值，而非直接依赖
+      const { currentPoint: latestPoint, historyPath: latestHistory, predictionPaths: latestPreds } = propsRef.current;
+
       // Update Geometry based on props
-      if (pathGeoRef.current && historyPath.length > 0) {
-          const points = historyPath.map(p => new THREE.Vector3(p.x, p.y, p.z));
+      if (pathGeoRef.current && latestHistory.length > 0) {
+          const points = latestHistory.map(p => new THREE.Vector3(p.x, p.y, p.z));
           pathGeoRef.current.setFromPoints(points);
       }
 
       if (currentMarkerRef.current) {
-          currentMarkerRef.current.position.set(currentPoint.x, currentPoint.y, currentPoint.z);
+          currentMarkerRef.current.position.set(latestPoint.x, latestPoint.y, latestPoint.z);
           // Pulse effect
           const scale = 1 + Math.sin(Date.now() * 0.005) * 0.2;
           currentMarkerRef.current.scale.set(scale, scale, scale);
@@ -124,7 +146,7 @@ export const DegradationEvolutionScene: React.FC<DegradationSceneProps> = ({
 
       // Rebuild predictions if needed (simplified here, ideally use ref to avoid rebuild)
       predGroup.clear();
-      predictionPaths.forEach((path, i) => {
+      latestPreds.forEach((path, i) => {
           const pts = path.map(p => new THREE.Vector3(p.x, p.y, p.z));
           const geo = new THREE.BufferGeometry().setFromPoints(pts);
           // Fade color based on index
@@ -160,7 +182,7 @@ export const DegradationEvolutionScene: React.FC<DegradationSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [currentPoint, historyPath, predictionPaths, showEnvelope]);
+  }, []); // 2026.02.28 - 清空依赖项，避免useEffect反复触发
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

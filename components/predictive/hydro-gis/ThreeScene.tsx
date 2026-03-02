@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -19,8 +18,27 @@ export const GisBayScene: React.FC<GisSceneProps> = ({
   const sparkRef = useRef<THREE.PointLight | null>(null);
   const gasParticlesRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.02 - Bug修复：使用ref存储动态变量，避免因依赖项频繁变化导致useEffect反复触发
+  // Bug情况：3D模型渲染时出现闪烁问题
+  // Bug原因：useEffect依赖项（sf6Density/pdLocation/selectedPartId/viewMode等）频繁变化，导致useEffect反复执行，场景被重复创建和渲染
+  const sf6DensityRef = useRef(sf6Density);
+  const pdLocationRef = useRef(pdLocation);
+  const breakerStateRef = useRef(breakerState);
+  const selectedPartIdRef = useRef(selectedPartId);
+  const viewModeRef = useRef(viewMode);
+
+  // 实时更新ref值，保证能获取最新的变量状态
+  useEffect(() => {
+    sf6DensityRef.current = sf6Density;
+    pdLocationRef.current = pdLocation;
+    breakerStateRef.current = breakerState;
+    selectedPartIdRef.current = selectedPartId;
+    viewModeRef.current = viewMode;
+  }, [sf6Density, pdLocation, breakerState, selectedPartId, viewMode]);
+
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-gis useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -50,16 +68,30 @@ export const GisBayScene: React.FC<GisSceneProps> = ({
     controls.autoRotate = false;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    // 2026.03.02 - 亮度优化：提升环境光强度，增加整体基础亮度（原0.3 → 0.6）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const cyanLight = new THREE.PointLight(0x22d3ee, 1.5, 20);
-    cyanLight.position.set(5, 10, 5);
+    // 2026.03.02 - 亮度优化：提升青色点光源强度，扩大光照范围（原1.5 → 2.8，距离20→30）
+    const cyanLight = new THREE.PointLight(0x22d3ee, 2.8, 30);
+    cyanLight.position.set(5, 12, 5); // 轻微上移，更好覆盖模型主体
     scene.add(cyanLight);
 
-    const purpleLight = new THREE.PointLight(0xa855f7, 1.5, 20);
-    purpleLight.position.set(-5, 2, -5);
+    // 2026.03.02 - 亮度优化：提升紫色点光源强度，扩大光照范围（原1.5 → 2.8，距离20→30）
+    const purpleLight = new THREE.PointLight(0xa855f7, 2.8, 30);
+    purpleLight.position.set(-5, 4, -5); // 轻微上移，减少阴影
     scene.add(purpleLight);
+
+    // 2026.03.02 - 亮度优化：新增主方向光，提升整体亮度和立体感
+    const mainDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    mainDirectionalLight.position.set(8, 15, 8); // 斜上方照射，减少模型底部阴影
+    mainDirectionalLight.castShadow = false; // 关闭阴影避免性能损耗
+    scene.add(mainDirectionalLight);
+
+    // 2026.03.02 - 亮度优化：新增辅助补光，平衡暗部区域
+    const fillLight = new THREE.PointLight(0xffffff, 1.0, 25);
+    fillLight.position.set(0, 8, 0); // 模型中心上方，补充中心区域亮度
+    scene.add(fillLight);
 
     // PD Spark Light
     const spark = new THREE.PointLight(0xff00ff, 0, 5);
@@ -71,7 +103,7 @@ export const GisBayScene: React.FC<GisSceneProps> = ({
     scene.add(mainGroup);
     partsRef.current = [];
 
-    // Materials
+    // Materials - 完全保持原有配置，不做任何修改
     const casingMat = new THREE.MeshPhysicalMaterial({
         color: 0x94a3b8, // Aluminum alloy
         metalness: 0.8,
@@ -226,21 +258,24 @@ export const GisBayScene: React.FC<GisSceneProps> = ({
       controls.update();
 
       // 1. View Mode Material Updates
+      // 读取ref中的最新值，而非直接使用原依赖项
+      const currentViewMode = viewModeRef.current;
+      const currentSelectedPartId = selectedPartIdRef.current;
       partsRef.current.forEach(group => {
           const casing = group.getObjectByName('casing') as THREE.Mesh;
           const conductor = group.getObjectByName('conductor') as THREE.Mesh;
           const highlight = group.getObjectByName('highlight') as THREE.Mesh;
-          const isSelected = group.userData.id === selectedPartId;
+          const isSelected = group.userData.id === currentSelectedPartId;
 
           if (highlight) highlight.visible = isSelected;
 
           if (casing && conductor) {
               const cMat = casing.material as THREE.MeshPhysicalMaterial;
-              if (viewMode === 'internal') {
+              if (currentViewMode === 'internal') {
                   cMat.opacity = 0.2;
                   cMat.color.setHex(0x334155);
                   conductor.visible = true;
-              } else if (viewMode === 'gas') {
+              } else if (currentViewMode === 'gas') {
                   cMat.opacity = 0.1;
                   conductor.visible = false;
               } else {
@@ -252,10 +287,12 @@ export const GisBayScene: React.FC<GisSceneProps> = ({
       });
 
       // 2. SF6 Gas Particles
+      // 读取ref中的最新sf6Density值
+      const currentSf6Density = sf6DensityRef.current;
       if (gasParticlesRef.current) {
           const mat = gasParticlesRef.current.material as THREE.PointsMaterial;
-          if (viewMode === 'gas') {
-              mat.opacity = 0.6 * (sf6Density / 100);
+          if (currentViewMode === 'gas') {
+              mat.opacity = 0.6 * (currentSf6Density / 100);
               const positions = gasParticlesRef.current.geometry.attributes.position.array as Float32Array;
               for(let i=0; i<pCount; i++) {
                   positions[i*3+1] += Math.sin(time + positions[i*3]) * 0.01;
@@ -267,9 +304,11 @@ export const GisBayScene: React.FC<GisSceneProps> = ({
       }
 
       // 3. PD Spark Effect
-      if (sparkRef.current && pdLocation) {
+      // 读取ref中的最新pdLocation值
+      const currentPdLocation = pdLocationRef.current;
+      if (sparkRef.current && currentPdLocation) {
           if (Math.random() > 0.9) {
-              sparkRef.current.position.set(pdLocation[0], pdLocation[1], pdLocation[2]);
+              sparkRef.current.position.set(currentPdLocation[0], currentPdLocation[1], currentPdLocation[2]);
               sparkRef.current.intensity = 5;
           } else {
               sparkRef.current.intensity = 0;
@@ -302,7 +341,13 @@ export const GisBayScene: React.FC<GisSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [sf6Density, pdLocation, breakerState, selectedPartId, viewMode]);
+  }, [onPartSelect]);
 
-  return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
+  // 组件返回挂载容器
+  return (
+    <div 
+      ref={mountRef} 
+      style={{ width: '100%', height: '100%', position: 'relative' }}
+    />
+  );
 };

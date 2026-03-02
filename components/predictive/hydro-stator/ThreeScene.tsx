@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -12,13 +11,34 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
   vibrationAmp = 0,
   wireframe = false
 }) => {
+  // ========== 核心改造：用 ref 存储所有需要剔除依赖的 props ==========
+  const activeSlotRef = useRef<number | null>(activeSlot);
+  const pdLocationRef = useRef<any>(pdLocation);
+  const vibrationAmpRef = useRef<number>(vibrationAmp);
+  const wireframeRef = useRef<boolean>(wireframe);
+
+  // 同步 props 到 ref（每次 props 更新时执行，不触发重渲染），2026.02.28,修复了canvas闪烁的bug，成因：依赖项反复更新导致useEffect多次触发
+  activeSlotRef.current = activeSlot;
+  pdLocationRef.current = pdLocation;
+  vibrationAmpRef.current = vibrationAmp;
+  wireframeRef.current = wireframe;
+
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const windingsRef = useRef<THREE.Group | null>(null);
   const pdSpriteRef = useRef<THREE.Sprite | null>(null);
+  // 新增：存储绕组mesh，用于动态更新activeSlot的材质
+  const windingBarsRef = useRef<THREE.Mesh[]>([]);
+  // 新增：存储铁芯mesh，用于动态更新wireframe
+  const coreMeshRef = useRef<THREE.Mesh | null>(null);
 
   useEffect(() => {
     if (!mountRef.current) return;
+    // console.log('activeSlot 引用:', activeSlotRef.current);
+    // console.log('pdLocation 引用:', pdLocationRef.current);
+    // console.log('tempMap 引用:', tempMap);
+    // console.log('vibrationAmp 引用:', vibrationAmpRef.current);
+    // console.log('wireframe 引用:', wireframeRef.current);
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -36,7 +56,8 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
+    // 清空挂载节点，避免多canvas
+    console.log("=== hydro-stator excute clear canvas ===");
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -75,9 +96,10 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
       metalness: 0.5, 
       roughness: 0.4,
       side: THREE.DoubleSide,
-      wireframe: wireframe
+      wireframe: wireframeRef.current // 初始值用ref
     });
     const core = new THREE.Mesh(coreGeo, coreMat);
+    coreMeshRef.current = core; // 存储铁芯mesh到ref
     group.add(core);
 
     // Core Slots Visualization (Lines)
@@ -98,7 +120,6 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
     }
 
     // 2. Windings (Copper Bars & End Turns)
-    // Simplified representation: Upper and Lower end windings
     const windingMat = new THREE.MeshStandardMaterial({
         color: 0xb45309, // Copper
         metalness: 0.4,
@@ -115,9 +136,11 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
         emissiveIntensity: 0.8
     });
 
+    // 清空绕组mesh数组（避免重复渲染）
+    windingBarsRef.current = [];
     for(let i=0; i<slotsCount; i++) {
         const angle = (i / slotsCount) * Math.PI * 2;
-        const isSelected = activeSlot !== null && i === (activeSlot - 1);
+        const isSelected = activeSlotRef.current !== null && i === (activeSlotRef.current - 1);
         
         // Bar inside slot
         const barGeo = new THREE.BoxGeometry(0.1, 3.2, 0.1);
@@ -125,6 +148,7 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
         bar.position.set(Math.cos(angle)*3.9, 0, Math.sin(angle)*3.9);
         bar.rotation.y = -angle;
         group.add(bar);
+        windingBarsRef.current.push(bar); // 存储绕组bar到数组
 
         // Upper End Winding (Diamond shape approximation)
         const upperCurve = new THREE.CatmullRomCurve3([
@@ -135,6 +159,7 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
         const tubeGeo = new THREE.TubeGeometry(upperCurve, 8, 0.04, 6, false);
         const tube = new THREE.Mesh(tubeGeo, isSelected ? activeWindingMat : windingMat);
         group.add(tube);
+        windingBarsRef.current.push(tube); // 存储上端绕组
 
         // Lower End Winding
         const lowerCurve = new THREE.CatmullRomCurve3([
@@ -145,6 +170,7 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
         const tubeGeoLow = new THREE.TubeGeometry(lowerCurve, 8, 0.04, 6, false);
         const tubeLow = new THREE.Mesh(tubeGeoLow, isSelected ? activeWindingMat : windingMat);
         group.add(tubeLow);
+        windingBarsRef.current.push(tubeLow); // 存储下端绕组
     }
 
     // 3. Partial Discharge Effect (Sprite)
@@ -161,27 +187,27 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
     let time = 0;
 
     const animate = () => {
+      console.log("===hydro-stator animate excute===");
       frameId = requestAnimationFrame(animate);
       time += 0.02;
       controls.update();
 
-      // End Winding Vibration Simulation
-      if (windingsRef.current && vibrationAmp > 0) {
-          // Subtle scaling or jitter
-          const scale = 1 + Math.sin(time * 20) * (vibrationAmp * 0.005);
+      // ========== 1. 响应 vibrationAmp 变化（振动效果） ==========
+      if (windingsRef.current && vibrationAmpRef.current > 0) {
+          const scale = 1 + Math.sin(time * 20) * (vibrationAmpRef.current * 0.005);
           windingsRef.current.scale.set(1, scale, 1);
+      } else if (windingsRef.current) {
+          // 无振动时恢复原始缩放
+          windingsRef.current.scale.set(1, 1, 1);
       }
 
-      // PD Effect
+      // ========== 2. 响应 pdLocation 变化（局部放电效果） ==========
       if (pdSpriteRef.current) {
-          if (pdLocation) { // pdLocation should be slot index or normalized coord
-             // Random flicker logic
+          if (pdLocationRef.current) { 
              if (Math.random() > 0.8) {
                  pdSpriteRef.current.visible = true;
                  pdSpriteRef.current.material.opacity = Math.random();
-                 
-                 // Map random slot to position if specific location not precise
-                 const angle = time * 0.5; // Moving around or fixed
+                 const angle = time * 0.5;
                  pdSpriteRef.current.position.set(Math.cos(angle)*3.8, 1.8, Math.sin(angle)*3.8);
              } else {
                  pdSpriteRef.current.visible = false;
@@ -190,6 +216,23 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
               pdSpriteRef.current.visible = false;
           }
       }
+
+      // ========== 3. 响应 wireframe 变化（线框模式） ==========
+      if (coreMeshRef.current && coreMeshRef.current.material) {
+          // @ts-ignore 确保材质的wireframe属性同步最新值
+          coreMeshRef.current.material.wireframe = wireframeRef.current;
+          coreMeshRef.current.material.needsUpdate = true; // 强制更新材质
+      }
+
+      // ========== 4. 响应 activeSlot 变化（选中槽位高亮） ==========
+      const currentActiveSlot = activeSlotRef.current;
+      windingBarsRef.current.forEach((mesh, index) => {
+          // 计算当前mesh对应的槽位索引（每3个mesh对应一个槽位：bar+upper+lower）
+          const slotIndex = Math.floor(index / 3);
+          const isSelected = currentActiveSlot !== null && slotIndex === (currentActiveSlot - 1);
+          mesh.material = isSelected ? activeWindingMat : windingMat;
+          mesh.material.needsUpdate = true; // 强制更新材质
+      });
 
       renderer.render(scene, camera);
     };
@@ -207,14 +250,21 @@ export const StatorWindingScene: React.FC<StatorSceneProps> = ({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      console.log("===hydro-stator cleanup excute===");
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(frameId);
       if (mountRef.current && renderer.domElement) {
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 清空ref，避免内存泄漏
+      windingBarsRef.current = [];
+      coreMeshRef.current = null;
+      pdSpriteRef.current = null;
+      windingsRef.current = null;
+      sceneRef.current = null;
     };
-  }, [activeSlot, pdLocation, vibrationAmp, wireframe]);
+  }, []); // 依赖项为空，完全剔除所有props依赖,2026.02.28,修复了canvas闪烁的bug，成因：依赖项反复更新导致useEffect多次触发
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

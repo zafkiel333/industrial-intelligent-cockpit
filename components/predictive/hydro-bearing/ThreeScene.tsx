@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,10 +17,31 @@ export const BearingLifeScene: React.FC<BearingSceneProps> = ({
   const shaftGroupRef = useRef<THREE.Group | null>(null);
   const padsGroupRef = useRef<THREE.Group | null>(null);
   const oilParticlesRef = useRef<THREE.Points | null>(null);
+  
+  // 2026.02.28 - Bug修复：使用ref缓存实时值，避免依赖项变化触发useEffect重建场景
+  // Bug情况：模型频繁闪烁，原因是useEffect依赖项（rpm/padTemperatures等）实时变化，导致场景反复销毁重建
+  const stateRef = useRef({
+    rpm,
+    padTemperatures,
+    oilFilmThickness,
+    selectedPadIndex,
+    showOilFlow
+  });
+  
+  // 实时更新ref中的值，不触发useEffect
+  useEffect(() => {
+    stateRef.current = {
+      rpm,
+      padTemperatures,
+      oilFilmThickness,
+      selectedPadIndex,
+      showOilFlow
+    };
+  }, [rpm, padTemperatures, oilFilmThickness, selectedPadIndex, showOilFlow]);
 
   useEffect(() => {
     if (!mountRef.current) return;
-
+    console.log("===hydro-bearing useEffect===");
     // --- Setup ---
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -191,7 +211,8 @@ export const BearingLifeScene: React.FC<BearingSceneProps> = ({
     });
     const particles = new THREE.Points(pGeo, pMat);
     oilParticlesRef.current = particles;
-    if(showOilFlow) mainGroup.add(particles);
+    // 初始显示/隐藏油粒子（读取初始ref值）
+    if(stateRef.current.showOilFlow) mainGroup.add(particles);
 
     // --- Interaction ---
     const raycaster = new THREE.Raycaster();
@@ -216,7 +237,6 @@ export const BearingLifeScene: React.FC<BearingSceneProps> = ({
     };
     mountRef.current.addEventListener('click', onMouseClick);
 
-
     // --- Animation Loop ---
     let frameId: number;
     let time = 0;
@@ -225,6 +245,9 @@ export const BearingLifeScene: React.FC<BearingSceneProps> = ({
       frameId = requestAnimationFrame(animate);
       time += 0.01;
       controls.update();
+
+      // 2026.02.28 - 读取ref中的实时值，而非直接使用props，避免依赖项变化
+      const { rpm, padTemperatures, oilFilmThickness, selectedPadIndex } = stateRef.current;
 
       // Rotate Shaft
       if (shaftGroupRef.current) {
@@ -291,7 +314,21 @@ export const BearingLifeScene: React.FC<BearingSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [rpm, padTemperatures, oilFilmThickness, selectedPadIndex, showOilFlow]);
+  }, [mountRef]); // 2026.02.28 - 仅保留mountRef作为依赖，确保场景只初始化一次
+
+  // 2026.02.28 - 独立处理油粒子显隐，避免整体重建场景
+  useEffect(() => {
+    if (oilParticlesRef.current && sceneRef.current) {
+      const mainGroup = sceneRef.current.children[0] as THREE.Group;
+      if (showOilFlow) {
+        if (!mainGroup.children.includes(oilParticlesRef.current)) {
+          mainGroup.add(oilParticlesRef.current);
+        }
+      } else {
+        mainGroup.remove(oilParticlesRef.current);
+      }
+    }
+  }, [showOilFlow]);
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" title="Click pads to view details" />;
 };
