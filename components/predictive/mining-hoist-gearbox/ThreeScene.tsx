@@ -19,6 +19,7 @@ export const HoistGearboxThreeScene: React.FC<HoistGearboxSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-hoist-gearbox useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -149,7 +150,7 @@ export const HoistGearboxThreeScene: React.FC<HoistGearboxSceneProps> = ({
           if (id === activeComponentId) {
               mat.emissive.setHex(0x0ea5e9);
               mat.emissiveIntensity = 0.5;
-          } else if (gearData?.status === 'critical') {
+          } else if (gearData?.status !== 'normal') {
               mat.emissive.setHex(0xff0000);
               mat.emissiveIntensity = 0.8 + Math.sin(time * 10) * 0.2;
           } else {

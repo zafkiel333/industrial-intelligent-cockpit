@@ -22,6 +22,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===steering-pump-actuator useEffect===");
 
     const scene = new THREE.Scene();
     scene.background = null;

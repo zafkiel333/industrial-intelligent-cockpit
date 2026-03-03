@@ -20,6 +20,7 @@ export const MainMotorThreeScene: React.FC<MainMotorSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-main-motor useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

@@ -19,6 +19,7 @@ export const HydraulicValveThreeScene: React.FC<ValveSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-valve useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

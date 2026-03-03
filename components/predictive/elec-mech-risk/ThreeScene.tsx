@@ -21,6 +21,7 @@ export const ElecMechThreeScene: React.FC<ElecMechSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===elec-mech-risk useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

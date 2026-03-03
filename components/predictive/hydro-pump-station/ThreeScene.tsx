@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -15,6 +14,25 @@ export const PumpStationScene: React.FC<PumpStationSceneProps> = ({
   const waterMeshRef = useRef<THREE.Mesh | null>(null);
   const pumpsRef = useRef<THREE.Group[]>([]);
   const particlesRef = useRef<THREE.Points | null>(null);
+
+  // 2025.08.22 - Bug修复：使用ref存储动态值，避免依赖项变化触发useEffect反复执行
+  // Bug情况：3D模型闪烁，原因是useEffect依赖项（waterLevel/pumps/flowRate/turbidity）频繁变化，导致渲染逻辑反复初始化
+  const dynamicValuesRef = useRef({
+    waterLevel,
+    pumps: [...pumps], // 深拷贝避免引用关联
+    flowRate,
+    turbidity
+  });
+
+  // 实时更新ref中的值，不触发useEffect
+  useEffect(() => {
+    dynamicValuesRef.current = {
+      waterLevel,
+      pumps: [...pumps],
+      flowRate,
+      turbidity
+    };
+  }, [waterLevel, pumps, flowRate, turbidity]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -37,10 +55,9 @@ export const PumpStationScene: React.FC<PumpStationSceneProps> = ({
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     console.log("=== hydro-pump-station excute clear canvas ===");
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas（修改逻辑：仅当有两个及以上canvas时，删除第一个）
-    const allCanvas = mountRef.current.querySelectorAll('canvas'); // 获取所有canvas节点（返回NodeList集合）
-    if (allCanvas.length >= 2) { // 判断是否存在两个及以上canvas
-      mountRef.current.removeChild(allCanvas[0]); // 删除第一个canvas（索引为0）
+    const existingCanvas = mountRef.current.querySelector('canvas');
+    if (existingCanvas) {
+      mountRef.current.removeChild(existingCanvas);
     }
     mountRef.current.appendChild(renderer.domElement);
 
@@ -50,7 +67,7 @@ export const PumpStationScene: React.FC<PumpStationSceneProps> = ({
     controls.maxPolarAngle = Math.PI / 2 - 0.1; // Prevent going below ground
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
     const mainLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -188,6 +205,9 @@ export const PumpStationScene: React.FC<PumpStationSceneProps> = ({
       time += 0.02;
       controls.update();
 
+      // 从ref中获取最新的动态值
+      const { waterLevel, pumps, flowRate, turbidity } = dynamicValuesRef.current;
+
       // 1. Water Level Animation
       if (waterMeshRef.current) {
           // Map 0-100% to Y: -7 to -1
@@ -207,7 +227,7 @@ export const PumpStationScene: React.FC<PumpStationSceneProps> = ({
       pumpsRef.current.forEach((grp, i) => {
           const state = pumps[i];
           const shaft = grp.getObjectByName('shaft');
-          if (shaft && state.isRunning) {
+          if (shaft && state?.isRunning) { // 增加可选链避免越界
               shaft.rotation.y -= 0.5 * state.speed;
           }
       });
@@ -279,8 +299,17 @@ export const PumpStationScene: React.FC<PumpStationSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 清理材质和几何体避免内存泄漏
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose();
+          if (obj.material instanceof THREE.Material) {
+            obj.material.dispose();
+          }
+        }
+      });
     };
-  }, [waterLevel, pumps, flowRate, turbidity]);
+  }, []); // 移除所有动态依赖，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

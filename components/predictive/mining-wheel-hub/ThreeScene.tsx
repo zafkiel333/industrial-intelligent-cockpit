@@ -25,6 +25,7 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-wheel-hub useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

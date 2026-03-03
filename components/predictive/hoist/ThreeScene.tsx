@@ -20,6 +20,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hoist useEffect===");
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x020617, 0.05);

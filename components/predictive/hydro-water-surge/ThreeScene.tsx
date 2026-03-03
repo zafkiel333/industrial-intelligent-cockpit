@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -19,8 +18,33 @@ export const WaterSurgeThreeScene: React.FC<WaterSurgeProps> = ({
   const vortexRef = useRef<THREE.Group | null>(null);
   const pulseRef = useRef<THREE.Mesh | null>(null);
 
+  // 2026.03.03 bug修复：创建ref存储实时props值，避免依赖项变化导致useEffect反复执行
+  // bug情况：3D模型出现闪烁问题；原因：useEffect依赖项（waterLevel/surgeRate等）频繁变化，导致初始化逻辑反复执行，重建场景/模型
+  const propsRef = useRef({
+    waterLevel,
+    surgeRate,
+    pressureWavePos,
+    vortexIntensity,
+    isWarning,
+    viewMode
+  });
+
+  // 同步最新props值到ref，确保动画循环能读取到实时数据
+  useEffect(() => {
+    propsRef.current = {
+      waterLevel,
+      surgeRate,
+      pressureWavePos,
+      vortexIntensity,
+      isWarning,
+      viewMode
+    };
+  }, [waterLevel, surgeRate, pressureWavePos, vortexIntensity, isWarning, viewMode]);
+
+  // 初始化3D场景的逻辑，依赖项置空，仅执行一次
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-water-surge useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -29,7 +53,7 @@ export const WaterSurgeThreeScene: React.FC<WaterSurgeProps> = ({
     scene.fog = new THREE.FogExp2(0x0a192f, 0.02);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(20, 25, 40);
+    camera.position.set(30, 35, 50);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -122,29 +146,33 @@ export const WaterSurgeThreeScene: React.FC<WaterSurgeProps> = ({
       time += 0.01;
       controls.update();
 
+      // 读取实时props值
+      const { waterLevel: currentWaterLevel, surgeRate: currentSurgeRate, 
+              pressureWavePos: currentPressureWavePos, vortexIntensity: currentVortexIntensity } = propsRef.current;
+
       // 水位动态响应
       if (waterRef.current) {
-        const targetHeightScale = waterLevel / 100;
+        const targetHeightScale = currentWaterLevel / 100;
         waterRef.current.scale.y = THREE.MathUtils.lerp(waterRef.current.scale.y, targetHeightScale, 0.05);
         waterRef.current.position.y = (waterRef.current.scale.y * 20) / 2 - 10;
         
         // 根据水位变率增加表面波浪
-        (waterRef.current.material as THREE.MeshPhysicalMaterial).roughness = Math.abs(surgeRate) * 0.5;
+        (waterRef.current.material as THREE.MeshPhysicalMaterial).roughness = Math.abs(currentSurgeRate) * 0.5;
       }
 
       // 压力波传递
       if (pulseRef.current) {
-        const pt = pipeCurve.getPointAt(pressureWavePos);
+        const pt = pipeCurve.getPointAt(currentPressureWavePos);
         pulseRef.current.position.copy(pt);
-        pulseRef.current.visible = Math.abs(surgeRate) > 0.2;
+        pulseRef.current.visible = Math.abs(currentSurgeRate) > 0.2;
         pulseRef.current.scale.setScalar(1 + Math.sin(time * 20) * 0.2);
       }
 
       // 旋涡动画
       if (vortexRef.current) {
-        vortexRef.current.visible = vortexIntensity > 0.1;
+        vortexRef.current.visible = currentVortexIntensity > 0.1;
         vortexRef.current.children.forEach((r, i) => {
-            r.rotation.z += 0.1 * (i + 1) * vortexIntensity;
+            r.rotation.z += 0.1 * (i + 1) * currentVortexIntensity;
             r.scale.setScalar(1 + Math.sin(time * 5 + i) * 0.1);
         });
         vortexRef.current.position.y = waterRef.current ? waterRef.current.position.y + 10 : 2;
@@ -171,7 +199,7 @@ export const WaterSurgeThreeScene: React.FC<WaterSurgeProps> = ({
       }
       renderer.dispose();
     };
-  }, [waterLevel, surgeRate, pressureWavePos, vortexIntensity]);
+  }, []); // 依赖项置空，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full" />;
 };

@@ -22,6 +22,7 @@ export const BrakingThreeScene: React.FC<BrakingSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-locomotive-braking useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

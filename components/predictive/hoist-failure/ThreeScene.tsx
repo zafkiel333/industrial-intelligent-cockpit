@@ -18,6 +18,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hoist-failure useEffect===");
 
     const scene = new THREE.Scene();
     // 渐变背景模拟时空隧道

@@ -14,6 +14,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ deviceStates }) => {
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===screen-compare useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

@@ -17,6 +17,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===ship-electrical-load useEffect===");
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(40, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);

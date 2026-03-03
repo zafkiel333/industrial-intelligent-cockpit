@@ -22,6 +22,7 @@ export const HydraulicPumpThreeScene: React.FC<PumpSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-pump useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

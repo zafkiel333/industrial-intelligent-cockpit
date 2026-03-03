@@ -23,6 +23,7 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-transmission useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

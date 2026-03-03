@@ -36,6 +36,7 @@ export const RiskPredictionScene: React.FC<RiskSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-risk useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;

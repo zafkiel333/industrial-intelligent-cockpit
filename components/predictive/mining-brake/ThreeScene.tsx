@@ -22,6 +22,7 @@ export const MiningBrakeScene: React.FC<BrakeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-brake useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

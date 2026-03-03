@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -19,8 +18,34 @@ export const RollerSliderScene: React.FC<RollerSceneProps> = ({
   const trackRef = useRef<THREE.Mesh | null>(null);
   const debrisRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.02 Bug修复：使用ref存储动态值，避免依赖项变化触发useEffect重渲染
+  // Bug情况：模型频繁闪烁，useEffect反复执行导致3D场景被重复创建/销毁
+  // Bug原因：useEffect依赖项（wearLevel/rotationSpeed等）是频繁变化的状态变量，每次变化都会触发useEffect重新执行
+  // 修复方案：将动态依赖项存入ref，在动画循环中实时读取最新值，而非依赖useEffect重新渲染
+  const dynamicValuesRef = useRef({
+    wearLevel,
+    rotationSpeed,
+    contactStress,
+    debrisAmount,
+    lubricationMode,
+    showHeatmap
+  });
+
+  // 实时更新ref中的值（不触发useEffect）
+  useEffect(() => {
+    dynamicValuesRef.current = {
+      wearLevel,
+      rotationSpeed,
+      contactStress,
+      debrisAmount,
+      lubricationMode,
+      showHeatmap
+    };
+  }, [wearLevel, rotationSpeed, contactStress, debrisAmount, lubricationMode, showHeatmap]);
+
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-roller-slider useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -54,7 +79,7 @@ export const RollerSliderScene: React.FC<RollerSceneProps> = ({
     controls.maxDistance = 30;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
     const mainLight = new THREE.SpotLight(0xffffff, 3);
@@ -153,16 +178,22 @@ export const RollerSliderScene: React.FC<RollerSceneProps> = ({
       time += 0.02;
       controls.update();
 
+      // 2026.03.02 从ref中读取最新的动态值，保证实时性且不触发useEffect
+      const { 
+        wearLevel: currentWear, 
+        rotationSpeed: currentRotSpeed,
+        contactStress: currentStress,
+        debrisAmount: currentDebris,
+        lubricationMode: currentLube,
+        showHeatmap: currentHeatmap
+      } = dynamicValuesRef.current;
+
       // 1. Roller Motion (Oscillating on track)
-      const xPos = Math.sin(time * 0.5) * 6;
+      const xPos = Math.sin(time * currentRotSpeed * 0.5) * 6; // 使用实时旋转速度
       if (rollerRef.current) {
           rollerRef.current.position.x = xPos;
           
           // Rotate wheel based on movement (v = r * omega => omega = v/r)
-          // Speed of X = 6 * 0.5 * cos(time*0.5) = 3 cos(...)
-          // r = 2
-          // omega = 1.5 cos(...)
-          // Accumulated rotation is sin(...) * 1.5
           const wheelMesh = rollerRef.current.children[0] as THREE.Mesh;
           wheelMesh.rotation.x = -(xPos / 2); // Simple roll approx
       }
@@ -173,22 +204,18 @@ export const RollerSliderScene: React.FC<RollerSceneProps> = ({
           const mat = wheelMesh.material as THREE.MeshStandardMaterial;
 
           // Update color/roughness based on wear
-          // Fresh = Steel Grey, Worn = Brownish/Rough
           const baseColor = new THREE.Color(0x94a3b8);
           const wornColor = new THREE.Color(0x574034); // Rusty brown
           
-          mat.color.lerpColors(baseColor, wornColor, wearLevel);
-          mat.roughness = 0.2 + wearLevel * 0.7; // Gets rougher
-          mat.metalness = 0.8 - wearLevel * 0.6; // Loses shine
+          mat.color.lerpColors(baseColor, wornColor, currentWear);
+          mat.roughness = 0.2 + currentWear * 0.7; // Gets rougher
+          mat.metalness = 0.8 - currentWear * 0.6; // Loses shine
 
           // Heatmap Overlay (Contact Stress)
-          if (showHeatmap) {
-              // Stress is highest at contact (bottom)
-              // Emissive red at bottom
+          if (currentHeatmap) {
               mat.emissive.setHex(0xff0000);
-              // Pulse intensity with stress and movement
               const pulse = (Math.sin(time * 10) + 1) * 0.5;
-              mat.emissiveIntensity = contactStress * 0.8 * pulse;
+              mat.emissiveIntensity = currentStress * 0.8 * pulse;
           } else {
               mat.emissive.setHex(0x000000);
               mat.emissiveIntensity = 0;
@@ -198,7 +225,7 @@ export const RollerSliderScene: React.FC<RollerSceneProps> = ({
       // 3. Debris Particles
       if (debrisRef.current && rollerRef.current) {
           const positions = debrisRef.current.geometry.attributes.position.array as Float32Array;
-          const activeCount = Math.floor(pCount * debrisAmount * wearLevel);
+          const activeCount = Math.floor(pCount * currentDebris * currentWear);
           
           for(let i=0; i<pCount; i++) {
               if (i > activeCount) {
@@ -208,7 +235,6 @@ export const RollerSliderScene: React.FC<RollerSceneProps> = ({
 
               // Emit from bottom of roller
               if (positions[i*3+1] < 0 || positions[i*3+1] > 2) {
-                  // Reset to contact point
                   positions[i*3] = rollerRef.current.position.x + (Math.random()-0.5)*1.5;
                   positions[i*3+1] = 0; // Contact level
                   positions[i*3+2] = (Math.random()-0.5)*1.5;
@@ -244,8 +270,21 @@ export const RollerSliderScene: React.FC<RollerSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 2026.03.02 补充清理：释放几何体和材质内存
+      if (sceneRef.current) {
+        sceneRef.current.traverse((obj: any) => {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach((mat: any) => mat.dispose());
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
     };
-  }, [wearLevel, rotationSpeed, contactStress, debrisAmount, lubricationMode, showHeatmap]);
+  }, []); // 2026.03.02 移除所有动态依赖项，仅在组件挂载/卸载时执行
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

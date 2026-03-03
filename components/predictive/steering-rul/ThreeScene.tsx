@@ -18,6 +18,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===steering-rul useEffect===");    
 
     const scene = new THREE.Scene();
     scene.background = null;

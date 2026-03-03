@@ -26,6 +26,7 @@ export const ShovelThreeScene: React.FC<ShovelSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-shovel useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

@@ -18,6 +18,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===ship-engine-failure useEffect===");
 
     const scene = new THREE.Scene();
     // 渐变背景营造深度感

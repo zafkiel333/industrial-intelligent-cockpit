@@ -18,6 +18,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===ship-engine-fault-prob useEffect===");
 
     const scene = new THREE.Scene();
     // 增加环境遮蔽感

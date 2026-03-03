@@ -24,6 +24,7 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-locomotive useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

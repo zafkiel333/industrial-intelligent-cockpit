@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -19,12 +18,14 @@ export const MaintenanceOptScene: React.FC<MaintOptSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-maint-opt useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x02040a, 0.04);
+    // 调整1：降低雾的密度（从0.04→0.02），减少雾对画面的暗化效果
+    scene.fog = new THREE.FogExp2(0x02040a, 0.02);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(15, 15, 20);
@@ -34,8 +35,10 @@ export const MaintenanceOptScene: React.FC<MaintOptSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
+    // 调整2：新增全局曝光度（核心提亮手段），从无→2.0，整体画面显著变亮
+    renderer.toneMappingExposure = 2.0;
+    
+    // 保留原有清空canvas逻辑
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -46,14 +49,40 @@ export const MaintenanceOptScene: React.FC<MaintOptSceneProps> = ({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
-    // 灯光
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    // ===================== 核心光线强化调整 =====================
+    // 1. 环境光（基础照明）：从0.6→1.2，拉满基础亮度，消除暗部死黑
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
-    const mainLight = new THREE.PointLight(0x3b82f6, 2, 50);
+
+    // 2. 新增半球光：补充环境光层次感，模拟自然天顶/地面光，强度1.0进一步提亮
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xe0e0e0, 1.0);
+    hemisphereLight.position.set(0, 20, 0);
+    scene.add(hemisphereLight);
+
+    // 3. 主点光源：从强度6→10，范围80→120，衰减1.0（光照更均匀）
+    const mainLight = new THREE.PointLight(0x3b82f6, 10, 120);
     mainLight.position.set(10, 10, 10);
+    mainLight.decay = 1.0; // 减缓光照衰减，远处也能亮
     scene.add(mainLight);
 
-    // 核心机组背景 (半透明抽象)
+    // 4. 辅助点光源：从强度2→5，范围60→100，补充对角暗区
+    const helperLight = new THREE.PointLight(0xffffff, 5, 100);
+    helperLight.position.set(-8, 8, -8);
+    scene.add(helperLight);
+
+    // 5. 方向光：从强度1.2→2.5，位置上移（5,15,5→10,25,10），照明覆盖更广
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    dirLight.position.set(10, 25, 10);
+    dirLight.castShadow = false;
+    scene.add(dirLight);
+
+    // 6. 新增填充光：极低强度、超大范围，消除最后暗角
+    const fillLight = new THREE.PointLight(0xffffff, 1.5, 150);
+    fillLight.position.set(0, 5, 0);
+    scene.add(fillLight);
+    // ========================================================
+
+    // 核心机组背景 (半透明抽象) —— 完全保留原有材质/色彩
     const machineGroup = new THREE.Group();
     const mat = new THREE.MeshPhysicalMaterial({ 
         color: 0x1e293b, 
@@ -65,14 +94,14 @@ export const MaintenanceOptScene: React.FC<MaintOptSceneProps> = ({
     machineGroup.add(body);
     scene.add(machineGroup);
 
-    // 任务节点生成
+    // 任务节点生成 —— 完全保留原有颜色/材质逻辑
     taskGroupsRef.current = [];
     tasks.forEach((task, i) => {
         const group = new THREE.Group();
         group.position.set(...task.position);
         group.userData = { id: task.id };
 
-        // 核心球体
+        // 核心球体（颜色逻辑完全不变）
         const color = task.status === 'optimized' ? 0x10b981 : 
                      task.status === 'skipped' ? 0x475569 : 0xf59e0b;
         
@@ -86,7 +115,7 @@ export const MaintenanceOptScene: React.FC<MaintOptSceneProps> = ({
         );
         group.add(sphere);
 
-        // 扫描环
+        // 扫描环（完全保留原有逻辑）
         const ring = new THREE.Mesh(
             new THREE.TorusGeometry(0.8, 0.02, 8, 32),
             new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.3 })
@@ -98,7 +127,7 @@ export const MaintenanceOptScene: React.FC<MaintOptSceneProps> = ({
         taskGroupsRef.current.push(group);
     });
 
-    // 逻辑流连线
+    // 逻辑流连线 —— 完全保留原有逻辑
     flowLinesRef.current = [];
     if (showLogicFlow) {
         for (let i = 0; i < tasks.length - 1; i++) {

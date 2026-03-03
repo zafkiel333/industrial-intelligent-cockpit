@@ -12,9 +12,21 @@ export const AuxComparisonScene: React.FC<AuxComparisonSceneProps> = ({
   const mountRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const unitGroupsRef = useRef<THREE.Group[]>([]);
+  // 2026.03.03 bug修复：创建ref保存实时变量值，避免依赖项变化触发useEffect重渲染
+  // bug情况：因units/selectedUnitId频繁变化，导致useEffect反复触发，3D模型初始化重复执行引发闪烁
+  // bug原因：useEffect依赖项包含易变的units和selectedUnitId，每次变量更新都会重新创建场景/模型
+  const unitsRef = useRef(units);
+  const selectedUnitIdRef = useRef(selectedUnitId);
+
+  // 2026.03.03 单独维护ref与props的同步，不触发渲染逻辑重执行
+  useEffect(() => {
+    unitsRef.current = units;
+    selectedUnitIdRef.current = selectedUnitId;
+  }, [units, selectedUnitId]);
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-aux-compare useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -42,7 +54,7 @@ export const AuxComparisonScene: React.FC<AuxComparisonSceneProps> = ({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -95,8 +107,12 @@ export const AuxComparisonScene: React.FC<AuxComparisonSceneProps> = ({
       const frameId = requestAnimationFrame(animate);
       controls.update();
 
+      // 2026.03.03 读取ref中保存的最新值，而非直接使用props
+      const currentUnits = unitsRef.current;
+      const currentSelectedUnitId = selectedUnitIdRef.current;
+
       unitGroupsRef.current.forEach((group, i) => {
-          const unit = units[i];
+          const unit = currentUnits[i];
           if (!unit) return;
 
           const shaft = group.getObjectByName('shaft');
@@ -108,7 +124,7 @@ export const AuxComparisonScene: React.FC<AuxComparisonSceneProps> = ({
           }
 
           if (unit.vibration > 0.5 && unit.status === 'running') {
-              group.position.x = (i === 0 ? -6 : i === 1 ? 0 : 6) + (Math.random() - 0.5) * unit.vibration * 0.1;
+              group.position.x = (i === 0 ? -6 : i === 1 ? 0 : i === 2 ? 6 : 0) + (Math.random() - 0.5) * unit.vibration * 0.1;
           }
 
           if (motor) {
@@ -119,7 +135,7 @@ export const AuxComparisonScene: React.FC<AuxComparisonSceneProps> = ({
 
           if (ring) {
               const mat = ring.material as THREE.MeshBasicMaterial;
-              if (unit.id === selectedUnitId) {
+              if (unit.id === currentSelectedUnitId) {
                   mat.opacity = 0.6 + Math.sin(Date.now() * 0.005) * 0.2;
                   mat.color.setHex(0x0ea5e9);
               } else {
@@ -137,7 +153,7 @@ export const AuxComparisonScene: React.FC<AuxComparisonSceneProps> = ({
       cancelAnimationFrame(animId);
       renderer.dispose();
     };
-  }, [units, selectedUnitId]);
+  }, []); // 2026.03.03 清空依赖项，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
 };

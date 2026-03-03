@@ -20,6 +20,7 @@ export const HydroThreeScene: React.FC<HydroSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;

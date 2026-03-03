@@ -22,6 +22,7 @@ export const MiningMotorInsulationScene: React.FC<MotorInsulationSceneProps> = (
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-motor-insulation useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

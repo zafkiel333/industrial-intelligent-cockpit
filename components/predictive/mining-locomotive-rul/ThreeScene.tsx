@@ -19,6 +19,7 @@ export const LocomotiveRulScene: React.FC<LocoRulSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-locomotive-rul useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

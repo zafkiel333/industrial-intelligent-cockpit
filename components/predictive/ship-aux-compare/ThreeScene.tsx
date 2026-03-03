@@ -20,6 +20,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===ship-aux-compare useEffect===");
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020617);

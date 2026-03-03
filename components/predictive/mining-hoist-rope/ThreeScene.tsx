@@ -20,6 +20,7 @@ export const HoistRopeThreeScene: React.FC<HoistRopeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-hoist-rope useEffect===");    
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

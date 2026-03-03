@@ -22,6 +22,7 @@ export const SwingBearingThreeScene: React.FC<SwingBearingSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-swing-bearing useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

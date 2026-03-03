@@ -20,6 +20,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===gearbox useEffect===");
 
     // --- 1. 基础场景设置 ---
     const scene = new THREE.Scene();

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,8 +17,22 @@ export const EconomyEvaluationScene: React.FC<EconomySceneProps> = ({
   const particlesRef = useRef<THREE.Points | null>(null);
   const ringsRef = useRef<THREE.Group | null>(null);
 
+  // 2026.03.03 - Bug修复：创建ref存储动态props值，避免依赖项变化触发useEffect重建3D场景导致闪烁
+  // Bug原因：原代码将roiLevel/savingsSpeed/showValueStream作为useEffect依赖项，这些值频繁变化会导致useEffect反复执行，重建整个3D场景，表现为模型闪烁
+  const roiLevelRef = useRef(roiLevel);
+  const savingsSpeedRef = useRef(savingsSpeed);
+  const showValueStreamRef = useRef(showValueStream);
+
+  // 2026.03.03 - 同步props值到ref，仅更新值不触发3D场景重建
+  useEffect(() => {
+    roiLevelRef.current = roiLevel;
+    savingsSpeedRef.current = savingsSpeed;
+    showValueStreamRef.current = showValueStream;
+  }, [roiLevel, savingsSpeed, showValueStream]);
+
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-economy useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -50,12 +63,26 @@ export const EconomyEvaluationScene: React.FC<EconomySceneProps> = ({
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.5;
 
-    // 灯光
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    // 2026.03.04 - 调整光线参数提亮显示效果，不修改材质/模型色彩
+    // 1. 提升环境光强度，增强基础全局照明（原强度0.2 → 0.6）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
-    const goldLight = new THREE.PointLight(0xfacc15, 2, 50);
+
+    // 2. 增强金色点光源强度+调整衰减，提升核心区域亮度（原强度2 → 5，距离50 → 80，增加衰减参数1.2）
+    const goldLight = new THREE.PointLight(0xfacc15, 5, 80, 1.2);
     goldLight.position.set(5, 5, 5);
     scene.add(goldLight);
+
+    // 3. 新增主方向光，提升整体场景亮度（模拟自然顶光，不影响原有色彩）
+    const mainDirectionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    mainDirectionalLight.position.set(10, 15, 10); // 高位光源避免局部过暗
+    mainDirectionalLight.castShadow = true; // 增加阴影层次感（可选，不改变色彩）
+    scene.add(mainDirectionalLight);
+
+    // 4. 新增补光，平衡暗部区域亮度（避免局部过暗，保持色彩一致性）
+    const fillLight = new THREE.PointLight(0xffffff, 1, 60);
+    fillLight.position.set(-8, 8, -8); // 与主光源对角布置，平衡光照
+    scene.add(fillLight);
 
     // 1. 核心几何体 (Value Core)
     const coreGeo = new THREE.IcosahedronGeometry(3, 1);
@@ -124,10 +151,10 @@ export const EconomyEvaluationScene: React.FC<EconomySceneProps> = ({
 
       // 核心脉动
       if (coreRef.current) {
-          const scale = 1 + Math.sin(time * 3) * 0.1 * roiLevel;
+          const scale = 1 + Math.sin(time * 3) * 0.1 * roiLevelRef.current;
           coreRef.current.scale.set(scale, scale, scale);
           coreRef.current.rotation.y += 0.01;
-          (coreRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + roiLevel;
+          (coreRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + roiLevelRef.current;
       }
 
       // 轨道旋转
@@ -138,7 +165,7 @@ export const EconomyEvaluationScene: React.FC<EconomySceneProps> = ({
       }
 
       // 粒子向核心流动
-      if (particlesRef.current && showValueStream) {
+      if (particlesRef.current && showValueStreamRef.current) {
           const pos = particlesRef.current.geometry.attributes.position.array as Float32Array;
           for(let i=0; i<pCount; i++) {
               const x = pos[i*3];
@@ -157,7 +184,7 @@ export const EconomyEvaluationScene: React.FC<EconomySceneProps> = ({
                   pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
                   pos[i*3+2] = r * Math.cos(phi);
               } else {
-                  vec.multiplyScalar(0.98 - (savingsSpeed * 0.01));
+                  vec.multiplyScalar(0.98 - (savingsSpeedRef.current * 0.01));
                   pos[i*3] = vec.x;
                   pos[i*3+1] = vec.y;
                   pos[i*3+2] = vec.z;
@@ -190,7 +217,7 @@ export const EconomyEvaluationScene: React.FC<EconomySceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [roiLevel, savingsSpeed, showValueStream]);
+  }, []); // 依赖项改为空数组，确保3D场景只初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

@@ -23,6 +23,7 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-truck-engine useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -17,6 +16,21 @@ export const AccuracyThreeScene: React.FC<AccuracySceneProps> = ({
   const manifoldRef = useRef<THREE.Mesh | null>(null);
   const particlesRef = useRef<THREE.Points | null>(null);
   const scannerRef = useRef<THREE.Group | null>(null);
+
+  // 2026.03.03 - Bug修复：创建ref存储实时props值，避免依赖项变化触发useEffect重建场景导致模型闪烁
+  // Bug情况：3D模型频繁闪烁，原因是useEffect依赖项（globalAccuracy/errorIntensity等）反复变化，导致场景被反复销毁重建
+  const globalAccuracyRef = useRef(globalAccuracy);
+  const errorIntensityRef = useRef(errorIntensity);
+  const isAnalyzingRef = useRef(isAnalyzing);
+  const uncertaintyZonesRef = useRef(uncertaintyZones);
+
+  // 2026.03.03 - 仅更新ref值，不触发场景重建
+  useEffect(() => {
+    globalAccuracyRef.current = globalAccuracy;
+    errorIntensityRef.current = errorIntensity;
+    isAnalyzingRef.current = isAnalyzing;
+    uncertaintyZonesRef.current = uncertaintyZones;
+  }, [globalAccuracy, errorIntensity, isAnalyzing, uncertaintyZones]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -52,7 +66,7 @@ export const AccuracyThreeScene: React.FC<AccuracySceneProps> = ({
     controls.autoRotateSpeed = 0.5;
 
     // 灯光
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
     const pointLight = new THREE.PointLight(0x0ea5e9, 2, 50);
     pointLight.position.set(10, 10, 10);
@@ -118,6 +132,12 @@ export const AccuracyThreeScene: React.FC<AccuracySceneProps> = ({
       time += 0.01;
       controls.update();
 
+      // 2026.03.03 - 读取ref中的实时值，而非直接使用props
+      const currentAccuracy = globalAccuracyRef.current;
+      const currentErrorIntensity = errorIntensityRef.current;
+      const currentIsAnalyzing = isAnalyzingRef.current;
+      const currentUncertaintyZones = uncertaintyZonesRef.current;
+
       // 流形曲面扭曲模拟误差
       if (manifoldRef.current) {
           const positions = manifoldRef.current.geometry.attributes.position.array as Float32Array;
@@ -128,10 +148,10 @@ export const AccuracyThreeScene: React.FC<AccuracySceneProps> = ({
               let y = Math.sin(x * 0.5 + time) * Math.cos(z * 0.5 + time) * 0.5;
               
               // 在“不稳定区”产生突变
-              uncertaintyZones.forEach(zone => {
+              currentUncertaintyZones.forEach(zone => {
                   const dist = Math.sqrt(Math.pow(x - zone.x, 2) + Math.pow(z - zone.z, 2));
                   if (dist < zone.r) {
-                      y += (zone.r - dist) * 2 * Math.sin(time * 10) * errorIntensity;
+                      y += (zone.r - dist) * 2 * Math.sin(time * 10) * currentErrorIntensity;
                   }
               });
               positions[i+1] = y;
@@ -139,7 +159,7 @@ export const AccuracyThreeScene: React.FC<AccuracySceneProps> = ({
           manifoldRef.current.geometry.attributes.position.needsUpdate = true;
           
           // 根据准确度调整亮度
-          (manifoldRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + (1 - globalAccuracy/100);
+          (manifoldRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + (1 - currentAccuracy/100);
       }
 
       // 点云浮动
@@ -152,10 +172,10 @@ export const AccuracyThreeScene: React.FC<AccuracySceneProps> = ({
               const z = pos[i*3+2];
               // 同步流形高度
               const yBase = Math.sin(x * 0.5 + time) * Math.cos(z * 0.5 + time) * 0.5;
-              pos[i*3+1] = yBase + (Math.random()-0.5) * errorIntensity * 2;
+              pos[i*3+1] = yBase + (Math.random()-0.5) * currentErrorIntensity * 2;
               
               // 误差大的点颜色变红
-              if (Math.abs(pos[i*3+1] - yBase) > 0.5 * (1-errorIntensity)) {
+              if (Math.abs(pos[i*3+1] - yBase) > 0.5 * (1-currentErrorIntensity)) {
                   col[i*3] = 1.0; col[i*3+1] = 0.2; col[i*3+2] = 0.2;
               } else {
                   col[i*3] = 0.1; col[i*3+1] = 0.5; col[i*3+2] = 1.0;
@@ -166,7 +186,7 @@ export const AccuracyThreeScene: React.FC<AccuracySceneProps> = ({
       }
 
       // 扫描线移动
-      if (scannerRef.current && isAnalyzing) {
+      if (scannerRef.current && currentIsAnalyzing) {
           scannerRef.current.position.z = Math.sin(time * 2) * 10;
           scannerRef.current.visible = true;
       } else if (scannerRef.current) {
@@ -194,7 +214,8 @@ export const AccuracyThreeScene: React.FC<AccuracySceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [globalAccuracy, errorIntensity, isAnalyzing, uncertaintyZones]);
+  // 2026.03.03 - 剔除原依赖项，改为空数组，仅初始化一次场景
+  }, []);
 
   return <div ref={mountRef} className="w-full h-full" />;
 };

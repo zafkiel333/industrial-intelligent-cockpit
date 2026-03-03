@@ -23,6 +23,7 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-locomotive-gearbox useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

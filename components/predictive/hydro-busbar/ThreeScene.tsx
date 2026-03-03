@@ -45,7 +45,7 @@ export const BusbarScene: React.FC<BusbarSceneProps> = ({
     scene.fog = new THREE.FogExp2(0x050202, 0.05);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(8, 8, 12);
+    camera.position.set(8, 0, 12);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });

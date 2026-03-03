@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -19,6 +18,31 @@ export const GateStictionScene: React.FC<StictionSceneProps> = ({
   const tracksRef = useRef<THREE.Group | null>(null);
   const sparksRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.03 - Bug修复：创建ref存储动态值，避免依赖项变化触发useEffect重渲染
+  // Bug情况：useEffect依赖项（position/skew等）频繁变化导致3D模型反复初始化、闪烁
+  // Bug原因：依赖项数组包含易变的原始类型/引用类型变量，每次值变化都会触发useEffect重新执行，重建3D场景
+  const dynamicValuesRef = useRef({
+    position,
+    skew,
+    frictionZones,
+    waterLevel,
+    isMoving,
+    jammed
+  });
+
+  // 2026.03.03 - 单独监听动态值变化，更新ref而不重建3D场景
+  useEffect(() => {
+    dynamicValuesRef.current = {
+      position,
+      skew,
+      frictionZones,
+      waterLevel,
+      isMoving,
+      jammed
+    };
+  }, [position, skew, frictionZones, waterLevel, isMoving, jammed]);
+
+  // 2026.03.03 - 主useEffect仅依赖mountRef，只执行一次初始化
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===hydro-gate-stiction useEffect===");
@@ -32,7 +56,7 @@ export const GateStictionScene: React.FC<StictionSceneProps> = ({
     scene.fog = new THREE.FogExp2(0x050202, 0.03);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 5, 25);
+    camera.position.set(0, 15, 25);
     camera.lookAt(0, 5, 0);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -55,7 +79,7 @@ export const GateStictionScene: React.FC<StictionSceneProps> = ({
     controls.maxPolarAngle = Math.PI / 1.5;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
     const spotLight = new THREE.SpotLight(0xffaa00, 3);
@@ -196,20 +220,24 @@ export const GateStictionScene: React.FC<StictionSceneProps> = ({
       time += 0.02;
       controls.update();
 
+      // 2026.03.03 - 从ref中读取实时动态值，而非直接使用props
+      const { position: currentPos, skew: currentSkew, frictionZones: currentFrictionZones, 
+               waterLevel: currentWaterLevel, isMoving: currentIsMoving, jammed: currentJammed } = dynamicValuesRef.current;
+
       // 1. Gate Movement & Skew
       if (gateRef.current) {
           // Map 0-100% to Y=0 to Y=10
-          const targetY = (position / 100) * 10;
+          const targetY = (currentPos / 100) * 10;
           gateRef.current.position.y += (targetY - gateRef.current.position.y) * 0.1;
           
           // Apply Skew (Rotation around Z axis)
           // skew is in mm, gate width ~12m. angle ~= skew / 12000
           // exaggerated for visual
-          const skewAngle = (skew / 1000) * 5; 
+          const skewAngle = (currentSkew / 1000) * 5; 
           gateRef.current.rotation.z = -skewAngle; 
 
           // Jamming Shake
-          if (jammed) {
+          if (currentJammed) {
               gateRef.current.position.x = (Math.random() - 0.5) * 0.1;
               gateRef.current.position.y += (Math.random() - 0.5) * 0.05;
               redLight.intensity = 2 + Math.sin(time*20)*2;
@@ -220,12 +248,12 @@ export const GateStictionScene: React.FC<StictionSceneProps> = ({
       }
 
       // 2. Water Level
-      water.scale.y = Math.max(0.1, waterLevel);
-      water.position.y = waterLevel / 2;
+      water.scale.y = Math.max(0.1, currentWaterLevel);
+      water.position.y = currentWaterLevel / 2;
 
       // 3. Friction Zones Visualization
       hotspotPool.forEach(spot => spot.visible = false);
-      frictionZones.forEach((zone, i) => {
+      currentFrictionZones.forEach((zone, i) => {
           if (i < hotspotPool.length) {
               const spot = hotspotPool[i];
               spot.visible = true;
@@ -247,7 +275,7 @@ export const GateStictionScene: React.FC<StictionSceneProps> = ({
               (spot.material as THREE.MeshBasicMaterial).opacity = zone.intensity * (isActive ? 1.0 : 0.3);
               
               // Sparks logic
-              if (isActive && isMoving && sparksRef.current) {
+              if (isActive && currentIsMoving && sparksRef.current) {
                   const positions = sparksRef.current.geometry.attributes.position.array as Float32Array;
                   for(let k=0; k<10; k++) {
                       // pick random particle
@@ -296,7 +324,7 @@ export const GateStictionScene: React.FC<StictionSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [position, skew, frictionZones, waterLevel, isMoving, jammed]);
+  }, [mountRef]); // 2026.03.03 - 仅依赖mountRef，确保只执行一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

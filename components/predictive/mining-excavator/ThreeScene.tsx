@@ -24,6 +24,7 @@ export const ExcavatorThreeScene: React.FC<ExcavatorSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-excavator useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

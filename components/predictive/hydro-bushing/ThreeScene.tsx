@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,9 +17,40 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
   const sparksRef = useRef<THREE.Points | null>(null);
   const coreRef = useRef<THREE.Group | null>(null);
   const oilRef = useRef<THREE.Mesh | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const controlsRef = useRef<OrbitControls | null>(null);
+  const porcelainMatRef = useRef<THREE.MeshPhysicalMaterial | null>(null);
+  const foilMatRef = useRef<THREE.MeshBasicMaterial | null>(null);
+  const groupRef = useRef<THREE.Group | null>(null);
+
+  // 2026.03.03 - Bug修复：创建ref存储实时变化的变量，避免放入useEffect依赖项导致重复执行
+  // Bug情况：useEffect依赖项包含pdIntensity/tanDelta/oilLevel/viewMode等频繁变化的变量，导致useEffect反复触发
+  // Bug原因：依赖项变量实时更新时，useEffect会重新执行，重复创建Three.js场景、渲染器、几何体等，引发模型闪烁
+  const dynamicValuesRef = useRef({
+    pdIntensity,
+    tanDelta,
+    oilLevel,
+    viewMode,
+    phase,
+    voltageLevel
+  });
+
+  // 实时更新ref中的值，不触发useEffect
+  useEffect(() => {
+    dynamicValuesRef.current = {
+      pdIntensity,
+      tanDelta,
+      oilLevel,
+      viewMode,
+      phase,
+      voltageLevel
+    };
+  }, [pdIntensity, tanDelta, oilLevel, viewMode, phase, voltageLevel]);
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-bushing useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -33,6 +63,7 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(8, 12, 12);
     camera.lookAt(0, 4, 0);
+    cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
@@ -44,15 +75,17 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
       mountRef.current.removeChild(existingCanvas);
     }
     mountRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.5;
     controls.target.set(0, 4, 0);
+    controlsRef.current = controls;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
     const blueLight = new THREE.PointLight(0x3b82f6, 2, 20);
@@ -65,6 +98,7 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
 
     // --- Geometry ---
     const group = new THREE.Group();
+    groupRef.current = group;
     scene.add(group);
 
     // Materials
@@ -73,10 +107,11 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
         roughness: 0.2,
         metalness: 0.1,
         clearcoat: 1.0,
-        transmission: viewMode === 'internal' ? 0.8 : 0.0,
-        transparent: viewMode === 'internal',
-        opacity: viewMode === 'internal' ? 0.2 : 1.0
+        transmission: dynamicValuesRef.current.viewMode === 'internal' ? 0.8 : 0.0,
+        transparent: dynamicValuesRef.current.viewMode === 'internal',
+        opacity: dynamicValuesRef.current.viewMode === 'internal' ? 0.2 : 1.0
     });
+    porcelainMatRef.current = porcelainMat;
 
     const copperMat = new THREE.MeshStandardMaterial({
         color: 0xb45309,
@@ -91,6 +126,7 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
         opacity: 0.15,
         wireframe: true
     });
+    foilMatRef.current = foilMat;
 
     const oilMat = new THREE.MeshPhysicalMaterial({
         color: 0xf59e0b,
@@ -127,33 +163,31 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
     terminal.position.y = 10.5;
     group.add(terminal);
 
-    // 3. Internal Grading Foils (Capacitor Core) - Only visible in internal mode
+    // 3. Internal Grading Foils (Capacitor Core) - 初始创建，后续动态控制显示
     const coreGroup = new THREE.Group();
     coreRef.current = coreGroup;
     group.add(coreGroup);
 
-    if (viewMode === 'internal' || viewMode === 'field') {
-        for(let i=0; i<6; i++) {
-            const r = 0.4 + i * 0.12;
-            const h = 9 - i * 0.8; // Grading: outer layers shorter
-            const foil = new THREE.Mesh(
-                new THREE.CylinderGeometry(r, r, h, 32, 1, true),
-                foilMat
-            );
-            foil.position.y = 5; // Centered vertically in bushing
-            coreGroup.add(foil);
-        }
+    // 初始化所有箔片（后续根据viewMode控制显示/隐藏）
+    for(let i=0; i<6; i++) {
+        const r = 0.4 + i * 0.12;
+        const h = 9 - i * 0.8; // Grading: outer layers shorter
+        const foil = new THREE.Mesh(
+            new THREE.CylinderGeometry(r, r, h, 32, 1, true),
+            foilMat
+        );
+        foil.position.y = 5; // Centered vertically in bushing
+        foil.visible = dynamicValuesRef.current.viewMode === 'internal' || dynamicValuesRef.current.viewMode === 'field';
+        coreGroup.add(foil);
     }
 
-    // 4. Oil Level (Inside)
-    if (viewMode === 'internal') {
-        const oilHeight = (oilLevel / 100) * 2; // In the top expansion chamber
-        const oilGeo = new THREE.CylinderGeometry(0.9, 0.9, oilHeight, 32);
-        const oil = new THREE.Mesh(oilGeo, oilMat);
-        oil.position.y = 9.5 + oilHeight/2 - 1; // Position near top
-        oilRef.current = oil;
-        group.add(oil);
-    }
+    // 4. Oil Level (Inside) - 初始创建，后续动态更新高度
+    const oilGeo = new THREE.CylinderGeometry(0.9, 0.9, 0, 32);
+    const oil = new THREE.Mesh(oilGeo, oilMat);
+    oil.position.y = 9.5 - 1; // 初始位置
+    oil.visible = dynamicValuesRef.current.viewMode === 'internal';
+    oilRef.current = oil;
+    group.add(oil);
 
     // 5. PD Sparks (Particle System)
     const pCount = 50;
@@ -183,9 +217,15 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
     const animate = () => {
       frameId = requestAnimationFrame(animate);
       time += 0.01;
-      controls.update();
+      
+      // 读取实时更新的变量
+      const { pdIntensity, tanDelta, oilLevel, viewMode } = dynamicValuesRef.current;
 
-      // PD Simulation
+      if (controlsRef.current) {
+        controlsRef.current.update();
+      }
+
+      // PD Simulation - 使用实时的pdIntensity值
       if (sparksRef.current) {
           const positions = sparksRef.current.geometry.attributes.position.array as Float32Array;
           // Intensity determines probability of spark
@@ -209,33 +249,72 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
           sparksRef.current.geometry.attributes.position.needsUpdate = true;
       }
 
-      // Voltage Stress Pulse (Field View)
-      if (viewMode === 'field' && coreRef.current) {
+      // 2026.03.03 - 动态更新viewMode相关的显示逻辑
+      // Voltage Stress Pulse (Field View) - 使用实时的viewMode值
+      if (coreRef.current && (viewMode === 'field')) {
           coreRef.current.children.forEach((mesh: any, i) => {
               const pulse = Math.sin(time * 10 - i) * 0.5 + 0.5;
               mesh.material.opacity = 0.1 + pulse * 0.3;
           });
       }
 
-      // Material color update based on Tan Delta (Aging)
-      // High Tan Delta -> Yellow/Brown tint on insulation
-      if (viewMode === 'internal' && tanDelta > 0.5) {
-           // Simulating aging color shift
-           const ageFactor = Math.min(1, tanDelta / 2.0); // 0 to 1
-           // No dynamic update on complex materials for perf, but logic is here
+      // 动态更新viewMode对应的材质属性
+      if (porcelainMatRef.current) {
+        const isInternal = viewMode === 'internal';
+        porcelainMatRef.current.transmission = isInternal ? 0.8 : 0.0;
+        porcelainMatRef.current.transparent = isInternal;
+        porcelainMatRef.current.opacity = isInternal ? 0.2 : 1.0;
+        porcelainMatRef.current.needsUpdate = true;
       }
 
-      renderer.render(scene, camera);
+      // 动态控制箔片显示/隐藏
+      if (coreRef.current) {
+        const showFoil = viewMode === 'internal' || viewMode === 'field';
+        coreRef.current.children.forEach((mesh: any) => {
+          if (mesh.visible !== showFoil) {
+            mesh.visible = showFoil;
+          }
+        });
+      }
+
+      // 动态更新油位高度 - 使用实时的oilLevel和viewMode值
+      if (oilRef.current) {
+        oilRef.current.visible = viewMode === 'internal';
+        if (viewMode === 'internal') {
+          const newOilHeight = (oilLevel / 100) * 2;
+          // 更新油的几何体高度
+          oilRef.current.geometry.dispose();
+          oilRef.current.geometry = new THREE.CylinderGeometry(0.9, 0.9, newOilHeight, 32);
+          oilRef.current.position.y = 9.5 + newOilHeight/2 - 1;
+        }
+      }
+
+      // Material color update based on Tan Delta (Aging) - 使用实时的tanDelta值
+      // High Tan Delta -> Yellow/Brown tint on insulation
+      if (viewMode === 'internal' && tanDelta > 0.5 && porcelainMatRef.current) {
+           // Simulating aging color shift
+           const ageFactor = Math.min(1, tanDelta / 2.0); // 0 to 1
+           porcelainMatRef.current.color.setRGB(
+             0.28 + ageFactor * 0.1, 
+             0.33 + ageFactor * 0.1, 
+             0.41 - ageFactor * 0.1
+           );
+           porcelainMatRef.current.needsUpdate = true;
+      }
+
+      if (rendererRef.current && cameraRef.current && sceneRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
     };
     animate();
 
     const handleResize = () => {
-      if (mountRef.current && renderer && camera) {
+      if (mountRef.current && rendererRef.current && cameraRef.current) {
         const w = mountRef.current.clientWidth;
         const h = mountRef.current.clientHeight;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
+        cameraRef.current.aspect = w / h;
+        cameraRef.current.updateProjectionMatrix();
+        rendererRef.current.setSize(w, h);
       }
     };
     window.addEventListener('resize', handleResize);
@@ -243,12 +322,25 @@ export const BushingScene: React.FC<BushingSceneProps> = ({
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(frameId);
-      if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (mountRef.current && rendererRef.current?.domElement) {
+        mountRef.current.removeChild(rendererRef.current.domElement);
       }
-      renderer.dispose();
+      // 释放Three.js资源
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
+      }
+      sceneRef.current?.traverse((obj: any) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach((mat: any) => mat.dispose());
+          } else {
+            obj.material.dispose();
+          }
+        }
+      });
     };
-  }, [phase, voltageLevel, pdIntensity, tanDelta, oilLevel, viewMode]);
+  }, [mountRef]); // 仅依赖mountRef，确保只执行一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

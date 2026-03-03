@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -21,8 +20,34 @@ export const PenstockScene: React.FC<PenstockSceneProps> = ({
   const bellowsRef = useRef<THREE.Group | null>(null);
   const particlesRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.03 - Bug修复：创建ref保存实时props值，避免依赖项变化触发useEffect重渲染
+  // Bug情况：useEffect依赖项（pressure/flowRate等）频繁变化导致useEffect反复执行，重建Three.js场景引发模型闪烁
+  // Bug原因：原逻辑将实时变化的props作为useEffect依赖项，每次props更新都会重新初始化整个3D场景，导致渲染闪烁
+  const propsRef = useRef({
+    pressure,
+    flowRate,
+    stressFactor,
+    vibration,
+    showInternal,
+    waterHammerPulse,
+    jointDisplacement
+  });
+  // 实时更新propsRef，确保动画循环能获取最新值
+  useEffect(() => {
+    propsRef.current = {
+      pressure,
+      flowRate,
+      stressFactor,
+      vibration,
+      showInternal,
+      waterHammerPulse,
+      jointDisplacement
+    };
+  }, [pressure, flowRate, stressFactor, vibration, showInternal, waterHammerPulse, jointDisplacement]);
+
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-penstock useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
@@ -194,7 +219,6 @@ export const PenstockScene: React.FC<PenstockSceneProps> = ({
     particlesRef.current = particles;
     mainGroup.add(particles);
 
-
     // --- Animation Loop ---
     let frameId: number;
     let time = 0;
@@ -204,20 +228,31 @@ export const PenstockScene: React.FC<PenstockSceneProps> = ({
       time += 0.02;
       controls.update();
 
+      // 2026.03.03 - 从propsRef获取最新props值，替代直接访问props
+      const {
+        pressure: currentPressure,
+        flowRate: currentFlowRate,
+        stressFactor: currentStressFactor,
+        vibration: currentVibration,
+        showInternal: currentShowInternal,
+        waterHammerPulse: currentWaterHammerPulse,
+        jointDisplacement: currentJointDisplacement
+      } = propsRef.current;
+
       // 1. Material & Visibility
       if (pipeRef.current) {
-          pipeRef.current.material = showInternal ? transparentSteelMat : steelMat;
-          if (waterRef.current) waterRef.current.visible = showInternal;
+          pipeRef.current.material = currentShowInternal ? transparentSteelMat : steelMat;
+          if (waterRef.current) waterRef.current.visible = currentShowInternal;
           
           // Stress Heatmap Effect
           // If not transparent, emissive indicates stress
-          if (!showInternal) {
+          if (!currentShowInternal) {
               const mat = pipeRef.current.material as THREE.MeshStandardMaterial;
-              if (stressFactor > 0.3) {
+              if (currentStressFactor > 0.3) {
                   // Pulse red at high stress areas (e.g. elbow at 0.5 of curve)
                   mat.emissive.setHex(0xff0000);
                   // Global stress + dynamic pulse
-                  mat.emissiveIntensity = (stressFactor - 0.3) * 0.5 + (pressure > 6 ? Math.sin(time*10)*0.2 : 0);
+                  mat.emissiveIntensity = (currentStressFactor - 0.3) * 0.5 + (currentPressure > 6 ? Math.sin(time*10)*0.2 : 0);
               } else {
                   mat.emissive.setHex(0x000000);
                   mat.emissiveIntensity = 0;
@@ -226,18 +261,22 @@ export const PenstockScene: React.FC<PenstockSceneProps> = ({
       }
 
       // 2. Vibration
-      if (vibration > 0) {
-          mainGroup.position.x = (Math.random() - 0.5) * vibration * 0.05;
-          mainGroup.position.y = (Math.random() - 0.5) * vibration * 0.05;
+      if (currentVibration > 0) {
+          mainGroup.position.x = (Math.random() - 0.5) * currentVibration * 0.05;
+          mainGroup.position.y = (Math.random() - 0.5) * currentVibration * 0.05;
+      } else {
+        // 重置振动位置，避免振动值归0后模型位置偏移
+        mainGroup.position.x = 0;
+        mainGroup.position.y = 0;
       }
 
       // 3. Water Hammer Pulse
       if (pulseRef.current) {
-          if (waterHammerPulse > 0) {
-              const pt = curve.getPointAt(waterHammerPulse % 1);
+          if (currentWaterHammerPulse > 0) {
+              const pt = curve.getPointAt(currentWaterHammerPulse % 1);
               pulseRef.current.position.copy(pt);
               pulseRef.current.visible = true;
-              (pulseRef.current.material as THREE.MeshBasicMaterial).opacity = 0.5 * (1 - Math.abs(0.5 - waterHammerPulse));
+              (pulseRef.current.material as THREE.MeshBasicMaterial).opacity = 0.5 * (1 - Math.abs(0.5 - currentWaterHammerPulse));
               
               // Scale visual pulse
               const s = 1 + Math.sin(time * 20) * 0.1;
@@ -251,15 +290,15 @@ export const PenstockScene: React.FC<PenstockSceneProps> = ({
       if (bellowsRef.current) {
           // Scale Z based on displacement
           // Base scale 1. jointDisplacement (mm) adds to it. Visual scale factor.
-          const scaleZ = 1 + (jointDisplacement / 50); 
+          const scaleZ = 1 + (currentJointDisplacement / 50); 
           bellowsRef.current.scale.z = scaleZ;
       }
 
       // 5. Particles Flow
-      if (particlesRef.current && showInternal) {
+      if (particlesRef.current && currentShowInternal) {
           particlesRef.current.visible = true;
           const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
-          const speed = flowRate / 10000; // Scale flow
+          const speed = currentFlowRate / 10000; // Scale flow
           
           for(let i=0; i<pCount; i++) {
               pOffset[i] += speed;
@@ -302,8 +341,17 @@ export const PenstockScene: React.FC<PenstockSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 清理材质和几何体，防止内存泄漏
+      if (pipeRef.current) {
+        pipeRef.current.geometry.dispose();
+        (pipeRef.current.material as THREE.Material).dispose();
+      }
+      if (waterRef.current) {
+        waterRef.current.geometry.dispose();
+        (waterRef.current.material as THREE.Material).dispose();
+      }
     };
-  }, [pressure, flowRate, stressFactor, vibration, showInternal, waterHammerPulse, jointDisplacement]);
+  }, [mountRef]); // 2026.03.03 - 仅保留mountRef作为依赖，确保场景只初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

@@ -20,6 +20,7 @@ export const JawCrusherThreeScene: React.FC<JawCrusherSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===mining-jaw-crusher useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

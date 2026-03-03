@@ -17,6 +17,7 @@ export const CascadeThreeScene: React.FC<CascadeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-cascade useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -49,7 +50,7 @@ export const CascadeThreeScene: React.FC<CascadeSceneProps> = ({
     controls.autoRotateSpeed = 0.3;
 
     // 灯光
-    const ambientLight = new THREE.AmbientLight(0x1a2e4c, 0.5);
+    const ambientLight = new THREE.AmbientLight(0x1a2e4c, 1.5);
     scene.add(ambientLight);
     const topLight = new THREE.PointLight(0x3b82f6, 2, 100);
     topLight.position.set(0, 50, 0);

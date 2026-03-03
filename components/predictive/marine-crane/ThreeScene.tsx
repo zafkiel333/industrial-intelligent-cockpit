@@ -20,6 +20,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===marine-crane useEffect===");
 
     const scene = new THREE.Scene();
     scene.background = null;

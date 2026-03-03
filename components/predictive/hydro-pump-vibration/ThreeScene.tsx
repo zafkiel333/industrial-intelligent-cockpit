@@ -45,6 +45,7 @@ export const PumpVibrationScene: React.FC<PumpVibrationProps> = ({
   // 初始化Three.js场景，仅执行一次（依赖数组为空）
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===hydro-pump-vibration useEffect===");
 
     // --- Setup ---
     const width = mountRef.current.clientWidth;
