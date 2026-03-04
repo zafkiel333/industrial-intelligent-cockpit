@@ -20,6 +20,24 @@ export const HydraulicPumpThreeScene: React.FC<PumpSceneProps> = ({
   const swashPlateRef = useRef<THREE.Mesh | null>(null);
   const bubblesRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.04 - Bug修复：创建refs保存实时更新的props值，避免依赖项变化触发useEffect重建场景
+  // Bug情况：模型频繁闪烁，useEffect反复执行导致场景被重复创建和销毁
+  // Bug原因：useEffect依赖了rpm、swashPlateAngle等频繁变化的变量，每次变量更新都会触发useEffect重新执行，重建整个3D场景
+  const rpmRef = useRef(rpm);
+  const swashPlateAngleRef = useRef(swashPlateAngle);
+  const isInternalVisibleRef = useRef(isInternalVisible);
+  const isCavitatingRef = useRef(isCavitating);
+  const selectedPartIdRef = useRef(selectedPartId);
+
+  // 实时更新refs值（不触发useEffect）
+  useEffect(() => {
+    rpmRef.current = rpm;
+    swashPlateAngleRef.current = swashPlateAngle;
+    isInternalVisibleRef.current = isInternalVisible;
+    isCavitatingRef.current = isCavitating;
+    selectedPartIdRef.current = selectedPartId;
+  }, [rpm, swashPlateAngle, isInternalVisible, isCavitating, selectedPartId]);
+
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-pump useEffect===");
@@ -66,8 +84,8 @@ export const HydraulicPumpThreeScene: React.FC<PumpSceneProps> = ({
     // --- 材质定义 ---
     const metalMat = new THREE.MeshStandardMaterial({
         color: 0x64748b, metalness: 0.9, roughness: 0.2,
-        transparent: isInternalVisible,
-        opacity: isInternalVisible ? 0.3 : 1.0
+        transparent: isInternalVisibleRef.current,
+        opacity: isInternalVisibleRef.current ? 0.3 : 1.0
     });
 
     const activeMat = new THREE.MeshStandardMaterial({
@@ -93,7 +111,7 @@ export const HydraulicPumpThreeScene: React.FC<PumpSceneProps> = ({
     const swashGeo = new THREE.CylinderGeometry(3, 3, 0.4, 32);
     const swash = new THREE.Mesh(swashGeo, activeMat);
     swash.position.x = -3.5;
-    swash.rotation.z = (swashPlateAngle * Math.PI) / 180;
+    swash.rotation.z = (swashPlateAngleRef.current * Math.PI) / 180;
     swashPlateRef.current = swash;
     mainGroup.add(swash);
 
@@ -134,7 +152,7 @@ export const HydraulicPumpThreeScene: React.FC<PumpSceneProps> = ({
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
     const pMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.8 });
     const bubbles = new THREE.Points(pGeo, pMat);
-    bubbles.visible = isCavitating;
+    bubbles.visible = isCavitatingRef.current;
     bubblesRef.current = bubbles;
     scene.add(bubbles);
 
@@ -151,11 +169,16 @@ export const HydraulicPumpThreeScene: React.FC<PumpSceneProps> = ({
       time += 0.02;
       controls.update();
 
-      // 1. 模拟旋转与柱塞往复运动
-      const rotSpeed = (rpm / 60) * 0.1;
+      // 2026.03.04 - 读取ref中的实时值，替代原直接使用props的方式
+      // 1. 模拟旋转与柱塞往复运动（使用实时rpm和斜盘角度）
+      const rotSpeed = (rpmRef.current / 60) * 0.1;
       blockGroup.rotation.x += rotSpeed;
       
-      const plateAngleRad = (swashPlateAngle * Math.PI) / 180;
+      const plateAngleRad = (swashPlateAngleRef.current * Math.PI) / 180;
+      // 更新斜盘旋转角度
+      if (swashPlateRef.current) {
+        swashPlateRef.current.rotation.z = plateAngleRad;
+      }
       pistonsRef.current.forEach((p) => {
           const { angle, r } = p.userData;
           // 当前柱塞相位 = 基础相位 + 缸体旋转
@@ -165,20 +188,32 @@ export const HydraulicPumpThreeScene: React.FC<PumpSceneProps> = ({
           p.position.x = -1.5 + stroke;
       });
 
-      // 2. 气泡抖动
-      if (bubblesRef.current && isCavitating) {
-          const pos = bubblesRef.current.geometry.attributes.position.array as Float32Array;
-          for(let i=0; i<pCount; i++) {
-              pos[i*3] += (Math.random()-0.5)*0.05;
-              pos[i*3+1] += (Math.random()-0.5)*0.05;
-              if (Math.abs(pos[i*3]) > 5) pos[i*3] = 0;
-          }
-          bubblesRef.current.geometry.attributes.position.needsUpdate = true;
+      // 2. 气泡抖动与显示控制（使用实时空化状态）
+      if (bubblesRef.current) {
+        bubblesRef.current.visible = isCavitatingRef.current;
+        if (isCavitatingRef.current) {
+            const pos = bubblesRef.current.geometry.attributes.position.array as Float32Array;
+            for(let i=0; i<pCount; i++) {
+                pos[i*3] += (Math.random()-0.5)*0.05;
+                pos[i*3+1] += (Math.random()-0.5)*0.05;
+                if (Math.abs(pos[i*3]) > 5) pos[i*3] = 0;
+            }
+            bubblesRef.current.geometry.attributes.position.needsUpdate = true;
+        }
       }
 
-      // 3. 选中部件高亮 (简易逻辑)
-      if (selectedPartId === 'swash-plate') {
-          swash.scale.setScalar(1 + Math.sin(time*10)*0.02);
+      // 3. 选中部件高亮 (简易逻辑，使用实时选中状态)
+      if (selectedPartIdRef.current === 'swash-plate' && swashPlateRef.current) {
+          swashPlateRef.current.scale.setScalar(1 + Math.sin(time*10)*0.02);
+      } else if (swashPlateRef.current) {
+          swashPlateRef.current.scale.setScalar(1); // 重置缩放
+      }
+
+      // 4. 更新泵体外壳透明度（使用实时内部可见性状态）
+      if (metalMat.transparent !== isInternalVisibleRef.current) {
+        metalMat.transparent = isInternalVisibleRef.current;
+        metalMat.opacity = isInternalVisibleRef.current ? 0.3 : 1.0;
+        metalMat.needsUpdate = true;
       }
 
       renderer.render(scene, camera);
@@ -201,8 +236,15 @@ export const HydraulicPumpThreeScene: React.FC<PumpSceneProps> = ({
         mountRef.current.removeChild(rendererRef.current.domElement);
       }
       renderer.dispose();
+      // 清理材质和几何体，避免内存泄漏
+      metalMat.dispose();
+      activeMat.dispose();
+      oilMat.dispose();
+      housingGeo.dispose();
+      swashGeo.dispose();
+      pGeo.dispose();
     };
-  }, [rpm, swashPlateAngle, isInternalVisible, isCavitating]);
+  }, []); // 2026.03.04 - 移除所有易变依赖项，仅初始化一次场景
 
   return <div ref={mountRef} className="w-full h-full cursor-crosshair" />;
 };

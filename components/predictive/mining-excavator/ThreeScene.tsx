@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -30,18 +29,20 @@ export const ExcavatorThreeScene: React.FC<ExcavatorSceneProps> = ({
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
+    // 优化雾效：降低雾密度，提升整体视野亮度
     scene.background = new THREE.Color(0x02040a);
-    scene.fog = new THREE.FogExp2(0x02040a, 0.03);
+    scene.fog = new THREE.FogExp2(0x02040a, 0.015); // 原0.03 → 0.015，雾更淡
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(25, 15, 30);
+    camera.position.set(15, 16, 20);
     camera.lookAt(0, 5, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.5;
+    // 提升曝光度：增强整体亮度
+    renderer.toneMappingExposure = 2.2; // 原1.5 → 2.2，曝光度提升
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
     // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
@@ -54,16 +55,33 @@ export const ExcavatorThreeScene: React.FC<ExcavatorSceneProps> = ({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
-    // --- 光影 ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    // --- 光影优化：大幅提升强度 + 新增半球光/底部补光 ---
+    // 1. 环境光：大幅提升基础亮度
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2); // 原0.4 → 1.2
     scene.add(ambientLight);
-    const topLight = new THREE.DirectionalLight(0x38bdf8, 2);
-    topLight.position.set(10, 20, 10);
+
+    // 2. 新增半球光：提供更自然的环境照明，补充顶部/底部环境光
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0); // 天空色/地面色/强度
+    hemisphereLight.position.set(0, 20, 0);
+    scene.add(hemisphereLight);
+
+    // 3. 顶部方向光：提升强度 + 优化位置
+    const topLight = new THREE.DirectionalLight(0x38bdf8, 4.0); // 原2 → 4，强度翻倍
+    topLight.position.set(15, 30, 15); // 位置上移，照明范围更广
     scene.add(topLight);
+
+    // 4. 新增底部补光：解决底部暗部问题，提升整体亮度
+    const bottomFillLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    bottomFillLight.position.set(0, -20, 0);
+    bottomFillLight.target.position.set(0, 0, 0); // 指向场景中心
+    scene.add(bottomFillLight);
+    scene.add(bottomFillLight.target); // 必须添加target到场景
+
+    // 5. 故障灯：保持原有逻辑，不修改
     const faultLight = new THREE.PointLight(0xff0000, 0, 15);
     scene.add(faultLight);
 
-    // --- 材质 ---
+    // --- 材质：完全保留原有属性，不修改颜色 ---
     const metalMat = new THREE.MeshStandardMaterial({ 
         color: 0x475569, metalness: 0.9, roughness: 0.2, transparent: viewMode !== 'structural', opacity: viewMode === 'structural' ? 1 : 0.2 
     });

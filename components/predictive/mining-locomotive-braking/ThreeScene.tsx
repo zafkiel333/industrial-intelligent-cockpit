@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -20,6 +19,24 @@ export const BrakingThreeScene: React.FC<BrakingSceneProps> = ({
   const caliperGroupRef = useRef<THREE.Group | null>(null);
   const sparksRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.04 - Bug修复：创建ref存储实时状态值，避免主useEffect因依赖项频繁变化反复执行
+  // Bug情况：3D模型出现闪烁问题，原因是speed/brakePressure等依赖项频繁变化导致useEffect反复触发，场景被重复创建和销毁
+  const speedRef = useRef(speed);
+  const brakePressureRef = useRef(brakePressure);
+  const discTemperatureRef = useRef(discTemperature);
+  const isEmergencyBrakingRef = useRef(isEmergencyBraking);
+  const viewModeRef = useRef(viewMode);
+
+  // 仅更新ref值，不触发场景重建
+  useEffect(() => {
+    speedRef.current = speed;
+    brakePressureRef.current = brakePressure;
+    discTemperatureRef.current = discTemperature;
+    isEmergencyBrakingRef.current = isEmergencyBraking;
+    viewModeRef.current = viewMode;
+  }, [speed, brakePressure, discTemperature, isEmergencyBraking, viewMode]);
+
+  // 主渲染逻辑：仅在挂载/卸载时执行，依赖项清空
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-locomotive-braking useEffect===");
@@ -28,8 +45,9 @@ export const BrakingThreeScene: React.FC<BrakingSceneProps> = ({
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
+    // 2026.03.04 - 光照优化：降低雾的浓度，提升场景可视度（不修改颜色）
     scene.background = new THREE.Color(0x050202);
-    scene.fog = new THREE.FogExp2(0x050202, 0.02);
+    scene.fog = new THREE.FogExp2(0x050202, 0.005); // 原0.02 → 0.005，雾更淡
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(8, 5, 10);
@@ -39,7 +57,9 @@ export const BrakingThreeScene: React.FC<BrakingSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    // 2026.03.04 - 光照优化：提升曝光度，增强整体亮度（原1.2 → 2.0）
+    renderer.toneMappingExposure = 2.0;
+    
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
     // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
@@ -54,18 +74,36 @@ export const BrakingThreeScene: React.FC<BrakingSceneProps> = ({
     controls.maxPolarAngle = Math.PI / 2 + 0.1;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    // 2026.03.04 - 光照优化：大幅提升环境光强度（原0.2 → 0.8）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.SpotLight(0xffffff, 2);
+    // 2026.03.04 - 光照优化：新增半球光，提供自然的环境漫反射补光
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+    hemisphereLight.position.set(0, 10, 0);
+    scene.add(hemisphereLight);
+
+    // 2026.03.04 - 光照优化：大幅提升主聚光灯强度（原2 → 8），扩大照射范围
+    const mainLight = new THREE.SpotLight(0xffffff, 8);
     mainLight.position.set(10, 10, 10);
+    mainLight.angle = Math.PI / 3; // 扩大照射角度
+    mainLight.penumbra = 0.2; // 柔化边缘
     scene.add(mainLight);
 
-    const heatLight = new THREE.PointLight(0xff4500, 0, 20); // Glow from heat
+    // 2026.03.04 - 光照优化：新增底部补光，消除底部阴影
+    const bottomFillLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    bottomFillLight.position.set(0, -5, 0);
+    bottomFillLight.target.position.set(0, 0, 0);
+    scene.add(bottomFillLight);
+    scene.add(bottomFillLight.target);
+
+    // 2026.03.04 - 光照优化：提升热光源基础强度（原0 → 1），保留动态逻辑
+    const heatLight = new THREE.PointLight(0xff4500, 1, 20); // Glow from heat
     heatLight.position.set(0, 0, 1);
     scene.add(heatLight);
 
     // --- Materials ---
+    // 完全保留原有材质属性，不修改任何颜色相关配置
     const steelMat = new THREE.MeshStandardMaterial({
         color: 0x475569, metalness: 0.8, roughness: 0.4
     });
@@ -169,14 +207,14 @@ export const BrakingThreeScene: React.FC<BrakingSceneProps> = ({
       time += 0.02;
       controls.update();
 
-      // 1. Rotation
+      // 1. Rotation - 读取ref中的实时speed值
       if (wheelGroupRef.current) {
           // Speed km/h -> Rad/frame approx
-          const rotSpeed = speed * 0.02;
+          const rotSpeed = speedRef.current * 0.02;
           wheelGroupRef.current.rotation.z -= rotSpeed;
       }
 
-      // 2. Caliper Action (Squeeze)
+      // 2. Caliper Action (Squeeze) - 读取ref中的实时brakePressure值
       if (caliperGroupRef.current) {
           const padL = caliperGroupRef.current.getObjectByName('padL');
           const padR = caliperGroupRef.current.getObjectByName('padR');
@@ -185,35 +223,34 @@ export const BrakingThreeScene: React.FC<BrakingSceneProps> = ({
           // Disc Z range: 1.5 - 0.2 to 1.5 + 0.2 => 1.3 to 1.7 in world, but local to wheel.
           // Caliper is at Z=1.5. Pads relative Z: -0.3 and 0.3
           // Target Closed: -0.21 and 0.21
-          // Target Open: -0.3 and 0.3
           
-          const pressureFactor = Math.min(1, brakePressure / 300); // 300kPa max visual squeeze
+          const pressureFactor = Math.min(1, brakePressureRef.current / 300); // 300kPa max visual squeeze
           const offset = 0.3 - (0.09 * pressureFactor);
           
           if (padL) padL.position.z = -offset;
           if (padR) padR.position.z = offset;
       }
 
-      // 3. Thermal Glow
+      // 3. Thermal Glow - 读取ref中的实时discTemperature和viewMode值
       if (discRef.current) {
           const mat = discRef.current.material as THREE.MeshStandardMaterial;
-          if (viewMode === 'thermal' || discTemperature > 300) {
-              const tNorm = Math.min(1, Math.max(0, (discTemperature - 100) / 700));
+          if (viewModeRef.current === 'thermal' || discTemperatureRef.current > 300) {
+              const tNorm = Math.min(1, Math.max(0, (discTemperatureRef.current - 100) / 700));
               const heatColor = new THREE.Color().setHSL(0.1 - tNorm * 0.1, 1.0, 0.3 + tNorm * 0.7); // Dark Red to Bright Yellow
               mat.emissive.copy(heatColor);
               mat.emissiveIntensity = tNorm * 2;
-              heatLight.intensity = tNorm * 5;
+              heatLight.intensity = 1 + (tNorm * 4); // 保留热光源动态逻辑，基础强度已提升
               heatLight.color = heatColor;
           } else {
               mat.emissive.setHex(0x000000);
-              heatLight.intensity = 0;
+              heatLight.intensity = 1; // 保留基础强度
           }
       }
 
-      // 4. Sparks
+      // 4. Sparks - 读取ref中的实时isEmergencyBraking和speed值
       if (sparksRef.current) {
           const positions = sparksRef.current.geometry.attributes.position.array as Float32Array;
-          if (isEmergencyBraking && speed > 5) {
+          if (isEmergencyBrakingRef.current && speedRef.current > 5) {
               for(let i=0; i<5; i++) {
                   const idx = Math.floor(Math.random() * pCount);
                   // Spawn at caliper contact: x=-2, y=0, z=1.5 +/- 0.2
@@ -257,7 +294,7 @@ export const BrakingThreeScene: React.FC<BrakingSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [speed, brakePressure, discTemperature, isEmergencyBraking, viewMode]);
+  }, []); // 清空依赖项，仅在组件挂载/卸载时执行
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

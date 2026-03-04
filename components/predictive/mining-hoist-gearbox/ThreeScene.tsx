@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -25,8 +24,9 @@ export const HoistGearboxThreeScene: React.FC<HoistGearboxSceneProps> = ({
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
+    // 优化雾效：降低雾的密度，让远处更亮
     scene.background = new THREE.Color(0x020610);
-    scene.fog = new THREE.FogExp2(0x020610, 0.05);
+    scene.fog = new THREE.FogExp2(0x020610, 0.01); // 原0.05 → 0.01，雾更淡
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(12, 10, 15);
@@ -35,9 +35,10 @@ export const HoistGearboxThreeScene: React.FC<HoistGearboxSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.8;
-    //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
+    // 提升曝光度：增强整体亮度
+    renderer.toneMappingExposure = 3.0; // 原1.8 → 3.0，大幅提升曝光
+
+    // 清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -48,19 +49,32 @@ export const HoistGearboxThreeScene: React.FC<HoistGearboxSceneProps> = ({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
-    // --- 灯光设计 ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    // --- 灯光系统全面升级 ---
+    // 1. 环境光：大幅提升强度，提供基础均匀照明
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2); // 原0.4 → 1.2
     scene.add(ambientLight);
-    
-    const cyanLight = new THREE.PointLight(0x0ea5e9, 5, 50);
-    cyanLight.position.set(10, 10, 10);
+
+    // 2. 新增半球光：模拟天空光，增强顶部到底部的自然过渡照明
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5); // 强度1.5
+    hemisphereLight.position.set(0, 10, 0); // 顶部位置
+    scene.add(hemisphereLight);
+
+    // 3. 青色点光：提升强度+调整位置，增强主照明
+    const cyanLight = new THREE.PointLight(0x0ea5e9, 12, 60); // 原5 → 12，范围扩大
+    cyanLight.position.set(8, 12, 8); // 略上调，覆盖更全面
     scene.add(cyanLight);
 
-    const redLight = new THREE.PointLight(0xef4444, 2, 50);
-    redLight.position.set(-10, 5, -10);
+    // 4. 红色点光：提升强度，作为辅助照明
+    const redLight = new THREE.PointLight(0xef4444, 6, 60); // 原2 → 6，范围扩大
+    redLight.position.set(-8, 8, -8); // 略上调，减少阴影
     scene.add(redLight);
 
-    // --- 材质 ---
+    // 5. 新增底部补光：消除底部阴影，提升整体亮度
+    const bottomFillLight = new THREE.PointLight(0xffffff, 8, 50); // 白色补光，强度8
+    bottomFillLight.position.set(0, -10, 0); // 底部中心位置
+    scene.add(bottomFillLight);
+
+    // --- 材质（完全未修改颜色属性）---
     const steelMat = new THREE.MeshPhysicalMaterial({
         color: 0x64748b,
         metalness: 1.0,

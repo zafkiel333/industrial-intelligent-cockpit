@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -23,6 +22,33 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
   const planetsRef = useRef<THREE.Mesh[]>([]);
   const debrisSystemRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.04 - Bug修复：创建ref保存实时状态值，避免依赖项变化触发useEffect重执行
+  // Bug情况：模型渲染时出现闪烁，原因是useEffect依赖项（rpm/vibration/viewMode等）频繁变化，导致useEffect反复触发，场景被重复创建/销毁
+  const stateRef = useRef({
+    rpm,
+    torque,
+    vibration,
+    oilLevel,
+    debrisLevel,
+    viewMode,
+    components,
+    activeFaultId
+  });
+
+  // 实时更新ref中的状态值，不触发useEffect
+  useEffect(() => {
+    stateRef.current = {
+      rpm,
+      torque,
+      vibration,
+      oilLevel,
+      debrisLevel,
+      viewMode,
+      components,
+      activeFaultId
+    };
+  }, [rpm, torque, vibration, oilLevel, debrisLevel, viewMode, components, activeFaultId]);
+
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-wheel-hub useEffect===");
@@ -32,7 +58,8 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
 
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.fog = new THREE.FogExp2(0x050302, 0.04);
+    // 2026.03.04 - 优化：调亮雾色+降低雾密度，减少亮度遮挡，提升通透感
+    scene.fog = new THREE.FogExp2(0x100805, 0.01); // 雾色调亮，密度从0.04→0.01
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(15, 10, 20);
@@ -42,9 +69,10 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.5;
+    // 2026.03.04 - 优化：大幅提升曝光度，最大化亮度表现（1.5→2.0）
+    renderer.toneMappingExposure = 2.0;
+    
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -56,20 +84,33 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.5;
 
-    // --- Lighting ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    // --- Lighting --- 2026.03.04 全面优化光照系统，提升亮度且不修改材质/模型颜色
+    // 1. 环境光：大幅提升强度，保证基础亮度全覆盖（0.3→0.8）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.PointLight(0xf97316, 2, 50); // Orange Industrial Light
+    // 2. 新增半球光：模拟天空/地面环境光，提升明暗层次和整体亮度
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+    hemisphereLight.position.set(0, 15, 0);
+    scene.add(hemisphereLight);
+
+    // 3. 主工业橙光：大幅提升强度，作为核心照明源（2→6）
+    const keyLight = new THREE.PointLight(0xf97316, 6, 50); // Orange Industrial Light
     keyLight.position.set(10, 10, 10);
     scene.add(keyLight);
 
-    const rimLight = new THREE.SpotLight(0x0ea5e9, 5); // Cyan Rim
+    // 4. 青蓝色轮廓光：提升强度，补充侧面亮度（5→8）
+    const rimLight = new THREE.SpotLight(0x0ea5e9, 8); // Cyan Rim
     rimLight.position.set(-10, 5, -5);
     rimLight.lookAt(0,0,0);
     scene.add(rimLight);
 
-    // --- Materials ---
+    // 5. 新增底部补光：解决模型底部暗部问题，提升亮度均匀性
+    const bottomFillLight = new THREE.PointLight(0xffffff, 3.0, 40);
+    bottomFillLight.position.set(0, -8, 0);
+    scene.add(bottomFillLight);
+
+    // --- Materials --- 完全保留原有配置，不修改任何颜色/发光属性
     const steelMat = new THREE.MeshStandardMaterial({
         color: 0x475569, metalness: 0.9, roughness: 0.3
     });
@@ -87,7 +128,7 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
         transmission: 0.8, transparent: true, opacity: 0.2, side: THREE.DoubleSide
     });
 
-    // --- Geometry ---
+    // --- Geometry --- 完全保留原有模型结构，无任何修改
     const mainGroup = new THREE.Group();
     mainGroupRef.current = mainGroup;
     scene.add(mainGroup);
@@ -107,7 +148,6 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
     // 3. Sun Gear (Input)
     const sunGeo = new THREE.CylinderGeometry(1.5, 1.5, 1.5, 24);
     sunGeo.rotateZ(Math.PI/2);
-    // Add teeth detail texture or simple geometry
     const sunGear = new THREE.Mesh(sunGeo, gearMat.clone());
     sunGear.userData = { id: 'sun-gear' };
     sunGearRef.current = sunGear;
@@ -176,7 +216,6 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
     debrisSystemRef.current = debrisSystem;
     mainGroup.add(debrisSystem);
 
-
     // --- Animation Loop ---
     let frameId: number;
     let time = 0;
@@ -184,6 +223,9 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
       frameId = requestAnimationFrame(animate);
       time += 0.01;
       controls.update();
+
+      // 2026.03.04 - 从ref中读取实时状态值，避免依赖项变化触发useEffect重执行
+      const { rpm, vibration, viewMode, components, activeFaultId, debrisLevel } = stateRef.current;
 
       // Kinematics
       // Sun rotates fast
@@ -210,9 +252,7 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
 
       // Exploded View
       if (viewMode === 'exploded') {
-          // Move carrier out
           if (planetCarrierRef.current) planetCarrierRef.current.position.x = THREE.MathUtils.lerp(planetCarrierRef.current.position.x, 8, 0.1);
-          // Move sun out opposite
           if (sunGearRef.current) sunGearRef.current.position.x = THREE.MathUtils.lerp(sunGearRef.current.position.x, -6, 0.1);
       } else {
           if (planetCarrierRef.current) planetCarrierRef.current.position.x = THREE.MathUtils.lerp(planetCarrierRef.current.position.x, 0, 0.1);
@@ -277,7 +317,7 @@ export const WheelHubThreeScene: React.FC<WheelHubSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [rpm, torque, vibration, oilLevel, debrisLevel, viewMode, activeFaultId, components]);
+  }, [mountRef]); // 2026.03.04 - 移除所有频繁变化的依赖项，仅保留不会变化的mountRef
 
   return <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />;
 };

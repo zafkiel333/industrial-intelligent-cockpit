@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -21,7 +20,35 @@ export const BoomFatigueThreeScene: React.FC<BoomFatigueSceneProps> = ({
   const armGroupRef = useRef<THREE.Group | null>(null);
   const bucketGroupRef = useRef<THREE.Group | null>(null);
   const materialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
+  const sensorGroupRef = useRef<THREE.Group | null>(null); // 新增传感器组ref
+  const stressLightRef = useRef<THREE.PointLight | null>(null); // 新增应力灯光ref
 
+  // 2026.03.04 - Bug修复：使用ref存储动态props值，避免原useEffect依赖项频繁变化导致重复渲染
+  // Bug情况：原代码中useEffect依赖数组包含多个频繁变化的props（boomAngle/armAngle等），导致useEffect反复触发
+  // 每次触发都会重新创建场景/渲染器/模型，引发3D模型闪烁、性能下降
+  // 修复方案：将动态props存入ref，useEffect仅初始化一次，动画循环中读取ref最新值
+  const boomAngleRef = useRef(boomAngle);
+  const armAngleRef = useRef(armAngle);
+  const bucketAngleRef = useRef(bucketAngle);
+  const stressFactorRef = useRef(stressFactor);
+  const weldHealthRef = useRef(weldHealth);
+  const strainGaugesRef = useRef(strainGauges);
+  const showStrainSensorsRef = useRef(showStrainSensors);
+  const viewModeRef = useRef(viewMode);
+
+  // 同步props到ref，确保实时获取最新值（仅当props变化时执行）
+  useEffect(() => {
+    boomAngleRef.current = boomAngle;
+    armAngleRef.current = armAngle;
+    bucketAngleRef.current = bucketAngle;
+    stressFactorRef.current = stressFactor;
+    weldHealthRef.current = weldHealth;
+    strainGaugesRef.current = strainGauges;
+    showStrainSensorsRef.current = showStrainSensors;
+    viewModeRef.current = viewMode;
+  }, [boomAngle, armAngle, bucketAngle, stressFactor, weldHealth, strainGauges, showStrainSensors, viewMode]);
+
+  // 初始化3D场景（仅执行一次，无频繁变化的依赖项）
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-boom-fatigue useEffect===");
@@ -66,6 +93,7 @@ export const BoomFatigueThreeScene: React.FC<BoomFatigueSceneProps> = ({
     const stressLight = new THREE.PointLight(0xff0000, 0, 20); // Dynamic red light for high stress
     stressLight.position.set(0, 8, 0);
     scene.add(stressLight);
+    stressLightRef.current = stressLight; // 存储应力灯光ref
 
     // --- Materials ---
     // Base steel material
@@ -134,7 +162,6 @@ export const BoomFatigueThreeScene: React.FC<BoomFatigueSceneProps> = ({
     cyl2.position.set(1, 3, 1);
     boomGroup.add(cyl2);
 
-
     // 3. Arm (斗杆)
     const armGroup = new THREE.Group();
     armGroup.position.set(0, 11, -2); // Top of boom approx
@@ -173,23 +200,29 @@ export const BoomFatigueThreeScene: React.FC<BoomFatigueSceneProps> = ({
 
     // 5. Strain Gauges (Sensors)
     const sensorGroup = new THREE.Group();
+    sensorGroupRef.current = sensorGroup;
     boomGroup.add(sensorGroup); // Attach to boom for now as primary stress point
 
-    strainGauges.forEach(gauge => {
-        const sensor = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.4, 0.1), sensorMat.clone());
-        sensor.position.set(...gauge.position);
-        sensor.lookAt(new THREE.Vector3(gauge.position[0]*2, gauge.position[1], gauge.position[2]*2)); // Face outward roughly
-        sensor.userData = { id: gauge.id, val: gauge.value };
-        sensorGroup.add(sensor);
-        
-        // Wire visual
-        const lineGeo = new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(0,0,0), new THREE.Vector3(0, -2, 0)
-        ]);
-        const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({color: 0x00ff00, transparent: true, opacity: 0.5}));
-        sensor.add(line);
-    });
-    
+    // 初始化传感器（后续通过单独useEffect更新）
+    const initSensors = (gauges: typeof strainGauges) => {
+      sensorGroup.clear();
+      gauges.forEach(gauge => {
+          const sensor = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.4, 0.1), sensorMat.clone());
+          sensor.position.set(...gauge.position);
+          sensor.lookAt(new THREE.Vector3(gauge.position[0]*2, gauge.position[1], gauge.position[2]*2)); // Face outward roughly
+          sensor.userData = { id: gauge.id, val: gauge.value };
+          sensorGroup.add(sensor);
+          
+          // Wire visual
+          const lineGeo = new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(0,0,0), new THREE.Vector3(0, -2, 0)
+          ]);
+          const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({color: 0x00ff00, transparent: true, opacity: 0.5}));
+          sensor.add(line);
+      });
+    };
+    initSensors(strainGauges);
+
     // Ground Grid
     const grid = new THREE.GridHelper(50, 25, 0x1e293b, 0x0f172a);
     grid.position.y = 0;
@@ -204,38 +237,38 @@ export const BoomFatigueThreeScene: React.FC<BoomFatigueSceneProps> = ({
       time += 0.02;
       controls.update();
 
-      // 1. Mechanical Movement
+      // 1. Mechanical Movement - 读取ref最新值
       if (boomGroupRef.current) {
           // Map 0-90 deg to radians roughly
-          const targetRot = THREE.MathUtils.degToRad(boomAngle - 45); // -45 to +45 range approx
+          const targetRot = THREE.MathUtils.degToRad(boomAngleRef.current - 45); // -45 to +45 range approx
           boomGroupRef.current.rotation.x = THREE.MathUtils.lerp(boomGroupRef.current.rotation.x, targetRot, 0.1);
       }
       if (armGroupRef.current) {
-          const targetRot = THREE.MathUtils.degToRad(armAngle - 90);
+          const targetRot = THREE.MathUtils.degToRad(armAngleRef.current - 90);
           armGroupRef.current.rotation.x = THREE.MathUtils.lerp(armGroupRef.current.rotation.x, targetRot, 0.1);
       }
       if (bucketGroupRef.current) {
-          const targetRot = THREE.MathUtils.degToRad(bucketAngle);
+          const targetRot = THREE.MathUtils.degToRad(bucketAngleRef.current);
           bucketGroupRef.current.rotation.x = THREE.MathUtils.lerp(bucketGroupRef.current.rotation.x, targetRot, 0.1);
       }
 
-      // 2. Stress Heatmap Visualization
+      // 2. Stress Heatmap Visualization - 读取ref最新值
       // Interpolate color from Steel (Grey) -> Stress (Red)
       materialsRef.current.forEach(mat => {
-          if (viewMode === 'stress') {
+          if (viewModeRef.current === 'stress') {
               // Base color
               const baseColor = new THREE.Color(0x475569);
               // Stress color (Red/Orange)
               const stressColor = new THREE.Color(0xff3300);
               
               // Pulse the stress factor slightly for dynamic effect
-              const dynamicFactor = stressFactor * (0.9 + Math.sin(time * 5) * 0.1);
+              const dynamicFactor = stressFactorRef.current * (0.9 + Math.sin(time * 5) * 0.1);
               
               mat.color.lerpColors(baseColor, stressColor, dynamicFactor);
               mat.emissive.copy(stressColor);
               mat.emissiveIntensity = dynamicFactor * 0.5;
               mat.wireframe = false;
-          } else if (viewMode === 'wireframe') {
+          } else if (viewModeRef.current === 'wireframe') {
               mat.color.setHex(0x00ff00);
               mat.emissive.setHex(0x000000);
               mat.wireframe = true;
@@ -247,25 +280,29 @@ export const BoomFatigueThreeScene: React.FC<BoomFatigueSceneProps> = ({
           }
       });
 
-      // 3. Sensor Animation
-      if (showStrainSensors) {
-          sensorGroup.visible = true;
-          sensorGroup.children.forEach((child: any) => {
-               // Flash sensors based on their 'value' (mocked via random here or passed props)
-               const val = child.userData.val || 0;
-               const intensity = (val / 1000) + Math.sin(time * 10) * 0.2;
-               child.material.color.setHSL(0.3 - intensity * 0.3, 1.0, 0.5); // Green to Red
-          });
-      } else {
-          sensorGroup.visible = false;
+      // 3. Sensor Animation - 读取ref最新值
+      if (sensorGroupRef.current) {
+          if (showStrainSensorsRef.current) {
+              sensorGroupRef.current.visible = true;
+              sensorGroupRef.current.children.forEach((child: any) => {
+                  // Flash sensors based on their 'value'
+                  const val = child.userData.val || 0;
+                  const intensity = (val / 1000) + Math.sin(time * 10) * 0.2;
+                  child.material.color.setHSL(0.3 - intensity * 0.3, 1.0, 0.5); // Green to Red
+              });
+          } else {
+              sensorGroupRef.current.visible = false;
+          }
       }
 
-      // 4. Fatigue Crack Visual (If health is low)
-      if (weldHealth < 80) {
-          // Visual warning light
-          stressLight.intensity = (100 - weldHealth) * 0.1 * (Math.sin(time * 5) + 1);
-      } else {
-          stressLight.intensity = 0;
+      // 4. Fatigue Crack Visual (If health is low) - 读取ref最新值
+      if (stressLightRef.current) {
+          if (weldHealthRef.current < 80) {
+              // Visual warning light
+              stressLightRef.current.intensity = (100 - weldHealthRef.current) * 0.1 * (Math.sin(time * 5) + 1);
+          } else {
+              stressLightRef.current.intensity = 0;
+          }
       }
 
       renderer.render(scene, camera);
@@ -289,7 +326,33 @@ export const BoomFatigueThreeScene: React.FC<BoomFatigueSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [boomAngle, armAngle, bucketAngle, stressFactor, weldHealth, strainGauges, showStrainSensors, viewMode]);
+  }, []); // 移除所有频繁变化的依赖项，仅初始化一次
+
+  // 2026.03.04 - 单独处理应变传感器更新，避免整体场景重建
+  useEffect(() => {
+    if (!sensorGroupRef.current) return;
+    const sensorMat = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        transparent: true,
+        opacity: 0.8
+    });
+    // 清空原有传感器并重新创建
+    sensorGroupRef.current.clear();
+    strainGauges.forEach(gauge => {
+        const sensor = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.4, 0.1), sensorMat.clone());
+        sensor.position.set(...gauge.position);
+        sensor.lookAt(new THREE.Vector3(gauge.position[0]*2, gauge.position[1], gauge.position[2]*2));
+        sensor.userData = { id: gauge.id, val: gauge.value };
+        sensorGroupRef.current!.add(sensor);
+        
+        // Wire visual
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0,0,0), new THREE.Vector3(0, -2, 0)
+        ]);
+        const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({color: 0x00ff00, transparent: true, opacity: 0.5}));
+        sensor.add(line);
+    });
+  }, [strainGauges]);
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

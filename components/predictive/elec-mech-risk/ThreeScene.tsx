@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,6 +17,29 @@ export const ElecMechThreeScene: React.FC<ElecMechSceneProps> = ({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const rotorRef = useRef<THREE.Group | null>(null);
   const fluxParticlesRef = useRef<THREE.Points | null>(null);
+
+  // 2026.03.03 bug修复：创建ref保存最新props，避免闭包陷阱，同时剔除useEffect依赖项
+  // bug情况：3D模型渲染时出现频繁闪烁，场景被重复创建和销毁
+  // bug原因：useEffect依赖数组包含magneticFluxDensity、airGapEccentricity等实时变化的props，这些变量每次更新都会触发useEffect重新执行，导致整个3D场景（相机、渲染器、几何体、动画循环）被重复创建，引发渲染闪烁
+  const propsRef = useRef<ElecMechSceneProps>({
+    magneticFluxDensity: 0,
+    airGapEccentricity: 0,
+    vibrationIntensity: 0,
+    rotationSpeed: 0,
+    isExcited: false,
+    showFluxLines: false,
+    faultActive: false
+  });
+  // 每次组件渲染时更新propsRef为最新值，确保动画循环能获取实时参数
+  propsRef.current = {
+    magneticFluxDensity,
+    airGapEccentricity,
+    vibrationIntensity,
+    rotationSpeed,
+    isExcited,
+    showFluxLines,
+    faultActive
+  };
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -153,13 +175,23 @@ export const ElecMechThreeScene: React.FC<ElecMechSceneProps> = ({
       time += 0.01;
       controls.update();
 
+      // 从propsRef获取最新的参数值，保证实时响应
+      const {
+        rotationSpeed: latestRotationSpeed,
+        airGapEccentricity: latestAirGapEccentricity,
+        vibrationIntensity: latestVibrationIntensity,
+        magneticFluxDensity: latestMagneticFluxDensity,
+        isExcited: latestIsExcited,
+        showFluxLines: latestShowFluxLines
+      } = propsRef.current;
+
       if (rotorRef.current) {
-          // 旋转
-          rotorRef.current.rotation.y -= rotationSpeed * 0.02;
+          // 旋转 - 使用最新的转速参数
+          rotorRef.current.rotation.y -= latestRotationSpeed * 0.02;
           
-          // 偏心效果: 转子质心偏移
-          const ecc = airGapEccentricity * 0.4;
-          const vib = vibrationIntensity * 0.1 * Math.sin(time * 20);
+          // 偏心效果: 转子质心偏移 - 使用最新的偏心和振动参数
+          const ecc = latestAirGapEccentricity * 0.4;
+          const vib = latestVibrationIntensity * 0.1 * Math.sin(time * 20);
           rotorRef.current.position.x = ecc + vib;
           rotorRef.current.position.z = vib;
       }
@@ -169,16 +201,16 @@ export const ElecMechThreeScene: React.FC<ElecMechSceneProps> = ({
           const colors = fluxParticlesRef.current.geometry.attributes.color.array as Float32Array;
           
           for(let i=0; i<pCount; i++) {
-              // 粒子旋转
+              // 粒子旋转 - 使用最新的转速参数
               const px = positions[i*3];
               const pz = positions[i*3+2];
-              const rot = 0.01 * rotationSpeed;
+              const rot = 0.01 * latestRotationSpeed;
               positions[i*3] = px * Math.cos(rot) - pz * Math.sin(rot);
               positions[i*3+2] = px * Math.sin(rot) + pz * Math.cos(rot);
 
-              // 偏心区域磁密颜色变红 (0度方向模拟偏心)
+              // 偏心区域磁密颜色变红 - 使用最新的偏心参数
               const angle = Math.atan2(pz, px);
-              if (Math.abs(angle) < 0.5 && airGapEccentricity > 0.6) {
+              if (Math.abs(angle) < 0.5 && latestAirGapEccentricity > 0.6) {
                   colors[i*3] = 1.0; colors[i*3+1] = 0.2; colors[i*3+2] = 0.2;
               } else {
                   colors[i*3] = 0.5; colors[i*3+1] = 0.2; colors[i*3+2] = 1.0;
@@ -186,8 +218,9 @@ export const ElecMechThreeScene: React.FC<ElecMechSceneProps> = ({
           }
           fluxParticlesRef.current.geometry.attributes.position.needsUpdate = true;
           fluxParticlesRef.current.geometry.attributes.color.needsUpdate = true;
-          fluxParticlesRef.current.visible = showFluxLines && isExcited;
-          fluxParticlesRef.current.material.opacity = magneticFluxDensity;
+          // 磁通粒子显示控制 - 使用最新的开关参数
+          fluxParticlesRef.current.visible = latestShowFluxLines && latestIsExcited;
+          fluxParticlesRef.current.material.opacity = latestMagneticFluxDensity;
       }
 
       renderer.render(scene, camera);
@@ -211,7 +244,7 @@ export const ElecMechThreeScene: React.FC<ElecMechSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [magneticFluxDensity, airGapEccentricity, vibrationIntensity, rotationSpeed, isExcited, showFluxLines, faultActive]);
+  }, []); // 2026.03.03 bug修复：清空依赖数组，避免因props变化反复触发useEffect重建3D场景
 
   return <div ref={mountRef} className="w-full h-full" />;
 };

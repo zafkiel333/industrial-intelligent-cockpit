@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,6 +17,68 @@ export const JawCrusherThreeScene: React.FC<JawCrusherSceneProps> = ({
   const rocksRef = useRef<THREE.Points | null>(null);
   const togglePlateRef = useRef<THREE.Mesh | null>(null);
 
+  // 2026.03.04 修复模型闪烁问题 - 新增ref存储实时值，避免依赖项触发useEffect重渲染
+  // Bug原因：原useEffect依赖state/isRunning/viewMode，这些变量频繁变化会导致useEffect反复执行，
+  // 重新创建3D场景、渲染器等资源，引发模型闪烁
+  const stateRef = useRef(state);
+  const isRunningRef = useRef(isRunning);
+  const viewModeRef = useRef(viewMode);
+
+  // 监听变量变化，更新ref值（不会触发3D场景重建）
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(() => {
+    isRunningRef.current = isRunning;
+  }, [isRunning]);
+
+  // viewMode变化时更新材质（不重建场景）
+  useEffect(() => {
+    viewModeRef.current = viewMode;
+    if (!sceneRef.current) return;
+
+    // 更新颚板磨损材质
+    const machineGroup = sceneRef.current.children.find(child => child.type === 'Group') as THREE.Group;
+    if (!machineGroup) return;
+
+    // 固定颚板
+    const fixedPlate = machineGroup.children.find(
+      child => child.position.x === 1.2 && child.position.y === 3
+    ) as THREE.Mesh;
+    // 活动颚板
+    const movPlate = (movableJawRef.current?.children.find(
+      child => child.position.x === 0.8 && child.position.y === -2.5
+    )) as THREE.Mesh;
+    // 框架材质
+    const frameObjects = machineGroup.children.filter(
+      child => ['Mesh', 'Group'].includes(child.type) && child.userData.id !== 'fixed-jaw'
+    ) as THREE.Mesh[];
+
+    if (fixedPlate && movPlate) {
+      const jawPlateMat = new THREE.MeshStandardMaterial({
+        color: 0x57534e, metalness: 0.3, roughness: 0.9
+      });
+      const wearMat = new THREE.MeshStandardMaterial({
+        color: 0xff0000, metalness: 0.2, roughness: 0.5
+      });
+      fixedPlate.material = viewMode === 'wear' ? wearMat : jawPlateMat;
+      movPlate.material = viewMode === 'wear' ? wearMat : jawPlateMat;
+    }
+
+    // 更新框架透明度（应力视图）
+    frameObjects.forEach(obj => {
+      if (obj.material instanceof THREE.MeshStandardMaterial) {
+        obj.material.transparent = viewMode === 'stress';
+        obj.material.opacity = viewMode === 'stress' ? 0.3 : 1.0;
+        obj.material.needsUpdate = true;
+      }
+    });
+  }, [viewMode]);
+
+  // 2026.03.04 修复模型闪烁问题 - 剔除依赖项，仅初始化一次3D场景
+  // Bug情况：原useEffect依赖项反复变化导致场景重复创建，引发模型闪烁
+  // 修复方案：依赖项改为空数组，通过ref读取实时值，避免重复初始化
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-jaw-crusher useEffect===");
@@ -64,20 +125,20 @@ export const JawCrusherThreeScene: React.FC<JawCrusherSceneProps> = ({
 
     // --- Materials ---
     const frameMat = new THREE.MeshStandardMaterial({ 
-        color: 0x334155, metalness: 0.6, roughness: 0.7,
-        transparent: viewMode === 'stress', opacity: viewMode === 'stress' ? 0.3 : 1.0
+      color: 0x334155, metalness: 0.6, roughness: 0.7,
+      transparent: viewModeRef.current === 'stress', opacity: viewModeRef.current === 'stress' ? 0.3 : 1.0
     });
     
     const jawPlateMat = new THREE.MeshStandardMaterial({
-        color: 0x57534e, metalness: 0.3, roughness: 0.9 // Manganese steel look
+      color: 0x57534e, metalness: 0.3, roughness: 0.9 // Manganese steel look
     });
 
     const wearMat = new THREE.MeshStandardMaterial({
-        color: 0xff0000, metalness: 0.2, roughness: 0.5
+      color: 0xff0000, metalness: 0.2, roughness: 0.5
     });
 
     const wheelMat = new THREE.MeshStandardMaterial({
-        color: 0x94a3b8, metalness: 0.8, roughness: 0.4
+      color: 0x94a3b8, metalness: 0.8, roughness: 0.4
     });
 
     // --- Geometry Construction ---
@@ -94,7 +155,7 @@ export const JawCrusherThreeScene: React.FC<JawCrusherSceneProps> = ({
 
     // Fixed Jaw Plate (Wear liner)
     const fixedPlateGeo = new THREE.BoxGeometry(0.5, 5.5, 3.5);
-    const fixedPlate = new THREE.Mesh(fixedPlateGeo, viewMode === 'wear' ? wearMat : jawPlateMat);
+    const fixedPlate = new THREE.Mesh(fixedPlateGeo, viewModeRef.current === 'wear' ? wearMat : jawPlateMat);
     fixedPlate.position.set(1.2, 3, 0);
     fixedPlate.rotation.z = -0.1;
     machineGroup.add(fixedPlate);
@@ -115,7 +176,7 @@ export const JawCrusherThreeScene: React.FC<JawCrusherSceneProps> = ({
     
     // Movable Jaw Plate
     const movPlateGeo = new THREE.BoxGeometry(0.5, 5.5, 3.5);
-    const movPlate = new THREE.Mesh(movPlateGeo, viewMode === 'wear' ? wearMat : jawPlateMat);
+    const movPlate = new THREE.Mesh(movPlateGeo, viewModeRef.current === 'wear' ? wearMat : jawPlateMat);
     movPlate.position.set(0.8, -2.5, 0);
     movPlate.rotation.z = 0.2;
     movableGroup.add(movPlate);
@@ -194,10 +255,12 @@ export const JawCrusherThreeScene: React.FC<JawCrusherSceneProps> = ({
       time += 0.02;
       controls.update();
 
-      if (isRunning) {
+      // 读取实时isRunning状态（从ref获取，避免依赖项）
+      if (isRunningRef.current) {
           // Eccentric Motion
           const ecc = 0.15;
-          const speed = state.rpm / 60 * 0.5;
+          // 读取实时state.rpm值
+          const speed = stateRef.current.rpm / 60 * 0.5;
           
           if (movableJawRef.current) {
               // The top pivots on eccentric, bottom is constrained by toggle
@@ -235,8 +298,8 @@ export const JawCrusherThreeScene: React.FC<JawCrusherSceneProps> = ({
           }
       }
 
-      // View Mode Updates
-      if (viewMode === 'wear') {
+      // 读取实时viewMode状态（从ref获取）
+      if (viewModeRef.current === 'wear') {
            // Highlight jaw plates red/orange based on height (lower wears faster)
            // Simplified: Mat color set above, maybe pulse intensity
            (fixedPlate.material as THREE.MeshStandardMaterial).emissive.setHex(0xef4444);
@@ -267,7 +330,7 @@ export const JawCrusherThreeScene: React.FC<JawCrusherSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [state, isRunning, viewMode]);
+  }, []); // 2026.03.04 修复模型闪烁问题 - 剔除所有依赖项，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
 };

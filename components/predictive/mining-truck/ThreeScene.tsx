@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -21,6 +20,32 @@ export const MiningTruckThreeScene: React.FC<MiningTruckSceneProps> = ({
   const wheelsRef = useRef<THREE.Group[]>([]);
   const exhaustRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.04 - Bug修复：使用ref保存动态props值，避免因依赖项变化导致useEffect反复执行
+  // Bug原因：原代码将所有动态props放入useEffect依赖数组，这些props频繁变化会导致场景反复初始化、销毁，引发模型闪烁
+  const dynamicPropsRef = useRef({
+    dumpAngle,
+    steeringAngle,
+    wheelSpeed,
+    suspensionCompression,
+    payload,
+    activeComponent,
+    isRunning
+  });
+
+  // 仅更新ref中的props值，不触发场景重建
+  useEffect(() => {
+    dynamicPropsRef.current = {
+      dumpAngle,
+      steeringAngle,
+      wheelSpeed,
+      suspensionCompression,
+      payload,
+      activeComponent,
+      isRunning
+    };
+  }, [dumpAngle, steeringAngle, wheelSpeed, suspensionCompression, payload, activeComponent, isRunning]);
+
+  // 场景初始化useEffect - 仅执行一次（依赖为空数组）
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-truck useEffect===");
@@ -250,9 +275,19 @@ export const MiningTruckThreeScene: React.FC<MiningTruckSceneProps> = ({
       time += 0.01;
       controls.update();
 
+      // 从ref中获取最新的props值
+      const {
+        dumpAngle: currentDumpAngle,
+        steeringAngle: currentSteeringAngle,
+        wheelSpeed: currentWheelSpeed,
+        suspensionCompression: currentSuspensionCompression,
+        activeComponent: currentActiveComponent,
+        isRunning: currentIsRunning
+      } = dynamicPropsRef.current;
+
       // 1. Dump Body Animation
       if (dumpBodyRef.current) {
-          const targetRot = -dumpAngle * (Math.PI / 180); // Tilt back (negative X rotation)
+          const targetRot = -currentDumpAngle * (Math.PI / 180); // Tilt back (negative X rotation)
           dumpBodyRef.current.rotation.x += (targetRot - dumpBodyRef.current.rotation.x) * 0.05;
       }
 
@@ -260,13 +295,13 @@ export const MiningTruckThreeScene: React.FC<MiningTruckSceneProps> = ({
       // Adjust chassis height/tilt based on payload and corner compression
       if (truckGroupRef.current) {
           // Average compression affects Y
-          const avgComp = (suspensionCompression.fl + suspensionCompression.fr + suspensionCompression.rl + suspensionCompression.rr) / 4;
+          const avgComp = (currentSuspensionCompression.fl + currentSuspensionCompression.fr + currentSuspensionCompression.rl + currentSuspensionCompression.rr) / 4;
           const targetY = -avgComp * 0.5; // Sink down
           truckGroupRef.current.position.y = THREE.MathUtils.lerp(truckGroupRef.current.position.y, targetY, 0.1);
 
           // Tilt (Roll and Pitch)
-          const roll = (suspensionCompression.fl + suspensionCompression.rl) - (suspensionCompression.fr + suspensionCompression.rr);
-          const pitch = (suspensionCompression.fl + suspensionCompression.fr) - (suspensionCompression.rl + suspensionCompression.rr);
+          const roll = (currentSuspensionCompression.fl + currentSuspensionCompression.rl) - (currentSuspensionCompression.fr + currentSuspensionCompression.rr);
+          const pitch = (currentSuspensionCompression.fl + currentSuspensionCompression.fr) - (currentSuspensionCompression.rl + currentSuspensionCompression.rr);
           
           truckGroupRef.current.rotation.z = roll * 0.1; // Side tilt
           truckGroupRef.current.rotation.x = pitch * 0.05; // Front/Back tilt
@@ -275,17 +310,17 @@ export const MiningTruckThreeScene: React.FC<MiningTruckSceneProps> = ({
       // 3. Wheel Rotation & Steering
       wheelsRef.current.forEach((wheel, i) => {
           // Rotation
-          wheel.rotation.x -= wheelSpeed * 0.1;
+          wheel.rotation.x -= currentWheelSpeed * 0.1;
           
           // Steering (Front wheels: index 0 and 1)
           if (i < 2) {
-              const steerRad = steeringAngle * (Math.PI / 180);
+              const steerRad = currentSteeringAngle * (Math.PI / 180);
               wheel.rotation.y = steerRad;
           }
       });
 
       // 4. Exhaust
-      if (exhaustRef.current && isRunning) {
+      if (exhaustRef.current && currentIsRunning) {
           const positions = exhaustRef.current.geometry.attributes.position.array as Float32Array;
           for(let i=0; i<pCount; i++) {
               if (positions[i*3+1] > 6) {
@@ -305,16 +340,16 @@ export const MiningTruckThreeScene: React.FC<MiningTruckSceneProps> = ({
       }
 
       // 5. Highlight Active Component
-      if (activeComponent && highlightBox) {
+      if (currentActiveComponent && highlightBox) {
           highlightBox.visible = true;
           // Simple mapping of IDs to positions
-          if (activeComponent === 'engine') {
+          if (currentActiveComponent === 'engine') {
               highlightBox.position.set(1, 3, 5);
               highlightBox.scale.set(3.2, 2.2, 2.2);
-          } else if (activeComponent === 'suspension-fl') {
+          } else if (currentActiveComponent === 'suspension-fl') {
               highlightBox.position.set(-3, 1, 3.5);
               highlightBox.scale.set(1, 2, 1);
-          } else if (activeComponent === 'tire-rl') {
+          } else if (currentActiveComponent === 'tire-rl') {
               highlightBox.position.set(-3, 1.5, -3.5);
               highlightBox.scale.set(2, 3.2, 3.2);
           } else {
@@ -347,7 +382,7 @@ export const MiningTruckThreeScene: React.FC<MiningTruckSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [dumpAngle, steeringAngle, wheelSpeed, suspensionCompression, activeComponent, isRunning]);
+  }, []); // 2026.03.04 - 依赖数组置空，确保场景只初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />;
 };

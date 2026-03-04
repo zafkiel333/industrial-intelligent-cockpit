@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -21,6 +20,27 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
   const crankshaftRef = useRef<THREE.Group | null>(null);
   const turbosRef = useRef<THREE.Group[]>([]);
 
+  // 2026.03.04 - Bug修复：创建ref存储动态props，避免依赖项变化触发useEffect重渲染
+  // Bug情况：模型频繁闪烁，useEffect反复执行导致场景重新创建、渲染
+  // Bug原因：useEffect依赖项（rpm/cylinders/viewMode等）频繁变化，触发整个3D场景重新初始化
+  const rpmRef = useRef(rpm);
+  const cylindersRef = useRef(cylinders);
+  const turboSpeedRef = useRef(turboSpeed);
+  const viewModeRef = useRef(viewMode);
+  const activeCylinderRef = useRef(activeCylinder);
+  const vibrationIntensityRef = useRef(vibrationIntensity);
+
+  // 2026.03.04 - 仅更新ref值，不触发场景重建
+  useEffect(() => {
+    rpmRef.current = rpm;
+    cylindersRef.current = cylinders;
+    turboSpeedRef.current = turboSpeed;
+    viewModeRef.current = viewMode;
+    activeCylinderRef.current = activeCylinder;
+    vibrationIntensityRef.current = vibrationIntensity;
+  }, [rpm, cylinders, turboSpeed, viewMode, activeCylinder, vibrationIntensity]);
+
+  // 2026.03.04 - 主渲染逻辑仅初始化一次（依赖空数组），避免反复触发
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-truck-engine useEffect===");
@@ -29,8 +49,10 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050202);
-    scene.fog = new THREE.FogExp2(0x050202, 0.04);
+    // 2026.03.04 - 优化：调亮背景色（非材质/模型颜色），提升基础亮度
+    scene.background = new THREE.Color(0x100808);
+    // 2026.03.04 - 优化：降低雾密度，减少亮度遮挡，雾色同步调亮
+    scene.fog = new THREE.FogExp2(0x100808, 0.01);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(15, 10, 20);
@@ -40,9 +62,9 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.2;
-    //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
+    // 2026.03.04 - 优化：大幅提升曝光度，最大化亮度表现
+    renderer.toneMappingExposure = 1.8;
+    
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -54,23 +76,41 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
     controls.enableDamping = true;
     controls.autoRotate = false;
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    // Lights - 2026.03.04 全面优化光照系统，提升亮度且不修改材质/模型颜色
+    // 1. 环境光：大幅提升强度，保证基础亮度覆盖
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.DirectionalLight(0xffaa00, 1.5);
+    // 2. 新增半球光：模拟天空/地面环境光，提升整体明暗层次感和亮度
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+    hemisphereLight.position.set(0, 20, 0);
+    scene.add(hemisphereLight);
+
+    // 3. 主方向光：大幅提升强度，作为核心照明源
+    const mainLight = new THREE.DirectionalLight(0xffaa00, 3.0);
     mainLight.position.set(10, 20, 10);
+    // 开启阴影（可选，进一步提升质感）
+    mainLight.castShadow = true;
+    mainLight.shadow.mapSize.width = 2048;
+    mainLight.shadow.mapSize.height = 2048;
     scene.add(mainLight);
 
-    const blueLight = new THREE.PointLight(0x3b82f6, 2, 50);
+    // 4. 蓝色辅助光：提升强度，补充侧面亮度
+    const blueLight = new THREE.PointLight(0x3b82f6, 4.0, 50);
     blueLight.position.set(-10, 5, -10);
     scene.add(blueLight);
 
-    const redLight = new THREE.PointLight(0xef4444, 0, 20); // Warning light
+    // 5. 底部补光：新增！解决底部暗部问题，提升整体亮度均匀性
+    const bottomFillLight = new THREE.PointLight(0xffffff, 2.0, 40);
+    bottomFillLight.position.set(0, -8, 0);
+    scene.add(bottomFillLight);
+
+    // 6. 红色警示灯：保留原有逻辑，仅调整基础强度（可选）
+    const redLight = new THREE.PointLight(0xef4444, 0, 20);
     redLight.position.set(0, 5, 0);
     scene.add(redLight);
 
-    // Materials
+    // Materials - 完全保留原有配置，不修改任何颜色/发光属性
     const blockMat = new THREE.MeshPhysicalMaterial({
         color: 0x1e293b,
         metalness: 0.8,
@@ -88,15 +128,14 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
         color: 0xff4500, emissive: 0xff4500, emissiveIntensity: 0.5
     });
 
-    // Geometry Construction
+    // Geometry Construction - 完全保留原有模型结构
     const mainGroup = new THREE.Group();
     engineGroupRef.current = mainGroup;
     scene.add(mainGroup);
 
-    // 1. Engine Block (V-Shape)
     const blockL = new THREE.Mesh(new THREE.BoxGeometry(14, 4, 3), blockMat);
     blockL.position.set(0, 2, 2);
-    blockL.rotation.x = Math.PI / 6; // 30 deg V
+    blockL.rotation.x = Math.PI / 6;
     mainGroup.add(blockL);
 
     const blockR = new THREE.Mesh(new THREE.BoxGeometry(14, 4, 3), blockMat);
@@ -104,7 +143,6 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
     blockR.rotation.x = -Math.PI / 6;
     mainGroup.add(blockR);
 
-    // 2. Crankshaft
     const crankGroup = new THREE.Group();
     crankshaftRef.current = crankGroup;
     mainGroup.add(crankGroup);
@@ -114,51 +152,44 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
     const crankShaft = new THREE.Mesh(crankShaftGeo, new THREE.MeshStandardMaterial({color: 0x475569}));
     crankGroup.add(crankShaft);
 
-    // 3. Pistons (16 Cylinder)
     pistonsRef.current = [];
-    const cylCount = 8; // per bank
+    const cylCount = 8;
     const spacing = 1.6;
     
-    // Left Bank (1-8)
     for(let i=0; i<cylCount; i++) {
         const x = -5.6 + i * spacing;
         const pGroup = createPistonGroup(i+1, x, 2, 2, Math.PI/6, pistonMat);
         mainGroup.add(pGroup);
         pistonsRef.current.push(pGroup);
     }
-    // Right Bank (9-16)
     for(let i=0; i<cylCount; i++) {
-        const x = -5.6 + i * spacing + 0.8; // Offset
+        const x = -5.6 + i * spacing + 0.8;
         const pGroup = createPistonGroup(i+9, x, 2, -2, -Math.PI/6, pistonMat);
         mainGroup.add(pGroup);
         pistonsRef.current.push(pGroup);
     }
 
-    // 4. Turbochargers
     const turboGeo = new THREE.TorusKnotGeometry(0.8, 0.3, 64, 8);
     const turboL = new THREE.Mesh(turboGeo, new THREE.MeshStandardMaterial({color: 0xcd7f32}));
     turboL.position.set(-8, 4, 1.5);
     mainGroup.add(turboL);
-    turbosRef.current.push(turboL as any); // Treat as group for rotation
+    turbosRef.current.push(turboL as any);
 
     const turboR = new THREE.Mesh(turboGeo, new THREE.MeshStandardMaterial({color: 0xcd7f32}));
     turboR.position.set(-8, 4, -1.5);
     mainGroup.add(turboR);
     turbosRef.current.push(turboR as any);
 
-    // Helpers
     function createPistonGroup(id: number, x: number, y: number, z: number, rotX: number, mat: THREE.Material) {
         const group = new THREE.Group();
         group.position.set(x, y, z);
         group.rotation.x = rotX;
         group.userData = { id, baseX: x, baseY: y, baseZ: z, baseRotX: rotX };
 
-        // Piston Head
         const head = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1, 32), mat.clone());
         head.name = 'head';
         group.add(head);
 
-        // Connecting Rod
         const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 3, 8), new THREE.MeshStandardMaterial({color: 0x64748b}));
         rod.position.y = -1.5;
         group.add(rod);
@@ -166,7 +197,6 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
         return group;
     }
 
-    // Interaction
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     const onClick = (e: MouseEvent) => {
@@ -182,12 +212,11 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
             while(target.parent && !target.parent.userData.id) target = target.parent;
             if (target.parent && target.parent.userData.id) onCylinderSelect(target.parent.userData.id);
         } else {
-            onCylinderSelect(-1); // Deselect
+            onCylinderSelect(-1);
         }
     };
     mountRef.current.addEventListener('click', onClick);
 
-    // --- Animation Loop ---
     let frameId: number;
     let time = 0;
     const animate = () => {
@@ -195,39 +224,31 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
       time += 0.02;
       controls.update();
 
-      // Crankshaft Rotation
-      const crankSpeed = (rpm / 60) * 0.1;
+      const crankSpeed = (rpmRef.current / 60) * 0.1;
       if (crankshaftRef.current) {
           crankshaftRef.current.rotation.x += crankSpeed;
       }
 
-      // Turbo Rotation
       turbosRef.current.forEach(t => {
-          t.rotation.x += (turboSpeed / 60) * 0.05;
+          t.rotation.x += (turboSpeedRef.current / 60) * 0.05;
       });
 
-      // Piston Motion & View Modes
       pistonsRef.current.forEach((p, i) => {
           const id = p.userData.id;
-          const cylData = cylinders.find(c => c.id === id);
+          const cylData = cylindersRef.current.find(c => c.id === id);
           
-          // Motion (Sine wave based on cylinder firing order approx)
-          // V16 firing is complex, simplifying to linear offset
           const offset = i * (Math.PI / 4);
           const stroke = Math.sin(time * 10 + offset) * 1.0;
           
-          p.children[0].position.y = stroke; // Head moves
-          p.children[1].position.y = stroke - 1.5; // Rod moves
-          // Rod angle (simplified visual)
+          p.children[0].position.y = stroke;
+          p.children[1].position.y = stroke - 1.5;
           p.children[1].rotation.z = Math.sin(time * 10 + offset) * 0.2;
 
-          // Material Updates
           const mesh = p.children[0] as THREE.Mesh;
           const mat = mesh.material as THREE.MeshStandardMaterial;
-          const isSelected = activeCylinder === id;
+          const isSelected = activeCylinderRef.current === id;
 
-          if (viewMode === 'thermal' && cylData) {
-              // Map temp 400-800C to color
+          if (viewModeRef.current === 'thermal' && cylData) {
               const tNorm = Math.max(0, Math.min(1, (cylData.temp - 400) / 400));
               const color = new THREE.Color().setHSL(0.6 - tNorm * 0.6, 1.0, 0.5);
               mat.color.copy(color);
@@ -245,8 +266,7 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
               }
           }
 
-          // Exploded View
-          if (viewMode === 'exploded' && isSelected) {
+          if (viewModeRef.current === 'exploded' && isSelected) {
              const explodeDir = p.userData.id <= 8 ? new THREE.Vector3(0, 1, 1) : new THREE.Vector3(0, 1, -1);
              p.position.lerp(new THREE.Vector3(p.userData.baseX, p.userData.baseY, p.userData.baseZ).add(explodeDir.multiplyScalar(3)), 0.1);
           } else {
@@ -254,10 +274,9 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
           }
       });
 
-      // Vibration Shake
-      if (engineGroupRef.current && vibrationIntensity > 0) {
-          engineGroupRef.current.position.x = (Math.random()-0.5) * vibrationIntensity * 0.05;
-          engineGroupRef.current.position.y = (Math.random()-0.5) * vibrationIntensity * 0.05;
+      if (engineGroupRef.current && vibrationIntensityRef.current > 0) {
+          engineGroupRef.current.position.x = (Math.random()-0.5) * vibrationIntensityRef.current * 0.05;
+          engineGroupRef.current.position.y = (Math.random()-0.5) * vibrationIntensityRef.current * 0.05;
       }
 
       renderer.render(scene, camera);
@@ -282,7 +301,7 @@ export const EngineThreeScene: React.FC<EngineSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [rpm, cylinders, viewMode, activeCylinder]);
+  }, []);
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
 };

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -22,6 +21,28 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
   const sparkSystemRef = useRef<THREE.Points | null>(null);
   const tunnelRef = useRef<THREE.Group | null>(null);
 
+  const dynamicPropsRef = useRef({
+    speed,
+    pantographHeight,
+    isSparking,
+    brakeTemp,
+    motorTemp,
+    viewMode,
+    trackCurvature
+  });
+
+  useEffect(() => {
+    dynamicPropsRef.current = {
+      speed,
+      pantographHeight,
+      isSparking,
+      brakeTemp,
+      motorTemp,
+      viewMode,
+      trackCurvature
+    };
+  }, [speed, pantographHeight, isSparking, brakeTemp, motorTemp, viewMode, trackCurvature]);
+
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-locomotive useEffect===");
@@ -31,7 +52,8 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
 
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.fog = new THREE.FogExp2(0x020409, 0.03);
+    // 优化雾效：降低密度（从0.03→0.01），让雾更淡，提升整体亮度
+    scene.fog = new THREE.FogExp2(0x020409, 0.01);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(12, 6, 12);
@@ -41,9 +63,9 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.5;
-    //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
+    // 提升曝光度（从1.5→2.2），显著增强整体亮度
+    renderer.toneMappingExposure = 2.2;
+    
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -54,54 +76,69 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
     controls.enableDamping = true;
     controls.maxPolarAngle = Math.PI / 2 - 0.05;
 
-    // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    // --- 大幅增强光照系统 ---
+    // 1. 环境光：强度从0.2提升到0.8，提供更强的基础照明
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const headLight = new THREE.SpotLight(0xffffff, 10, 50, 0.5, 0.5);
+    // 2. 新增半球光：提供自然的上下环境补光，避免底部过暗
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
+    hemisphereLight.position.set(0, 5, 0);
+    scene.add(hemisphereLight);
+
+    // 3. 底部补光：专门照亮车轮/底盘区域，解决底部暗部问题
+    const bottomFillLight = new THREE.DirectionalLight(0xffffff, 0.7);
+    bottomFillLight.position.set(0, -5, 0);
+    bottomFillLight.target.position.set(0, 0, 0);
+    scene.add(bottomFillLight);
+    scene.add(bottomFillLight.target);
+
+    // 4. 头灯：强度从10提升到30，照射距离从50→80，扩大照明范围
+    const headLight = new THREE.SpotLight(0xffffff, 30, 80, 0.5, 0.5);
     headLight.position.set(5, 2, 0);
     headLight.target.position.set(20, 0, 0);
     scene.add(headLight);
     scene.add(headLight.target);
 
-    const tunnelLight = new THREE.PointLight(0xffaa00, 1, 30);
+    // 5. 隧道灯：强度从1提升到4，扩大照明范围（从30→50）
+    const tunnelLight = new THREE.PointLight(0xffaa00, 4, 50);
     tunnelLight.position.set(0, 8, 0);
     scene.add(tunnelLight);
 
-    // --- Materials ---
-    const bodyMat = new THREE.MeshPhysicalMaterial({
-        color: 0xfacc15, // Industrial Yellow
+    // --- 材质缓存ref（未修改任何颜色属性）---
+    const materialRef = {
+      bodyMat: new THREE.MeshPhysicalMaterial({
+        color: 0xfacc15, // 保持原有颜色
         metalness: 0.2,
         roughness: 0.4,
         clearcoat: 0.5,
-        transparent: viewMode === 'xray',
-        opacity: viewMode === 'xray' ? 0.2 : 1.0
-    });
+        transparent: dynamicPropsRef.current.viewMode === 'xray',
+        opacity: dynamicPropsRef.current.viewMode === 'xray' ? 0.2 : 1.0
+      }),
+      steelMat: new THREE.MeshStandardMaterial({ 
+        color: 0x334155, metalness: 0.8, roughness: 0.3 // 保持原有颜色
+      }),
+      thermalMat: new THREE.MeshBasicMaterial({ color: 0xff0000 }) // 保持原有颜色
+    };
 
-    const steelMat = new THREE.MeshStandardMaterial({ 
-        color: 0x334155, metalness: 0.8, roughness: 0.3 
-    });
-
-    const thermalMat = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Placeholder for thermal updates
-
-    // --- Geometry ---
+    // --- Geometry（未修改任何模型/颜色）---
     const locoGroup = new THREE.Group();
     locoGroupRef.current = locoGroup;
     scene.add(locoGroup);
 
     // 1. Chassis & Body
     const chassisGeo = new THREE.BoxGeometry(8, 1, 3);
-    const chassis = new THREE.Mesh(chassisGeo, steelMat);
+    const chassis = new THREE.Mesh(chassisGeo, materialRef.steelMat);
     chassis.position.y = 1;
     locoGroup.add(chassis);
 
     const cabGeo = new THREE.BoxGeometry(2.5, 3, 2.8);
-    const cab = new THREE.Mesh(cabGeo, bodyMat);
+    const cab = new THREE.Mesh(cabGeo, materialRef.bodyMat);
     cab.position.set(2.5, 3, 0);
     locoGroup.add(cab);
 
     const engineBodyGeo = new THREE.BoxGeometry(5, 2, 2.8);
-    const engineBody = new THREE.Mesh(engineBodyGeo, bodyMat);
+    const engineBody = new THREE.Mesh(engineBodyGeo, materialRef.bodyMat);
     engineBody.position.set(-1.5, 2.5, 0);
     locoGroup.add(engineBody);
 
@@ -112,19 +149,19 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
         axleGroup.position.x = x;
         locoGroup.add(axleGroup);
 
-        const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 3.2), steelMat);
+        const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 3.2), materialRef.steelMat);
         axle.rotation.x = Math.PI/2;
         axle.position.y = 0.8;
         axleGroup.add(axle);
 
         // Wheels
         [-1.5, 1.5].forEach(z => {
-            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.4, 32), steelMat);
+            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.4, 32), materialRef.steelMat);
             wheel.rotation.x = Math.PI/2;
             wheel.position.set(0, 0.8, z);
             
             // Add brake disc visual
-            const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.5, 16), steelMat.clone());
+            const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.5, 16), materialRef.steelMat.clone());
             disc.rotation.x = Math.PI/2;
             disc.position.set(0, 0.8, z * 0.8);
             disc.name = 'brakeDisc'; // Tag for thermal update
@@ -148,17 +185,17 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
     pantographRef.current = pantoGroup;
     locoGroup.add(pantoGroup);
 
-    const baseP = new THREE.Mesh(new THREE.BoxGeometry(1, 0.2, 1), steelMat);
+    const baseP = new THREE.Mesh(new THREE.BoxGeometry(1, 0.2, 1), materialRef.steelMat);
     pantoGroup.add(baseP);
 
     // Arms (Simplified)
-    const armLower = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2, 0.2), steelMat);
+    const armLower = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2, 0.2), materialRef.steelMat);
     armLower.position.set(0, 1, 0);
     armLower.rotation.z = -0.5; // Folded
     armLower.name = 'armLower';
     pantoGroup.add(armLower);
 
-    const armUpper = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2, 0.2), steelMat);
+    const armUpper = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2, 0.2), materialRef.steelMat);
     armUpper.position.set(0.8, 2.5, 0); // Approx tip of lower
     armUpper.rotation.z = 0.5;
     armUpper.name = 'armUpper';
@@ -204,7 +241,6 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
         tunnelGroup.add(lightMesh);
     }
 
-
     // --- Animation Loop ---
     let frameId: number;
     let time = 0;
@@ -213,12 +249,28 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
       time += 0.02;
       controls.update();
 
+      const {
+        speed: currentSpeed,
+        pantographHeight: currentPantoHeight,
+        isSparking: currentIsSparking,
+        brakeTemp: currentBrakeTemp,
+        motorTemp: currentMotorTemp,
+        viewMode: currentViewMode
+      } = dynamicPropsRef.current;
+
+      // 实时更新body材质的xray模式（未修改颜色）
+      if (materialRef.bodyMat.transparent !== (currentViewMode === 'xray')) {
+        materialRef.bodyMat.transparent = currentViewMode === 'xray';
+        materialRef.bodyMat.opacity = currentViewMode === 'xray' ? 0.2 : 1.0;
+        materialRef.bodyMat.needsUpdate = true;
+      }
+
       // 1. Wheel Rotation (Speed)
-      const rotSpeed = speed / 10; 
+      const rotSpeed = currentSpeed / 10; 
       wheelsRef.current.forEach(w => {
           w.children.forEach(c => {
               if (c.geometry.type === 'CylinderGeometry' && c.name !== 'brakeDisc') {
-                  c.rotation.y -= rotSpeed; // Cylinder rotated X, so rotate Y local
+                  c.rotation.y -= rotSpeed;
               }
           });
       });
@@ -226,36 +278,32 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
       // 2. Locomotive Movement Simulation (Tunnel moving back)
       if (tunnelRef.current) {
           tunnelRef.current.position.x += rotSpeed * 2;
-          if (tunnelRef.current.position.x > 10) tunnelRef.current.position.x -= 10; // Loop
+          if (tunnelRef.current.position.x > 10) tunnelRef.current.position.x -= 10;
       }
       
       // 3. Locomotive Sway (Vibration)
       if (locoGroupRef.current) {
-          locoGroupRef.current.position.y = Math.sin(time * 20) * 0.02 * (speed / 10);
-          locoGroupRef.current.rotation.z = Math.sin(time * 5) * 0.01; // Roll
-          locoGroupRef.current.rotation.y = Math.sin(time * 2) * 0.02; // Yaw (Hunting)
+          locoGroupRef.current.position.y = Math.sin(time * 20) * 0.02 * (currentSpeed / 10);
+          locoGroupRef.current.rotation.z = Math.sin(time * 5) * 0.01;
+          locoGroupRef.current.rotation.y = Math.sin(time * 2) * 0.02;
       }
 
       // 4. Pantograph Dynamics
       if (pantographRef.current) {
-          // Extension
-          const ext = 1 + pantographHeight * 2;
+          const ext = 1 + currentPantoHeight * 2;
           const slider = pantographRef.current.getObjectByName('slider');
           if (slider) {
               slider.position.y = ext;
               
-              // Sparks
-              if (isSparking && sparkSystemRef.current) {
+              if (currentIsSparking && sparkSystemRef.current) {
                   const positions = sparkSystemRef.current.geometry.attributes.position.array as Float32Array;
                   for(let i=0; i<pCount; i++) {
-                      // Reset to slider
                       if (Math.random() > 0.8) {
-                          positions[i*3] = slider.position.x - 2 + (Math.random()-0.5)*0.5; // Relative to loco group
+                          positions[i*3] = slider.position.x - 2 + (Math.random()-0.5)*0.5;
                           positions[i*3+1] = slider.position.y + 3.5;
                           positions[i*3+2] = slider.position.z + (Math.random()-0.5)*0.5;
                       }
-                      // Fall
-                      positions[i*3] -= speed * 0.1; // Drag back
+                      positions[i*3] -= currentSpeed * 0.1;
                       positions[i*3+1] -= 0.1;
                   }
                   sparkSystemRef.current.geometry.attributes.position.needsUpdate = true;
@@ -266,14 +314,13 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
           }
       }
 
-      // 5. Thermal Visualization
+      // 5. Thermal Visualization（仅修改热模式下的发光属性，未修改基础颜色）
       wheelsRef.current.forEach(axle => {
-          // Brakes
           const discs = axle.children.filter(c => c.name === 'brakeDisc');
           discs.forEach((d: any) => {
              const mat = d.material as THREE.MeshStandardMaterial;
-             if (viewMode === 'thermal') {
-                 const tNorm = Math.min(1, (brakeTemp - 50) / 300);
+             if (currentViewMode === 'thermal') {
+                 const tNorm = Math.min(1, (currentBrakeTemp - 50) / 300);
                  const color = new THREE.Color().setHSL(0.6 - tNorm * 0.6, 1.0, 0.5);
                  mat.color.copy(color);
                  mat.emissive.copy(color);
@@ -282,14 +329,14 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
                  mat.color.setHex(0x334155);
                  mat.emissive.setHex(0x000000);
              }
+             mat.needsUpdate = true;
           });
           
-          // Motors
           const motor = axle.getObjectByName('tractionMotor') as THREE.Mesh;
           if (motor) {
              const mat = motor.material as THREE.MeshStandardMaterial;
-             if (viewMode === 'thermal') {
-                 const tNorm = Math.min(1, (motorTemp - 50) / 100);
+             if (currentViewMode === 'thermal') {
+                 const tNorm = Math.min(1, (currentMotorTemp - 50) / 100);
                  const color = new THREE.Color().setHSL(0.6 - tNorm * 0.6, 1.0, 0.5);
                  mat.color.copy(color);
                  mat.emissive.copy(color);
@@ -298,6 +345,7 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
                  mat.color.setHex(0x475569);
                  mat.emissive.setHex(0x000000);
              }
+             mat.needsUpdate = true;
           }
       });
 
@@ -321,8 +369,11 @@ export const LocomotiveThreeScene: React.FC<LocomotiveSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      materialRef.bodyMat.dispose();
+      materialRef.steelMat.dispose();
+      materialRef.thermalMat.dispose();
     };
-  }, [speed, pantographHeight, isSparking, brakeTemp, motorTemp, viewMode]);
+  }, []);
 
   return <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />;
 };

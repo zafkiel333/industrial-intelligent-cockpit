@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -20,6 +19,28 @@ export const SwingBearingThreeScene: React.FC<SwingBearingSceneProps> = ({
   const rollersRef = useRef<THREE.Group | null>(null);
   const debrisRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.04 - Bug修复：使用ref存储实时props值，避免依赖项变化触发useEffect重渲染
+  // Bug情况：3D模型频繁闪烁，原因是useEffect依赖项（rotationAngle/tiltAngleX等props）频繁变化，导致useEffect反复触发，场景被重复创建/销毁
+  const rotationAngleRef = useRef(rotationAngle);
+  const tiltAngleXRef = useRef(tiltAngleX);
+  const tiltAngleZRef = useRef(tiltAngleZ);
+  const wearLevelRef = useRef(wearLevel);
+  const stressHotspotsRef = useRef(stressHotspots);
+  const lubricationStatusRef = useRef(lubricationStatus);
+  const viewModeRef = useRef(viewMode);
+
+  // 2026.03.04 - 单独更新ref值，不触发场景重建
+  useEffect(() => {
+    rotationAngleRef.current = rotationAngle;
+    tiltAngleXRef.current = tiltAngleX;
+    tiltAngleZRef.current = tiltAngleZ;
+    wearLevelRef.current = wearLevel;
+    stressHotspotsRef.current = stressHotspots;
+    lubricationStatusRef.current = lubricationStatus;
+    viewModeRef.current = viewMode;
+  }, [rotationAngle, tiltAngleX, tiltAngleZ, wearLevel, stressHotspots, lubricationStatus, viewMode]);
+
+  // 2026.03.04 - 清空依赖项数组，仅初始化一次场景，避免反复重建导致闪烁
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-swing-bearing useEffect===");
@@ -73,13 +94,14 @@ export const SwingBearingThreeScene: React.FC<SwingBearingSceneProps> = ({
         roughness: 0.2
     });
 
+    // 2026.03.04 - 使用ref值初始化，后续在动画循环中动态更新opacity
     const raceMat = new THREE.MeshPhysicalMaterial({
         color: 0x334155,
         metalness: 0.5,
         roughness: 0.2,
         clearcoat: 1.0,
         transparent: true,
-        opacity: viewMode === 'transparent' ? 0.3 : 1.0,
+        opacity: viewModeRef.current === 'transparent' ? 0.3 : 1.0,
         side: THREE.DoubleSide
     });
 
@@ -201,16 +223,11 @@ export const SwingBearingThreeScene: React.FC<SwingBearingSceneProps> = ({
         time += 0.01;
         controls.update();
 
-        // 1. 旋转动画 (Inner Ring rotates, Rollers orbit at half speed)
-        // rotationAngle is target, we lerp to it for smoothness or just spin
-        // Here we just spin based on 'rotationAngle' prop as a speed/position factor? 
-        // Let's treat rotationAngle as the current position.
-        const rad = (rotationAngle * Math.PI) / 180;
+        // 2026.03.04 - 读取ref中的实时rotationAngle值
+        const rad = (rotationAngleRef.current * Math.PI) / 180;
         
         if (innerRingRef.current) {
-            innerRingRef.current.rotation.z = rad; // Rotating around Y actually (due to geometry rotation)
-            // Fix: Torus was rotated X=90. So its local Z is world Y.
-            // Let's rotate the object group
+            innerRingRef.current.rotation.z = rad;
         }
         // Manual rotation logic
         mainGroup.children.forEach(c => {
@@ -232,18 +249,17 @@ export const SwingBearingThreeScene: React.FC<SwingBearingSceneProps> = ({
                     const myAngle = (pivot.rotation.y + rollersRef.current!.rotation.y) * 180/Math.PI;
                     const normalizedAngle = Math.abs(myAngle % 360);
                     
-                    // Check if close to a hotspot
+                    // 2026.03.04 - 读取ref中的实时stressHotspots值
                     let stress = 0;
-                    if (viewMode === 'stress') {
-                        stressHotspots.forEach(hot => {
+                    if (viewModeRef.current === 'stress') {
+                        stressHotspotsRef.current.forEach(hot => {
                             const diff = Math.abs(normalizedAngle - hot);
                             if (diff < 30) stress += (30 - diff) / 30;
                         });
                     }
                     
-                    // Tilt induced stress
-                    const tiltStress = (Math.abs(tiltAngleX) + Math.abs(tiltAngleZ)) * 5;
-                    // Add stress if this roller is in the tilt direction
+                    // 2026.03.04 - 读取ref中的实时tiltAngle值
+                    const tiltStress = (Math.abs(tiltAngleXRef.current) + Math.abs(tiltAngleZRef.current)) * 5;
                     
                     (halo.material as THREE.MeshBasicMaterial).opacity = Math.min(0.8, stress * 0.8 + tiltStress * 0.1);
                 }
@@ -251,18 +267,17 @@ export const SwingBearingThreeScene: React.FC<SwingBearingSceneProps> = ({
         }
 
         // 2. 倾覆力矩模拟 (Tilt)
-        // Apply tilt to the whole inner assembly relative to outer
+        // 2026.03.04 - 读取ref中的实时tiltAngle值
         if (innerRingRef.current) {
-             const tiltQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(tiltAngleX * 0.05, 0, tiltAngleZ * 0.05));
+             const tiltQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(tiltAngleXRef.current * 0.05, 0, tiltAngleZRef.current * 0.05));
              innerRingRef.current.quaternion.slerp(tiltQ, 0.1);
         }
 
         // 3. 磨损微粒
         if (debrisRef.current) {
             const mat = debrisRef.current.material as THREE.PointsMaterial;
-            // Wear level 0-100 -> opacity 0-1
-            // Lubrication low -> higher visibility of debris
-            const visibility = (wearLevel / 100) * (1 - lubricationStatus + 0.2);
+            // 2026.03.04 - 读取ref中的实时wearLevel和lubricationStatus值
+            const visibility = (wearLevelRef.current / 100) * (1 - lubricationStatusRef.current + 0.2);
             mat.opacity = visibility;
             
             // Jitter particles
@@ -273,6 +288,12 @@ export const SwingBearingThreeScene: React.FC<SwingBearingSceneProps> = ({
                 if (Math.abs(positions[i*3+1]) > 1) positions[i*3+1] *= 0.9;
             }
             debrisRef.current.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // 2026.03.04 - 动态更新透明模式的opacity
+        if (raceMat) {
+            raceMat.opacity = viewModeRef.current === 'transparent' ? 0.3 : 1.0;
+            raceMat.needsUpdate = true;
         }
 
         renderer.render(scene, camera);
@@ -296,7 +317,7 @@ export const SwingBearingThreeScene: React.FC<SwingBearingSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [rotationAngle, tiltAngleX, tiltAngleZ, wearLevel, stressHotspots, lubricationStatus, viewMode]);
+  }, []); // 2026.03.04 - 清空依赖项，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />;
 };

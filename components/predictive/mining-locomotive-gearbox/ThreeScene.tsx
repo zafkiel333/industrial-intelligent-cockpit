@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -21,6 +20,27 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
   const debrisSystemRef = useRef<THREE.Points | null>(null);
   const mainGroupRef = useRef<THREE.Group | null>(null);
 
+  // 2026.03.04 - Bug修复：创建ref存储实时props值，避免主useEffect依赖项频繁变化
+  // Bug情况：3D模型渲染时出现闪烁问题
+  // Bug原因：主useEffect依赖项（rpm/torqueLoad等）频繁变化，导致useEffect反复触发、场景重新创建和渲染
+  const rpmRef = useRef(rpm);
+  const torqueLoadRef = useRef(torqueLoad);
+  const oilDebrisDensityRef = useRef(oilDebrisDensity);
+  const viewModeRef = useRef(viewMode);
+  const activeComponentIdRef = useRef(activeComponentId);
+  const componentsRef = useRef(components);
+
+  // 2026.03.04 - 仅更新ref值，不触发场景重建
+  useEffect(() => {
+    rpmRef.current = rpm;
+    torqueLoadRef.current = torqueLoad;
+    oilDebrisDensityRef.current = oilDebrisDensity;
+    viewModeRef.current = viewMode;
+    activeComponentIdRef.current = activeComponentId;
+    componentsRef.current = components;
+  }, [rpm, torqueLoad, oilDebrisDensity, viewMode, activeComponentId, components]);
+
+  // 2026.03.04 - 主渲染逻辑仅在组件挂载/卸载时执行（依赖项为空数组），避免反复触发
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-locomotive-gearbox useEffect===");
@@ -29,7 +49,8 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x030510, 0.04);
+    // ========== 优化1：雾效调整（更淡+更亮的雾色，提升整体亮度） ==========
+    scene.fog = new THREE.FogExp2(0x101520, 0.02); // 雾色调亮，密度从0.04降至0.02（雾更淡）
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(12, 8, 12);
@@ -39,9 +60,10 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.5;
+    // ========== 优化2：提升曝光度（最大化亮度且不过曝） ==========
+    renderer.toneMappingExposure = 2.0; // 从1.5提升至2.0，增强整体曝光
+
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -54,18 +76,33 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
     controls.autoRotate = false;
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    // ========== 优化3：大幅提升环境光强度 ==========
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0); // 从0.3提升至1.0，基础亮度拉满
     scene.add(ambientLight);
 
-    const mainLight = new THREE.PointLight(0xf59e0b, 2, 50); // Amber industrial light
+    // ========== 优化4：新增半球光（提升环境光过渡，顶部→底部均匀亮） ==========
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.5); // 天空色/地面色均为纯白，强度1.5
+    hemisphereLight.position.set(0, 10, 0); // 半球光位置（顶部）
+    scene.add(hemisphereLight);
+
+    // ========== 优化5：提升主点光强度+扩大照射范围 ==========
+    const mainLight = new THREE.PointLight(0xf59e0b, 10, 100); // 强度从2→10，照射距离从50→100
     mainLight.position.set(5, 10, 5);
     scene.add(mainLight);
 
-    const blueLight = new THREE.SpotLight(0x3b82f6, 5);
+    // ========== 优化6：提升蓝色聚光灯强度+扩大照射范围 ==========
+    const blueLight = new THREE.SpotLight(0x3b82f6, 12, 120); // 强度从5→12，照射距离默认→120
     blueLight.position.set(-10, 5, -5);
+    blueLight.angle = Math.PI / 3; // 照射角度扩大（从默认更宽）
+    blueLight.penumbra = 0.2; // 边缘柔化，避免硬阴影
     scene.add(blueLight);
 
-    // --- Materials ---
+    // ========== 优化7：新增底部补光（解决底部暗角问题） ==========
+    const bottomFillLight = new THREE.PointLight(0xffffff, 6, 80); // 纯白底部补光，强度6
+    bottomFillLight.position.set(0, -8, 0); // 位置在模型正下方
+    scene.add(bottomFillLight);
+
+    // --- Materials ---（完全未修改，仅保留原材质属性）
     const steelMat = new THREE.MeshStandardMaterial({ 
       color: 0x64748b, metalness: 0.8, roughness: 0.3 
     });
@@ -87,7 +124,7 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
         opacity: 0.3
     });
 
-    // --- Geometry ---
+    // --- Geometry ---（完全未修改）
     const mainGroup = new THREE.Group();
     mainGroupRef.current = mainGroup;
     scene.add(mainGroup);
@@ -136,8 +173,7 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
 
     // 3. Wheel (Output - Low Speed)
     const wheelGroup = createGear(2.8, 28, 1.5, 0x64748b);
-    wheelGroup.position.set(2.2, 0, 0); // Meshing distance
-    // Rotate slightly to mesh
+    wheelGroup.position.set(2.2, 0, 0);
     wheelGroup.rotation.x = 0.1;
     wheelGroup.userData = { id: 'wheel' };
     wheelRef.current = wheelGroup;
@@ -166,10 +202,10 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
     }
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
     const pMat = new THREE.PointsMaterial({
-        color: 0xd97706, // Oil/Metal chips color
+        color: 0xd97706,
         size: 0.08,
         transparent: true,
-        opacity: 0.0, // Controlled by prop
+        opacity: 0.0,
         blending: THREE.AdditiveBlending
     });
     const debris = new THREE.Points(pGeo, pMat);
@@ -186,11 +222,8 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         
         raycaster.setFromCamera(mouse, camera);
-        // Simplified hit test on groups
-        // In reality, raycast against meshes
         const hits = raycaster.intersectObjects(mainGroup.children, true);
         if (hits.length > 0) {
-            // Find parent group with ID
             let target: any = hits[0].object;
             while(target.parent && target.parent !== mainGroup) target = target.parent;
             if (target.userData.id) onComponentSelect(target.userData.id);
@@ -209,56 +242,54 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
       time += 0.01;
       controls.update();
 
+      const currentRpm = rpmRef.current;
+      const currentTorqueLoad = torqueLoadRef.current;
+      const currentOilDebrisDensity = oilDebrisDensityRef.current;
+      const currentViewMode = viewModeRef.current;
+      const currentActiveComponentId = activeComponentIdRef.current;
+      const currentComponents = componentsRef.current;
+
       // Rotation Logic
-      // Ratio approx 2.33 (28/12)
-      const inputSpeed = rpm * 0.002;
+      const inputSpeed = currentRpm * 0.002;
       if (pinionRef.current) pinionRef.current.rotation.x -= inputSpeed;
       if (wheelRef.current) wheelRef.current.rotation.x += inputSpeed / 2.33;
       
-      // Shafts rotate with gears
       inputShaft.rotation.x = (pinionRef.current?.rotation.x || 0);
       outputShaft.rotation.x = (wheelRef.current?.rotation.x || 0);
 
-      // Visual Updates based on Props
-      
       // 1. Debris Visibility
       if (debrisSystemRef.current) {
           const mat = debrisSystemRef.current.material as THREE.PointsMaterial;
-          mat.opacity = oilDebrisDensity * (viewMode === 'particles' ? 0.8 : 0.2);
+          mat.opacity = currentOilDebrisDensity * (currentViewMode === 'particles' ? 0.8 : 0.2);
           
-          // Agitate particles
           const pos = debrisSystemRef.current.geometry.attributes.position.array as Float32Array;
           for(let i=0; i<pCount; i++) {
-              pos[i*3+1] += Math.sin(time * 10 + i) * 0.01 * (rpm/1000);
+              pos[i*3+1] += Math.sin(time * 10 + i) * 0.01 * (currentRpm/1000);
           }
           debrisSystemRef.current.geometry.attributes.position.needsUpdate = true;
       }
 
       // 2. Material/View Mode
       const updateComponent = (group: THREE.Group, id: string) => {
-          const data = components.find(c => c.id === id);
-          const isSelected = activeComponentId === id;
+          const data = currentComponents.find(c => c.id === id);
+          const isSelected = currentActiveComponentId === id;
           const meshes = group.children.filter(c => c instanceof THREE.Mesh) as THREE.Mesh[];
 
           meshes.forEach(mesh => {
               const mat = mesh.material as THREE.MeshStandardMaterial;
               
-              if (viewMode === 'stress') {
-                  // Heatmap: stress -> Red
+              if (currentViewMode === 'stress') {
                   const stress = data ? data.wearLevel / 100 : 0;
-                  // Base blue, high stress red
                   const col = new THREE.Color().setHSL(0.6 - stress * 0.6, 0.8, 0.5);
                   mat.color.copy(col);
                   mat.emissive.copy(col);
                   mat.emissiveIntensity = 0.5;
                   mat.wireframe = true;
               } else {
-                  // Standard / Mechanical
                   mat.wireframe = false;
                   mat.emissiveIntensity = isSelected ? 0.3 : 0;
                   
                   if (data && data.wearLevel > 70) {
-                      // Worn texture color
                       mat.color.lerpColors(new THREE.Color(0x94a3b8), new THREE.Color(0x573e32), 0.5);
                       mat.roughness = 0.8;
                   } else {
@@ -277,7 +308,7 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
 
       // Vibration Shake
       if (mainGroupRef.current) {
-        if (torqueLoad > 80) {
+        if (currentTorqueLoad > 80) {
             const shake = 0.02;
             mainGroupRef.current.position.x = (Math.random()-0.5) * shake;
             mainGroupRef.current.position.y = (Math.random()-0.5) * shake;
@@ -308,7 +339,7 @@ export const LocoGearboxScene: React.FC<LocoGearboxSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [rpm, torqueLoad, oilDebrisDensity, viewMode, activeComponentId, components]);
+  }, []);
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
 };

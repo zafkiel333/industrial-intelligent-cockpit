@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -27,20 +26,19 @@ export const HoistRopeThreeScene: React.FC<HoistRopeSceneProps> = ({
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020617);
-    scene.fog = new THREE.FogExp2(0x020617, 0.04);
+    // 降低雾密度（减少暗化）：0.04 → 0.02
+    scene.fog = new THREE.FogExp2(0x020617, 0.02);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    // 调近相机位置，让模型更大
-    camera.position.set(12, 10, 15);
+    camera.position.set(22, 20, 25);
     camera.lookAt(0, 5, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.5;
-    //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
+    // 提升曝光度（核心亮度提升）：1.5 → 2.2
+    renderer.toneMappingExposure = 2.2;
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -52,19 +50,37 @@ export const HoistRopeThreeScene: React.FC<HoistRopeSceneProps> = ({
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // --- 高级灯光系统 ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // --- 大幅强化的灯光系统 ---
+    // 1. 环境光：强度拉满，2.5 → 8.0
+    const ambientLight = new THREE.AmbientLight(0xffffff, 8.0);
     scene.add(ambientLight);
+
+    // 新增半球光（补充环境光，区分天地光照，提升自然亮度）
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 6.0);
+    hemisphereLight.position.set(0, 30, 0);
+    scene.add(hemisphereLight);
     
-    const cyanLight = new THREE.PointLight(0x0ea5e9, 5, 100);
-    cyanLight.position.set(10, 20, 10);
+    // 2. 主青色点光源：强度5 → 15，范围100→150，位置微调扩大覆盖
+    const cyanLight = new THREE.PointLight(0x0ea5e9, 15.0, 150);
+    cyanLight.position.set(15, 25, 15);
     scene.add(cyanLight);
 
-    const backLight = new THREE.PointLight(0x8b5cf6, 3, 100);
-    backLight.position.set(-10, 10, -10);
+    // 3. 背光：强度3 → 10，范围100→150，位置抬高减少阴影
+    const backLight = new THREE.PointLight(0x8b5cf6, 10.0, 150);
+    backLight.position.set(-15, 20, -15);
     scene.add(backLight);
 
-    // --- 材质 ---
+    // 4. 新增正面补光（白色，高强度）
+    const frontFillLight = new THREE.PointLight(0xffffff, 8.0, 120);
+    frontFillLight.position.set(0, 20, 20);
+    scene.add(frontFillLight);
+
+    // 5. 新增底部补光（解决下方过暗问题）
+    const bottomFillLight = new THREE.PointLight(0xffffff, 5.0, 100);
+    bottomFillLight.position.set(0, -5, 0);
+    scene.add(bottomFillLight);
+
+    // --- 材质（完全未修改）---
     const steelMat = new THREE.MeshPhysicalMaterial({
         color: 0xe2e8f0,
         metalness: 1.0,
@@ -141,7 +157,6 @@ export const HoistRopeThreeScene: React.FC<HoistRopeSceneProps> = ({
     const markers: THREE.Mesh[] = [];
     defects.forEach(d => {
         const marker = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), defectMat);
-        // 根据绳长位置计算近似空间坐标
         marker.position.set(6, 12 - (d.position % 20), 0.4); 
         mainGroup.add(marker);
         markers.push(marker);
@@ -160,25 +175,20 @@ export const HoistRopeThreeScene: React.FC<HoistRopeSceneProps> = ({
       time += 0.01;
       controls.update();
 
-      // 滚筒自转
       drum.rotation.x += 0.02;
 
-      // 扫描器动画
       if (scannerRef.current && isScanning) {
           const s = 1 + Math.sin(time * 15) * 0.1;
           scannerRef.current.children[1].scale.setScalar(s);
-          // 扫描头随绳长位置移动 (模拟)
           scannerRef.current.position.y = 8 + Math.sin(time * 2) * 4;
       }
 
-      // 缺陷点呼吸效果
       markers.forEach((m, i) => {
           m.scale.setScalar(1 + Math.sin(time * 10 + i) * 0.2);
           const mat = m.material as THREE.MeshStandardMaterial;
           mat.emissiveIntensity = 1.0 + Math.sin(time * 8) * 1.0;
       });
 
-      // X-Ray 视图
       if (viewMode === 'xray') {
           steelMat.wireframe = true;
           steelMat.opacity = 0.2;

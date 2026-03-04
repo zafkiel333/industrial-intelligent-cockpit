@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -21,6 +20,29 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
   const housingRef = useRef<THREE.Mesh | null>(null);
   const oilParticlesRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.04 - Bug修复：创建Ref存储实时变化的状态值，避免依赖项变化触发useEffect重建场景
+  // Bug情况：3D模型频繁闪烁，渲染不稳定
+  // Bug原因：useEffect依赖项（inputRpm/outputRpm等）频繁变化，导致整个Three.js场景反复销毁重建
+  const inputRpmRef = useRef(inputRpm);
+  const outputRpmRef = useRef(outputRpm);
+  const currentGearRef = useRef(currentGear);
+  const clutchesRef = useRef(clutches);
+  const oilTempRef = useRef(oilTemp);
+  const vibrationLevelRef = useRef(vibrationLevel);
+  const viewModeRef = useRef(viewMode);
+
+  // 仅更新Ref值，不触发场景重建
+  useEffect(() => {
+    inputRpmRef.current = inputRpm;
+    outputRpmRef.current = outputRpm;
+    currentGearRef.current = currentGear;
+    clutchesRef.current = clutches;
+    oilTempRef.current = oilTemp;
+    vibrationLevelRef.current = vibrationLevel;
+    viewModeRef.current = viewMode;
+  }, [inputRpm, outputRpm, currentGear, clutches, oilTemp, vibrationLevel, viewMode]);
+
+  // 核心渲染逻辑：仅执行一次（无依赖项），通过Ref读取实时值
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-transmission useEffect===");
@@ -30,7 +52,8 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
 
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.fog = new THREE.FogExp2(0x050200, 0.03); // Deep Amber Fog
+    // 2026.03.04 - 优化：调亮雾色+降低雾密度，减少亮度遮挡，提升整体通透感
+    scene.fog = new THREE.FogExp2(0x100800, 0.01); // 雾色调亮，密度从0.03→0.01
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(15, 12, 15);
@@ -40,9 +63,10 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.5;
+    // 2026.03.04 - 优化：大幅提升曝光度，最大化亮度表现（1.5→2.0）
+    renderer.toneMappingExposure = 2.0;
+    
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -53,19 +77,32 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
     controls.enableDamping = true;
     controls.autoRotate = false;
 
-    // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    // --- Lights --- 2026.03.04 全面优化光照系统，提升亮度且不修改材质/模型颜色
+    // 1. 环境光：大幅提升强度，保证基础亮度全覆盖（0.3→0.8）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.PointLight(0xf59e0b, 3, 50); // Amber light
+    // 2. 新增半球光：模拟天空/地面环境光，提升明暗层次和整体亮度
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+    hemisphereLight.position.set(0, 15, 0);
+    scene.add(hemisphereLight);
+
+    // 3. 主琥珀光：大幅提升强度，作为核心照明源（3→6）
+    const mainLight = new THREE.PointLight(0xf59e0b, 6, 50); // Amber light
     mainLight.position.set(5, 10, 5);
     scene.add(mainLight);
 
-    const backLight = new THREE.SpotLight(0x3b82f6, 5); // Blue rim light
+    // 4. 蓝色背光：提升强度，补充侧面亮度（5→8）
+    const backLight = new THREE.SpotLight(0x3b82f6, 8); // Blue rim light
     backLight.position.set(-10, 5, -5);
     scene.add(backLight);
 
-    // --- Materials ---
+    // 5. 新增底部补光：解决模型底部暗部问题，提升亮度均匀性
+    const bottomFillLight = new THREE.PointLight(0xffffff, 3.0, 40);
+    bottomFillLight.position.set(0, -8, 0);
+    scene.add(bottomFillLight);
+
+    // --- Materials --- 完全保留原有配置，不修改任何颜色/发光属性
     const steelMat = new THREE.MeshStandardMaterial({ 
       color: 0x64748b, metalness: 0.9, roughness: 0.3 
     });
@@ -141,13 +178,11 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
         setGroup.add(ring);
 
         // Clutch Pack (Surrounding)
-        // Multi-disc pack visual
         for(let c=0; c<5; c++) {
             const clutchGeo = new THREE.CylinderGeometry(3.6, 3.6, 0.1, 32);
             clutchGeo.rotateZ(Math.PI/2);
             const clutchMesh = new THREE.Mesh(clutchGeo, clutchPlateMat.clone());
             clutchMesh.position.x = (c - 2) * 0.2;
-            // Name it specially to find it later
             clutchMesh.name = `clutch-plate-${i}-${c}`;
             setGroup.add(clutchMesh);
         }
@@ -159,7 +194,7 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
     const pPos = new Float32Array(pCount * 3);
     for(let i=0; i<pCount; i++) {
         pPos[i*3] = (Math.random() - 0.5) * 10;
-        pPos[i*3+1] = -2 + Math.random() * 2; // Bottom of case
+        pPos[i*3+1] = -2 + Math.random() * 2;
         pPos[i*3+2] = (Math.random() - 0.5) * 4;
     }
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
@@ -182,9 +217,15 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
       time += 0.01;
       controls.update();
 
+      const currentInputRpm = inputRpmRef.current;
+      const currentOutputRpm = outputRpmRef.current;
+      const currentClutches = clutchesRef.current;
+      const currentVibration = vibrationLevelRef.current;
+      const currentViewMode = viewModeRef.current;
+
       // 1. Shaft Rotation
       if (shaftRef.current) {
-          shaftRef.current.rotation.x -= (inputRpm / 60) * 0.1;
+          shaftRef.current.rotation.x -= (currentInputRpm / 60) * 0.1;
       }
 
       // 2. Gear Set Animation & Clutch State
@@ -192,15 +233,12 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
           const carrier = group.children[1];
           const sun = group.children[0];
           
-          // Logic: Input speed propagates
-          // Simplified visual: higher gears (higher index) spin faster output
           const speedFactor = 1 / (i + 1);
           
-          sun.rotation.x -= (inputRpm/60) * 0.1; // Sun spins with shaft
-          carrier.rotation.x -= (outputRpm/60) * 0.1 * speedFactor; // Planets orbit
+          sun.rotation.x -= (currentInputRpm/60) * 0.1;
+          carrier.rotation.x -= (currentOutputRpm/60) * 0.1 * speedFactor;
           
-          // Update Clutch Colors based on Engagement
-          const clutchData = clutches[i];
+          const clutchData = currentClutches[i];
           if (clutchData) {
               const isEngaged = clutchData.isEngaged;
               const heat = Math.min(1, (clutchData.temp - 60)/100);
@@ -210,22 +248,20 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
                   if (plate) {
                       const mat = plate.material as THREE.MeshStandardMaterial;
                       
-                      if (viewMode === 'thermal') {
-                          mat.color.setHSL(0.7 - heat*0.7, 1.0, 0.5); // Blue to Red
+                      if (currentViewMode === 'thermal') {
+                          mat.color.setHSL(0.7 - heat*0.7, 1.0, 0.5);
                           mat.emissive.setHSL(0.7 - heat*0.7, 1.0, 0.5);
                           mat.emissiveIntensity = 0.5;
                       } else {
                           if (isEngaged) {
-                              mat.color.setHex(0xf59e0b); // Gold
+                              mat.color.setHex(0xf59e0b);
                               mat.emissive.setHex(0xf59e0b);
                               mat.emissiveIntensity = 0.3;
-                              // Compress plates visually
                               plate.position.x = (c - 2) * 0.15; 
                           } else {
-                              mat.color.setHex(0x44403c); // Grey
+                              mat.color.setHex(0x44403c);
                               mat.emissive.setHex(0x000000);
                               mat.emissiveIntensity = 0;
-                              // Expand plates
                               plate.position.x = (c - 2) * 0.2;
                           }
                       }
@@ -235,15 +271,15 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
       });
 
       // 3. Vibration Shake
-      if (mainGroup && vibrationLevel > 0) {
-          mainGroup.position.y = Math.sin(time * 50) * vibrationLevel * 0.05;
-          mainGroup.position.z = Math.cos(time * 50) * vibrationLevel * 0.05;
+      if (mainGroup && currentVibration > 0) {
+          mainGroup.position.y = Math.sin(time * 50) * currentVibration * 0.05;
+          mainGroup.position.z = Math.cos(time * 50) * currentVibration * 0.05;
       }
 
       // 4. Housing Visibility
       if (housingRef.current) {
           const mat = housingRef.current.material as THREE.MeshPhysicalMaterial;
-          if (viewMode === 'solid') {
+          if (currentViewMode === 'solid') {
               mat.opacity = 0.9;
               mat.color.setHex(0x475569);
           } else {
@@ -256,11 +292,11 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
       if (oilParticlesRef.current) {
           const pos = oilParticlesRef.current.geometry.attributes.position.array as Float32Array;
           for(let i=0; i<pCount; i++) {
-              pos[i*3] += (inputRpm > 0 ? 0.05 : 0) * (Math.random() > 0.5 ? 1 : -1);
+              pos[i*3] += (currentInputRpm > 0 ? 0.05 : 0) * (Math.random() > 0.5 ? 1 : -1);
               if (Math.abs(pos[i*3]) > 6) pos[i*3] *= -0.9;
           }
           oilParticlesRef.current.geometry.attributes.position.needsUpdate = true;
-          oilParticlesRef.current.visible = viewMode !== 'solid';
+          oilParticlesRef.current.visible = currentViewMode !== 'solid';
       }
 
       renderer.render(scene, camera);
@@ -284,7 +320,7 @@ export const TransmissionThreeScene: React.FC<TransmissionSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [inputRpm, outputRpm, currentGear, clutches, oilTemp, vibrationLevel, viewMode]);
+  }, []); // 清空依赖项，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />;
 };

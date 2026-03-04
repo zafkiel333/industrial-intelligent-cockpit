@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -20,6 +19,28 @@ export const MiningBrakeScene: React.FC<BrakeSceneProps> = ({
   const caliperRef = useRef<THREE.Group | null>(null);
   const sparksRef = useRef<THREE.Points | null>(null);
 
+  // 2026.03.04 - 修复useEffect反复触发导致模型闪烁问题
+  // Bug情况：依赖项变量（rotationSpeed/brakePressure/temperature/isBraking/wearLevel/viewMode）反复变化，
+  //         导致主渲染逻辑的useEffect频繁执行，3D模型被重复创建和渲染，出现闪烁现象
+  // 解决方案：使用ref存储实时props值，主渲染useEffect仅挂载时执行一次，动画循环读取ref.current获取最新值
+  const rotationSpeedRef = useRef(rotationSpeed);
+  const brakePressureRef = useRef(brakePressure);
+  const temperatureRef = useRef(temperature);
+  const isBrakingRef = useRef(isBraking);
+  const wearLevelRef = useRef(wearLevel);
+  const viewModeRef = useRef(viewMode);
+
+  // 同步props到ref，确保ref始终持有最新的props值
+  useEffect(() => {
+    rotationSpeedRef.current = rotationSpeed;
+    brakePressureRef.current = brakePressure;
+    temperatureRef.current = temperature;
+    isBrakingRef.current = isBraking;
+    wearLevelRef.current = wearLevel;
+    viewModeRef.current = viewMode;
+  }, [rotationSpeed, brakePressure, temperature, isBraking, wearLevel, viewMode]);
+
+  // 主渲染逻辑：仅在组件挂载/卸载时执行，剔除所有频繁变化的依赖项
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===mining-brake useEffect===");
@@ -28,8 +49,10 @@ export const MiningBrakeScene: React.FC<BrakeSceneProps> = ({
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050101); // Very dark red/black
-    scene.fog = new THREE.FogExp2(0x050101, 0.03);
+    // 2026.03.04 - 优化：调亮背景色（非材质/模型颜色），提升基础亮度
+    scene.background = new THREE.Color(0x100808); 
+    // 2026.03.04 - 优化：降低雾密度+调亮雾色，减少亮度遮挡，提升通透感
+    scene.fog = new THREE.FogExp2(0x100808, 0.01); 
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(10, 5, 12);
@@ -39,9 +62,10 @@ export const MiningBrakeScene: React.FC<BrakeSceneProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.5;
+    // 2026.03.04 - 优化：大幅提升曝光度，最大化亮度表现（1.5→2.0）
+    renderer.toneMappingExposure = 2.0;
+    
     //2026.02.05,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -53,20 +77,32 @@ export const MiningBrakeScene: React.FC<BrakeSceneProps> = ({
     controls.enableDamping = true;
     controls.autoRotate = false;
 
-    // --- Lights ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    // --- Lights --- 2026.03.04 全面优化光照系统，提升亮度且不修改材质/模型颜色
+    // 1. 环境光：大幅提升强度，保证基础亮度全覆盖（0.2→0.8）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const spotLight = new THREE.SpotLight(0xffffff, 1.5);
+    // 2. 新增半球光：模拟天空/地面环境光，提升明暗层次和整体亮度
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+    hemisphereLight.position.set(0, 10, 0);
+    scene.add(hemisphereLight);
+
+    // 3. 主聚光灯：大幅提升强度，作为核心照明源（1.5→6）
+    const spotLight = new THREE.SpotLight(0xffffff, 6);
     spotLight.position.set(10, 10, 10);
     scene.add(spotLight);
 
-    // Heat Glow Light (Dynamic)
+    // 4. 新增底部补光：解决模型底部暗部问题，提升亮度均匀性
+    const bottomFillLight = new THREE.PointLight(0xffffff, 3.0, 40);
+    bottomFillLight.position.set(0, -8, 0);
+    scene.add(bottomFillLight);
+
+    // Heat Glow Light (Dynamic) - 保留原有逻辑，不修改颜色/强度规则
     const heatLight = new THREE.PointLight(0xff4500, 0, 20);
     heatLight.position.set(0, 0, 1);
     scene.add(heatLight);
 
-    // --- Materials ---
+    // --- Materials --- 完全保留原有配置，不修改任何颜色/发光属性
     const rubberMat = new THREE.MeshStandardMaterial({ 
         color: 0x1a1a1a, roughness: 0.9, metalness: 0.1 
     });
@@ -89,7 +125,7 @@ export const MiningBrakeScene: React.FC<BrakeSceneProps> = ({
         color: 0xb91c1c, metalness: 0.6, roughness: 0.4
     });
 
-    // --- Geometry ---
+    // --- Geometry --- 完全保留原有模型结构，无任何修改
     const mainGroup = new THREE.Group();
     scene.add(mainGroup);
 
@@ -175,51 +211,50 @@ export const MiningBrakeScene: React.FC<BrakeSceneProps> = ({
       time += 0.02;
       controls.update();
 
-      // Rotation
+      // Rotation - 读取ref中最新的旋转速度
       if (wheelGroupRef.current) {
-          wheelGroupRef.current.rotation.z -= (rotationSpeed / 60) * 0.1;
+          wheelGroupRef.current.rotation.z -= (rotationSpeedRef.current / 60) * 0.1;
       }
 
-      // Thermal Visuals
-      // Map temp 100C - 500C to color
-      const tNorm = Math.min(1, Math.max(0, (temperature - 100) / 400));
+      // Thermal Visuals - 读取ref中最新的温度和视图模式
+      const tNorm = Math.min(1, Math.max(0, (temperatureRef.current - 100) / 400));
       if (discsRef.current) {
           discsRef.current.children.forEach((mesh: any) => {
               const mat = mesh.material as THREE.MeshStandardMaterial;
-              if (viewMode === 'thermal' || tNorm > 0.2) {
+              if (viewModeRef.current === 'thermal' || tNorm > 0.2) {
                   const heatColor = new THREE.Color().setHSL(0.1 - tNorm * 0.1, 1.0, 0.5); // Orange to White
                   mat.emissive.copy(heatColor);
                   mat.emissiveIntensity = tNorm * 2.0;
               } else {
                   mat.emissive.setHex(0x000000);
               }
-              // Wear Visual (Darkening)
-              if (viewMode === 'wear') {
+              // Wear Visual (Darkening) - 读取ref中最新的磨损等级
+              if (viewModeRef.current === 'wear') {
                    const wearColor = new THREE.Color(0x333333); // Darker
-                   mat.color.lerp(wearColor, wearLevel);
+                   mat.color.lerp(wearColor, wearLevelRef.current);
                    mat.emissiveIntensity = 0;
               }
           });
       }
       
-      // Light
+      // Light - 读取ref中最新的温度值
       heatLight.intensity = tNorm * 5;
 
-      // Pistons (Breathing with pressure)
+      // Pistons (Breathing with pressure) - 读取ref中最新的制动状态
       if (caliperRef.current) {
-           const squeeze = isBraking ? 0.1 : 0;
+           const squeeze = isBrakingRef.current ? 0.1 : 0;
            caliperRef.current.position.z = -0.2 + squeeze; 
            // Add vibration if braking
-           if (isBraking) {
+           if (isBrakingRef.current) {
                caliperRef.current.position.x = (Math.random()-0.5) * 0.02;
                caliperRef.current.position.y = (Math.random()-0.5) * 0.02;
            }
       }
 
-      // Sparks
+      // Sparks - 读取ref中最新的制动状态和旋转速度
       if (sparksRef.current) {
           const positions = sparksRef.current.geometry.attributes.position.array as Float32Array;
-          if (isBraking && rotationSpeed > 10) {
+          if (isBrakingRef.current && rotationSpeedRef.current > 10) {
               // Emit
               for(let i=0; i<10; i++) {
                   const idx = Math.floor(Math.random() * pCount);
@@ -263,7 +298,7 @@ export const MiningBrakeScene: React.FC<BrakeSceneProps> = ({
       }
       renderer.dispose();
     };
-  }, [rotationSpeed, brakePressure, temperature, isBraking, wearLevel, viewMode]);
+  }, []); // 剔除所有频繁变化的依赖项，仅在组件挂载时执行一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };
