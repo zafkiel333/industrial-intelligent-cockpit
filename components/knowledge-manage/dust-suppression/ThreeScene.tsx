@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -13,6 +12,18 @@ interface ThreeSceneProps {
 
 export const ThreeScene: React.FC<ThreeSceneProps> = ({ strategy, windSpeed }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  // 2026.03.05 修复bug：3D模型因useEffect依赖项频繁变化导致反复触发渲染，出现模型闪烁问题
+  // bug原因：原代码useEffect依赖数组包含strategy和windSpeed，这两个变量频繁变化会触发useEffect反复执行，
+  // 导致场景、渲染逻辑被重复创建和销毁，最终引发模型闪烁
+  // 修复方案：通过ref保存实时的strategy和windSpeed值，剔除原useEffect的依赖项，保证场景只初始化一次，同时能读取最新的变量值
+  const strategyRef = useRef<SprayStrategy>(strategy);
+  const windSpeedRef = useRef<number>(windSpeed);
+
+  // 单独维护ref值更新，保证能获取到最新的props值
+  useEffect(() => {
+    strategyRef.current = strategy;
+    windSpeedRef.current = windSpeed;
+  }, [strategy, windSpeed]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -73,7 +84,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ strategy, windSpeed }) =
       time += 0.02;
       
       controls.update();
-      animateDustScene(animatables, strategy, windSpeed, time);
+      // 使用ref.current获取最新的strategy和windSpeed值
+      animateDustScene(animatables, strategyRef.current, windSpeedRef.current, time);
       renderer.render(scene, camera);
     };
     animate();
@@ -97,7 +109,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ strategy, windSpeed }) =
       disposables.forEach(d => d.dispose());
       renderer.dispose();
     };
-  }, [strategy, windSpeed]);
+  }, []); // 剔除strategy和windSpeed依赖，保证场景只初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

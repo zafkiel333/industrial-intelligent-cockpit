@@ -15,6 +15,7 @@ export const DowntimeThreeScene: React.FC<DowntimeThreeProps> = ({
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===maintenance-downtime useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

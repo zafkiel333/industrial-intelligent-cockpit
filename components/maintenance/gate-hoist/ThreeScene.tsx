@@ -15,6 +15,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
 
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===maintence gate-hoist useEffect===");
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;

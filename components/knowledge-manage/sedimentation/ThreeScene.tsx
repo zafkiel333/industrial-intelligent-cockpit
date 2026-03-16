@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -12,6 +11,14 @@ interface ThreeSceneProps {
 
 export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  // 2026.03.05 bug修复：因state作为useEffect依赖项反复变化导致useEffect频繁触发，3D模型初始化重复执行引发闪烁
+  // 解决方案：通过ref保存最新state值，使动画循环能读取实时state，同时移除原useEffect的state依赖避免重复初始化
+  const stateRef = useRef<SedimentSimState>(state);
+
+  // 仅用于更新state最新值，避免直接将state放入渲染逻辑的useEffect依赖
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -72,7 +79,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
       time += 0.02;
       
       controls.update();
-      animateSedimentScene(animatables, state, time);
+      // 使用ref保存的最新state值，避免依赖项触发重复渲染
+      animateSedimentScene(animatables, stateRef.current, time);
       renderer.render(scene, camera);
     };
     animate();
@@ -96,7 +104,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
       disposables.forEach(d => d.dispose());
       renderer.dispose();
     };
-  }, [state]); // Re-init not strictly needed for state changes as they are handled in animate loop, but okay.
+  }, []); // 2026.03.05 移除state依赖，避免因state频繁变化触发重复初始化导致模型闪烁
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

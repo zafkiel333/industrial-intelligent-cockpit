@@ -15,9 +15,22 @@ export const PendingThreeScene: React.FC<PendingThreeProps> = ({
   onNodeSelect 
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  // 2026.03.05 - Bug修复：使用ref保存实时值，避免依赖项变化触发useEffect重建场景
+  // Bug情况：useEffect依赖orders/onNodeSelect导致变量反复变化时，3D场景被频繁重建，出现模型闪烁
+  // Bug原因：orders为引用类型，每次父组件渲染可能生成新数组；onNodeSelect为回调函数，每次渲染也可能生成新函数，触发useEffect反复执行
+  const ordersRef = useRef(orders);
+  const onNodeSelectRef = useRef(onNodeSelect);
+  
+  // 实时更新ref值，不触发useEffect
+  useEffect(() => {
+    ordersRef.current = orders;
+    onNodeSelectRef.current = onNodeSelect;
+  }, [orders, onNodeSelect]);
 
+  // 核心3D场景初始化：仅在挂载时执行一次，剔除易变依赖项
   useEffect(() => {
     if (!mountRef.current) return;
+    console.log("===come from the wrong issue, mantenance-pending useEffect===")
 
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
@@ -61,37 +74,48 @@ export const PendingThreeScene: React.FC<PendingThreeProps> = ({
 
     const clickableObjects: THREE.Object3D[] = [];
 
-    orders.forEach((order, i) => {
-      const angle = (i / orders.length) * Math.PI * 2;
-      const radius = 3 + (order.pendingDays * 0.4);
-      const y = (order.pendingDays - 7.5); // Spread along Y axis
+    // 提取节点更新逻辑，便于复用
+    const updateNodes = () => {
+      // 清空旧节点和连线
+      nodesGroup.clear();
+      clickableObjects.length = 0;
 
-      const geo = new THREE.IcosahedronGeometry(0.6, 0);
-      const color = order.priority === 'high' ? 0xef4444 : (order.priority === 'med' ? 0xf59e0b : 0x0ea5e9);
-      const mat = new THREE.MeshPhongMaterial({ 
-        color, 
-        wireframe: true,
-        emissive: color,
-        emissiveIntensity: 0.5 
+      const currentOrders = ordersRef.current;
+      currentOrders.forEach((order, i) => {
+        const angle = (i / currentOrders.length) * Math.PI * 2;
+        const radius = 3 + (order.pendingDays * 0.4);
+        const y = (order.pendingDays - 7.5); // Spread along Y axis
+
+        const geo = new THREE.IcosahedronGeometry(0.6, 0);
+        const color = order.priority === 'high' ? 0xef4444 : (order.priority === 'med' ? 0xf59e0b : 0x0ea5e9);
+        const mat = new THREE.MeshPhongMaterial({ 
+          color, 
+          wireframe: true,
+          emissive: color,
+          emissiveIntensity: 0.5 
+        });
+        
+        const node = new THREE.Mesh(geo, mat);
+        node.position.set(
+          Math.cos(angle) * radius,
+          y,
+          Math.sin(angle) * radius
+        );
+        node.userData = { id: order.id };
+        nodesGroup.add(node);
+        clickableObjects.push(node);
+
+        // Connecting line to core
+        const linePts = [new THREE.Vector3(0, y, 0), node.position];
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(linePts);
+        const lineMat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.2 });
+        const conn = new THREE.Line(lineGeo, lineMat);
+        nodesGroup.add(conn);
       });
-      
-      const node = new THREE.Mesh(geo, mat);
-      node.position.set(
-        Math.cos(angle) * radius,
-        y,
-        Math.sin(angle) * radius
-      );
-      node.userData = { id: order.id };
-      nodesGroup.add(node);
-      clickableObjects.push(node);
+    };
 
-      // Connecting line to core
-      const linePts = [new THREE.Vector3(0, y, 0), node.position];
-      const lineGeo = new THREE.BufferGeometry().setFromPoints(linePts);
-      const lineMat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.2 });
-      const conn = new THREE.Line(lineGeo, lineMat);
-      nodesGroup.add(conn);
-    });
+    // 初始化节点
+    updateNodes();
 
     // Lights
     const ambient = new THREE.AmbientLight(0xffffff, 0.5);
@@ -113,7 +137,8 @@ export const PendingThreeScene: React.FC<PendingThreeProps> = ({
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(clickableObjects);
       if (intersects.length > 0) {
-        onNodeSelect?.(intersects[0].object.userData.id);
+        // 读取最新的onNodeSelect回调
+        onNodeSelectRef.current?.(intersects[0].object.userData.id);
       }
     };
     mountRef.current.addEventListener('click', onClick);
@@ -146,8 +171,14 @@ export const PendingThreeScene: React.FC<PendingThreeProps> = ({
         mountRef.current.removeEventListener('click', onClick);
         mountRef.current.removeChild(renderer.domElement);
       }
+      // 清理THREE资源，避免内存泄漏
+      renderer.dispose();
+      coreGeo.dispose();
+      coreMat.dispose();
+      ringGeo.dispose();
+      ringMat.dispose();
     };
-  }, [orders, onNodeSelect]);
+  }, []); // 剔除orders/onNodeSelect依赖，仅在挂载/卸载时执行
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
 };

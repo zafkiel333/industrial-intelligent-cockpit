@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -13,7 +12,22 @@ interface ThreeSceneProps {
 
 export const ThreeScene: React.FC<ThreeSceneProps> = ({ state, tension }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  // 2026.03.05 - Bug修复：
+  // Bug情况：3D模型渲染时出现频繁闪烁，useEffect被反复触发导致场景重复初始化、渲染器重复创建/销毁
+  // 原因：useEffect依赖项state（ScraperSimState类型）和tension（对象类型）为引用类型，父组件渲染时即使内容未变，也会生成新引用，触发useEffect重新执行
+  // 修复方案：通过useRef保存state和tension的实时值，剔除useEffect中易变的引用类型依赖项，动画循环中读取ref.current获取最新值
+  
+  // 用ref保存实时的state和tension值，避免依赖项引用变化触发useEffect
+  const stateRef = useRef<ScraperSimState>(state);
+  const tensionRef = useRef<{ left: number, right: number }>(tension);
 
+  // 仅更新ref值，不触发场景重建（依赖项为原始props，无渲染副作用）
+  useEffect(() => {
+    stateRef.current = state;
+    tensionRef.current = tension;
+  }, [state, tension]);
+
+  // 核心场景初始化逻辑：依赖项为空数组，仅组件挂载时执行一次
   useEffect(() => {
     if (!mountRef.current) return;
 
@@ -75,7 +89,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state, tension }) => {
       time += 0.02;
       
       controls.update();
-      animateScraperScene(animatables, state, tension, time);
+      // 读取ref中的最新值，替代直接使用props的state/tension
+      animateScraperScene(animatables, stateRef.current, tensionRef.current, time);
       renderer.render(scene, camera);
     };
     animate();
@@ -99,7 +114,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state, tension }) => {
       disposables.forEach(d => d.dispose());
       renderer.dispose();
     };
-  }, [state, tension]);
+  }, []); // 剔除易变的state/tension依赖项，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };
