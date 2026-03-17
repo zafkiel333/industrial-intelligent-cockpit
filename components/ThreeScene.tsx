@@ -12,15 +12,92 @@ import * as ContainerTerminal from './scene-builders/ContainerTerminalBuilder';
 import * as InlandWaterway from './scene-builders/InlandWaterwayBuilder';
 import * as GreenPort from './scene-builders/GreenPortBuilder';
 import * as MaritimeSafety from './scene-builders/MaritimeSafetyBuilder';
+
+//2026.03.16，添加新的3d模型渲染代码，尝试解决   运行指数分析、运行驾驶舱、数字化交付  三栏模型缺失的问题
+import * as HydroDelivery from './scene-digital-delivery/HydroDeliveryBuilder';
+import * as HydroTwinDelivery from './scene-digital-delivery/HydroTwinDeliveryBuilder';
+import * as HydroBimDelivery from './scene-digital-delivery/HydroBimDeliveryBuilder';
+import * as HydroDispatch from './scene-digital-delivery/HydroDispatchBuilder';
+import * as HydroEquipLifecycle from './scene-digital-delivery/HydroEquipLifecycleBuilder';
+import * as DamSafetyDelivery from './scene-digital-delivery/DamSafetyDeliveryBuilder'; 
+import * as HydroMonitorDelivery from './scene-digital-delivery/HydroMonitorDeliveryBuilder';
+import * as FloodDispatchDelivery from './scene-digital-delivery/FloodDispatchDeliveryBuilder'; 
+import * as HydroAssetDelivery from './scene-digital-delivery/HydroAssetDeliveryBuilder'; 
+import * as MineConstructionDelivery from './scene-digital-delivery/MineConstructionDeliveryBuilder';
+import * as MineBimDelivery from './scene-digital-delivery/MineBimDeliveryBuilder';
+import * as MineProcessDelivery from './scene-digital-delivery/MineProcessDeliveryBuilder';
+import * as MineProcessingDelivery from './scene-digital-delivery/MineProcessingDeliveryBuilder';
+import * as MineEquipLifecycleDelivery from './scene-digital-delivery/MineEquipLifecycleBuilder'; 
+import * as MineSafetyDelivery from './scene-digital-delivery/MineSafetyDeliveryBuilder'; // NEW
+import * as MiningRecovery from './scene-index-analysis/MiningRecoveryBuilder';
+import * as MineralRecovery from './scene-index-analysis/MineralRecoveryBuilder';
+import * as MiningOee from './scene-index-analysis/MiningOeeBuilder';
+import * as MiningTruckCycle from './scene-index-analysis/MiningTruckCycleBuilder';
+import * as BlastingQuality from './scene-index-analysis/BlastingQualityBuilder';
+import * as MiningEnergy from './scene-index-analysis/MiningEnergyBuilder';
+import * as VentilationEfficiency from './scene-index-analysis/VentilationEfficiencyBuilder';
+import * as HydroUtil from './scene-index-analysis/HydroUtilBuilder';
+import * as SpillageLoss from './scene-index-analysis/SpillageLossBuilder';
+import * as TurbineWear from './scene-index-analysis/TurbineWearBuilder';
+import * as ReservoirBenefit from './scene-index-analysis/ReservoirBenefitBuilder';
+import * as DamHealth from './scene-index-analysis/DamHealthBuilder';
+import * as PumpedStorageEfficiency from './scene-index-analysis/PumpedStorageEfficiencyBuilder';
+import * as PowerRam from './scene-index-analysis/PowerRamBuilder';
+import * as BerthUtil from './scene-index-analysis/BerthUtilBuilder';
+import * as CraneEfficiency from './scene-index-analysis/CraneEfficiencyBuilder';
+import * as ShipEeoi from './scene-index-analysis/ShipEeoiBuilder';
+import * as ShipCii from './scene-index-analysis/ShipCiiBuilder';
+import * as LockEfficiency from './scene-index-analysis/LockEfficiencyBuilder';
+import * as TransportConnect from './scene-index-analysis/TransportConnectBuilder';
+import * as ChannelSafety from './scene-index-analysis/ChannelSafetyBuilder';
+
+
+
+
 interface ThreeSceneProps {
   type?: SceneType;
   color?: string;
+  data?: any; // Pass simulation data to scene，2026.03.16
 }
 
 export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color = '#06b6d4' }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
+  //2026.03.16
+  const groupRef = useRef<THREE.Group>(null);
+  const animatablesRef = useRef<Animatables>({});
+
   const sceneType = type as SceneType;
+
+
+  // // Update scene data when props change，2026.03.16
+  // useEffect(() => {
+  //   if (groupRef.current && data) {
+  //     if (sceneType === 'pumped-storage-efficiency-analysis') {
+  //        if (animatablesRef.current.psUnitRotor) {
+  //            (animatablesRef.current.psUnitRotor as any).userData = data;
+  //        }
+  //     } else if (sceneType === 'ship-eeoi-analysis') {
+  //        if (animatablesRef.current.eeoiShip) {
+  //           (animatablesRef.current.eeoiShip as any).userData = {
+  //              speed: data.speed,
+  //              effColor: new THREE.Color(data.effColor || '#ffffff')
+  //           };
+  //        }
+  //     } else if (sceneType === 'transport-connect-analysis') {
+  //        groupRef.current.userData.jammed = data.jammed;
+  //     } else if (sceneType === 'dd-hydro-equip-lifecycle') {
+  //        groupRef.current.userData.stage = data.stage;
+  //     } else if (sceneType === 'dd-mine-equip-lifecycle') {
+  //        groupRef.current.userData.stage = data.stage;
+  //     } else if (sceneType === 'dd-mine-safety-delivery') {
+  //        if (animatablesRef.current.msdGasCloud) {
+  //            // Pass simulation mode to gas cloud parent group userData
+  //            (animatablesRef.current.msdGasCloud.parent as any).userData = { simMode: data.simMode };
+  //        }
+  //     }
+  //   }
+  // }, [data, sceneType]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -143,6 +220,99 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
       camera.position.set(0, 5, 8);
       camera.lookAt(0, 0, 0);
     }
+
+    // -- Camera Strategy --，2026.03.16
+    if (MineSafetyDelivery.isMineSafetyDeliveryScene(sceneType)) {
+      MineSafetyDelivery.setupMineSafetyDeliveryCamera(camera);
+    } else if (MineEquipLifecycleDelivery.isMineEquipLifecycleScene(sceneType)) {
+      MineEquipLifecycleDelivery.setupMineEquipLifecycleCamera(camera);
+    } else if (MineProcessDelivery.isMineProcessDeliveryScene(sceneType)) {
+      MineProcessDelivery.setupMineProcessDeliveryCamera(camera);
+    } else if (MineProcessingDelivery.isMineProcessingDeliveryScene(sceneType)) {
+      MineProcessingDelivery.setupMineProcessingDeliveryCamera(camera);
+    } else if (MineBimDelivery.isMineBimDeliveryScene(sceneType)) {
+      MineBimDelivery.setupMineBimDeliveryCamera(camera);
+    } else if (MineConstructionDelivery.isMineConstructionDeliveryScene(sceneType)) {
+      MineConstructionDelivery.setupMineConstructionDeliveryCamera(camera);
+    } else if (HydroAssetDelivery.isHydroAssetDeliveryScene(sceneType)) {
+      HydroAssetDelivery.setupHydroAssetDeliveryCamera(camera);
+    } else if (FloodDispatchDelivery.isFloodDispatchDeliveryScene(sceneType)) {
+      FloodDispatchDelivery.setupFloodDispatchDeliveryCamera(camera);
+    } else if (HydroMonitorDelivery.isHydroMonitorDeliveryScene(sceneType)) {
+      HydroMonitorDelivery.setupHydroMonitorDeliveryCamera(camera);
+    } else if (DamSafetyDelivery.isDamSafetyDeliveryScene(sceneType)) {
+      DamSafetyDelivery.setupDamSafetyDeliveryCamera(camera);
+    } else if (HydroEquipLifecycle.isHydroEquipLifecycleScene(sceneType)) {
+      HydroEquipLifecycle.setupHydroEquipLifecycleCamera(camera);
+    } else if (HydroDispatch.isHydroDispatchScene(sceneType)) {
+      HydroDispatch.setupHydroDispatchCamera(camera);
+    } else if (HydroBimDelivery.isHydroBimDeliveryScene(sceneType)) {
+      HydroBimDelivery.setupHydroBimDeliveryCamera(camera);
+    } else if (HydroTwinDelivery.isHydroTwinDeliveryScene(sceneType)) {
+      HydroTwinDelivery.setupHydroTwinDeliveryCamera(camera);
+    } else if (HydroDelivery.isHydroDeliveryScene(sceneType)) {
+      HydroDelivery.setupHydroDeliveryCamera(camera);
+    } else if (ChannelSafety.isChannelSafetyScene(sceneType)) {
+      ChannelSafety.setupChannelSafetyCamera(camera);
+    } else if (TransportConnect.isTransportConnectScene(sceneType)) {
+      TransportConnect.setupTransportConnectCamera(camera);
+    } else if (LockEfficiency.isLockEfficiencyScene(sceneType)) {
+      LockEfficiency.setupLockEfficiencyCamera(camera);
+    } else if (ShipCii.isShipCiiScene(sceneType)) {
+      ShipCii.setupShipCiiCamera(camera);
+    } else if (ShipEeoi.isShipEeoiScene(sceneType)) {
+      ShipEeoi.setupShipEeoiCamera(camera);
+    } else if (CraneEfficiency.isCraneEfficiencyScene(sceneType)) {
+      CraneEfficiency.setupCraneEfficiencyCamera(camera);
+    } else if (BerthUtil.isBerthUtilScene(sceneType)) {
+      BerthUtil.setupBerthUtilCamera(camera);
+    } else if (PowerRam.isPowerRamScene(sceneType)) {
+      PowerRam.setupPowerRamCamera(camera);
+    } else if (PumpedStorageEfficiency.isPumpedStorageEfficiencyScene(sceneType)) {
+      PumpedStorageEfficiency.setupPumpedStorageEfficiencyCamera(camera);
+    } else if (DamHealth.isDamHealthScene(sceneType)) {
+      DamHealth.setupDamHealthCamera(camera);
+    } else if (ReservoirBenefit.isReservoirBenefitScene(sceneType)) {
+      ReservoirBenefit.setupReservoirBenefitCamera(camera);
+    } else if (TurbineWear.isTurbineWearScene(sceneType)) {
+      TurbineWear.setupTurbineWearCamera(camera);
+    } else if (SpillageLoss.isSpillageLossScene(sceneType)) {
+      SpillageLoss.setupSpillageLossCamera(camera);
+    } else if (HydroUtil.isHydroUtilScene(sceneType)) {
+      HydroUtil.setupHydroUtilCamera(camera);
+    } else if (VentilationEfficiency.isVentilationEfficiencyScene(sceneType)) {
+      VentilationEfficiency.setupVentilationEfficiencyCamera(camera);
+    } else if (MiningEnergy.isMiningEnergyScene(sceneType)) {
+      MiningEnergy.setupMiningEnergyCamera(camera);
+    } else if (BlastingQuality.isBlastingQualityScene(sceneType)) {
+      BlastingQuality.setupBlastingQualityCamera(camera);
+    } else if (MiningTruckCycle.isMiningTruckCycleScene(sceneType)) {
+      MiningTruckCycle.setupMiningTruckCycleCamera(camera);
+    } else if (MiningOee.isMiningOeeScene(sceneType)) {
+      MiningOee.setupMiningOeeCamera(camera);
+    } else if (MineralRecovery.isMineralRecoveryScene(sceneType)) {
+      MineralRecovery.setupMineralRecoveryCamera(camera);
+    } else if (MiningRecovery.isMiningRecoveryScene(sceneType)) {
+      MiningRecovery.setupMiningRecoveryCamera(camera);
+    } else if (MaritimeSafety.isMaritimeSafetyScene(sceneType)) {
+      MaritimeSafety.setupMaritimeSafetyCamera(camera);
+    } else if (GreenPort.isGreenPortScene(sceneType)) {
+      GreenPort.setupGreenPortCamera(camera);
+    } else if (InlandWaterway.isInlandWaterwayScene(sceneType)) {
+      InlandWaterway.setupInlandWaterwayCamera(camera);
+    } else if (ContainerTerminal.isContainerTerminalScene(sceneType)) {
+      ContainerTerminal.setupContainerTerminalCamera(camera);
+    } else if (Irrigation.isIrrigationScene(sceneType)) {
+      Irrigation.setupIrrigationCamera(camera);
+    } else if (SmartWater.isSmartWaterScene(sceneType)) {
+      SmartWater.setupSmartWaterCamera(camera);
+    } else if (Cockpit.isCockpitScene(sceneType)) {
+      Cockpit.setupCockpitCamera(camera, sceneType);
+    } else if (SmartOps.isSmartOpsScene(sceneType)) {
+      SmartOps.setupSmartOpsCamera(camera, sceneType);
+    } else {
+      camera.position.set(0, 0, 6);
+    }
   
     // Renderer
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -162,6 +332,30 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
       if (type === 'transmission') {
          controls.maxPolarAngle = Math.PI / 2; 
       }
+
+
+      // Stop rotation for specific scenes，2026.03.16
+      if ([
+        'dd-hydro-equip-lifecycle', 
+        'dd-dam-safety-delivery', 
+        'dd-flood-control-delivery', 
+        'dd-hydro-asset-delivery',
+        'dd-mine-construction',
+        'dd-mine-bim-delivery',
+        'dd-mine-process-delivery',
+        'dd-mine-processing',
+        'dd-mine-equip-lifecycle',
+        'dd-mine-safety-delivery'
+      ].includes(sceneType)) {
+        controls.autoRotate = false;
+      }
+      
+      if (['dd-flood-control-delivery', 'dd-mine-process-delivery', 'dd-mine-processing', 'dd-mine-safety-delivery'].includes(sceneType)) {
+        controls.enablePan = true;
+      }
+
+
+
     } catch (e) {
       console.warn("OrbitControls failed to initialize", e);
     }
@@ -192,6 +386,18 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
     if (type === 'flotation-cell') mainLightColor = '#8b5cf6';
     if (type === 'sand-maker') mainLightColor = '#eab308';
     
+    //2026.03.16
+    if (sceneType === 'dd-hydro-equip-lifecycle') mainLightColor = '#14b8a6';
+    if (sceneType === 'dd-dam-safety-delivery') mainLightColor = '#22c55e';
+    if (sceneType === 'dd-hydro-monitor-delivery') mainLightColor = '#06b6d4';
+    if (sceneType === 'dd-flood-control-delivery') mainLightColor = '#ef4444';
+    if (sceneType === 'dd-hydro-asset-delivery') mainLightColor = '#eab308';
+    if (sceneType === 'dd-mine-construction') mainLightColor = '#f97316';
+    if (sceneType === 'dd-mine-bim-delivery') mainLightColor = '#0ea5e9';
+    if (sceneType === 'dd-mine-process-delivery') mainLightColor = '#eab308';
+    if (sceneType === 'dd-mine-processing') mainLightColor = '#8b5cf6';
+    if (sceneType === 'dd-mine-equip-lifecycle') mainLightColor = '#f97316';
+    if (sceneType === 'dd-mine-safety-delivery') mainLightColor = '#00ff9d';
   
     const pointLight = new THREE.PointLight(mainLightColor, 3, 20);
     pointLight.position.set(5, 5, 5);
@@ -263,6 +469,237 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
         vsiRotor?: THREE.Group,
         vsiParticles?: THREE.Points
     } = {};
+
+    //2026.03.16
+    animatablesRef.current = animatables;
+        // --- BUILDER ROUTING ---
+    if (MineSafetyDelivery.isMineSafetyDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MineSafetyDelivery.isMineSafetyDeliveryScene判定为true)`);
+      console.log(`调用函数: MineSafetyDelivery.initMineSafetyDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      MineSafetyDelivery.initMineSafetyDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (MineEquipLifecycleDelivery.isMineEquipLifecycleScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MineEquipLifecycleDelivery.isMineEquipLifecycleScene判定为true)`);
+      console.log(`调用函数: MineEquipLifecycleDelivery.initMineEquipLifecycleScene(${sceneType}, group, animatables, disposables)`);
+      MineEquipLifecycleDelivery.initMineEquipLifecycleScene(sceneType, group, animatables, disposables);
+    } else if (MineProcessDelivery.isMineProcessDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MineProcessDelivery.isMineProcessDeliveryScene判定为true)`);
+      console.log(`调用函数: MineProcessDelivery.initMineProcessDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      MineProcessDelivery.initMineProcessDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (MineProcessingDelivery.isMineProcessingDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MineProcessingDelivery.isMineProcessingDeliveryScene判定为true)`);
+      console.log(`调用函数: MineProcessingDelivery.initMineProcessingDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      MineProcessingDelivery.initMineProcessingDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (MineBimDelivery.isMineBimDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MineBimDelivery.isMineBimDeliveryScene判定为true)`);
+      console.log(`调用函数: MineBimDelivery.initMineBimDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      MineBimDelivery.initMineBimDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (MineConstructionDelivery.isMineConstructionDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MineConstructionDelivery.isMineConstructionDeliveryScene判定为true)`);
+      console.log(`调用函数: MineConstructionDelivery.initMineConstructionDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      MineConstructionDelivery.initMineConstructionDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (HydroAssetDelivery.isHydroAssetDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (HydroAssetDelivery.isHydroAssetDeliveryScene判定为true)`);
+      console.log(`调用函数: HydroAssetDelivery.initHydroAssetDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      HydroAssetDelivery.initHydroAssetDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (FloodDispatchDelivery.isFloodDispatchDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (FloodDispatchDelivery.isFloodDispatchDeliveryScene判定为true)`);
+      console.log(`调用函数: FloodDispatchDelivery.initFloodDispatchDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      FloodDispatchDelivery.initFloodDispatchDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (HydroMonitorDelivery.isHydroMonitorDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (HydroMonitorDelivery.isHydroMonitorDeliveryScene判定为true)`);
+      console.log(`调用函数: HydroMonitorDelivery.initHydroMonitorDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      HydroMonitorDelivery.initHydroMonitorDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (DamSafetyDelivery.isDamSafetyDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (DamSafetyDelivery.isDamSafetyDeliveryScene判定为true)`);
+      console.log(`调用函数: DamSafetyDelivery.initDamSafetyDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      DamSafetyDelivery.initDamSafetyDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (HydroEquipLifecycle.isHydroEquipLifecycleScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (HydroEquipLifecycle.isHydroEquipLifecycleScene判定为true)`);
+      console.log(`调用函数: HydroEquipLifecycle.initHydroEquipLifecycleScene(${sceneType}, group, animatables, disposables)`);
+      HydroEquipLifecycle.initHydroEquipLifecycleScene(sceneType, group, animatables, disposables);
+    } else if (HydroDispatch.isHydroDispatchScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (HydroDispatch.isHydroDispatchScene判定为true)`);
+      console.log(`调用函数: HydroDispatch.initHydroDispatchScene(${sceneType}, group, animatables, disposables)`);
+      HydroDispatch.initHydroDispatchScene(sceneType, group, animatables, disposables);
+    } else if (HydroBimDelivery.isHydroBimDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (HydroBimDelivery.isHydroBimDeliveryScene判定为true)`);
+      console.log(`调用函数: HydroBimDelivery.initHydroBimDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      HydroBimDelivery.initHydroBimDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (HydroTwinDelivery.isHydroTwinDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (HydroTwinDelivery.isHydroTwinDeliveryScene判定为true)`);
+      console.log(`调用函数: HydroTwinDelivery.initHydroTwinDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      HydroTwinDelivery.initHydroTwinDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (HydroDelivery.isHydroDeliveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (HydroDelivery.isHydroDeliveryScene判定为true)`);
+      console.log(`调用函数: HydroDelivery.initHydroDeliveryScene(${sceneType}, group, animatables, disposables)`);
+      HydroDelivery.initHydroDeliveryScene(sceneType, group, animatables, disposables);
+    } else if (ChannelSafety.isChannelSafetyScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (ChannelSafety.isChannelSafetyScene判定为true)`);
+      console.log(`调用函数: ChannelSafety.initChannelSafetyScene(${sceneType}, group, animatables, disposables)`);
+      ChannelSafety.initChannelSafetyScene(sceneType, group, animatables, disposables);
+    } else if (TransportConnect.isTransportConnectScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (TransportConnect.isTransportConnectScene判定为true)`);
+      console.log(`调用函数: TransportConnect.initTransportConnectScene(${sceneType}, group, animatables, disposables)`);
+      TransportConnect.initTransportConnectScene(sceneType, group, animatables, disposables);
+    } else if (LockEfficiency.isLockEfficiencyScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (LockEfficiency.isLockEfficiencyScene判定为true)`);
+      console.log(`调用函数: LockEfficiency.initLockEfficiencyScene(${sceneType}, group, animatables, disposables)`);
+      LockEfficiency.initLockEfficiencyScene(sceneType, group, animatables, disposables);
+    } else if (ShipCii.isShipCiiScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (ShipCii.isShipCiiScene判定为true)`);
+      console.log(`调用函数: ShipCii.initShipCiiScene(${sceneType}, group, animatables, disposables)`);
+      ShipCii.initShipCiiScene(sceneType, group, animatables, disposables);
+    } else if (ShipEeoi.isShipEeoiScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (ShipEeoi.isShipEeoiScene判定为true)`);
+      console.log(`调用函数: ShipEeoi.initShipEeoiScene(${sceneType}, group, animatables, disposables)`);
+      ShipEeoi.initShipEeoiScene(sceneType, group, animatables, disposables);
+    } else if (CraneEfficiency.isCraneEfficiencyScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (CraneEfficiency.isCraneEfficiencyScene判定为true)`);
+      console.log(`调用函数: CraneEfficiency.initCraneEfficiencyScene(${sceneType}, group, animatables, disposables)`);
+      CraneEfficiency.initCraneEfficiencyScene(sceneType, group, animatables, disposables);
+    } else if (BerthUtil.isBerthUtilScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (BerthUtil.isBerthUtilScene判定为true)`);
+      console.log(`调用函数: BerthUtil.initBerthUtilScene(${sceneType}, group, animatables, disposables)`);
+      BerthUtil.initBerthUtilScene(sceneType, group, animatables, disposables);
+    } else if (PowerRam.isPowerRamScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (PowerRam.isPowerRamScene判定为true)`);
+      console.log(`调用函数: PowerRam.initPowerRamScene(${sceneType}, group, animatables, disposables)`);
+      PowerRam.initPowerRamScene(sceneType, group, animatables, disposables);
+    } else if (PumpedStorageEfficiency.isPumpedStorageEfficiencyScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (PumpedStorageEfficiency.isPumpedStorageEfficiencyScene判定为true)`);
+      console.log(`调用函数: PumpedStorageEfficiency.initPumpedStorageEfficiencyScene(${sceneType}, group, animatables, disposables)`);
+      PumpedStorageEfficiency.initPumpedStorageEfficiencyScene(sceneType, group, animatables, disposables);
+    } else if (DamHealth.isDamHealthScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (DamHealth.isDamHealthScene判定为true)`);
+      console.log(`调用函数: DamHealth.initDamHealthScene(${sceneType}, group, animatables, disposables)`);
+      DamHealth.initDamHealthScene(sceneType, group, animatables, disposables);
+    } else if (ReservoirBenefit.isReservoirBenefitScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (ReservoirBenefit.isReservoirBenefitScene判定为true)`);
+      console.log(`调用函数: ReservoirBenefit.initReservoirBenefitScene(${sceneType}, group, animatables, disposables)`);
+      ReservoirBenefit.initReservoirBenefitScene(sceneType, group, animatables, disposables);
+    } else if (TurbineWear.isTurbineWearScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (TurbineWear.isTurbineWearScene判定为true)`);
+      console.log(`调用函数: TurbineWear.initTurbineWearScene(${sceneType}, group, animatables, disposables)`);
+      TurbineWear.initTurbineWearScene(sceneType, group, animatables, disposables);
+    } else if (SpillageLoss.isSpillageLossScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (SpillageLoss.isSpillageLossScene判定为true)`);
+      console.log(`调用函数: SpillageLoss.initSpillageLossScene(${sceneType}, group, animatables, disposables)`);
+      SpillageLoss.initSpillageLossScene(sceneType, group, animatables, disposables);
+    } else if (HydroUtil.isHydroUtilScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (HydroUtil.isHydroUtilScene判定为true)`);
+      console.log(`调用函数: HydroUtil.initHydroUtilScene(${sceneType}, group, animatables, disposables)`);
+      HydroUtil.initHydroUtilScene(sceneType, group, animatables, disposables);
+    } else if (VentilationEfficiency.isVentilationEfficiencyScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (VentilationEfficiency.isVentilationEfficiencyScene判定为true)`);
+      console.log(`调用函数: VentilationEfficiency.initVentilationEfficiencyScene(${sceneType}, group, animatables, disposables)`);
+      VentilationEfficiency.initVentilationEfficiencyScene(sceneType, group, animatables, disposables);
+    } else if (MiningEnergy.isMiningEnergyScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MiningEnergy.isMiningEnergyScene判定为true)`);
+      console.log(`调用函数: MiningEnergy.initMiningEnergyScene(${sceneType}, group, animatables, disposables)`);
+      MiningEnergy.initMiningEnergyScene(sceneType, group, animatables, disposables);
+    } else if (BlastingQuality.isBlastingQualityScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (BlastingQuality.isBlastingQualityScene判定为true)`);
+      console.log(`调用函数: BlastingQuality.initBlastingQualityScene(${sceneType}, group, animatables, disposables)`);
+      BlastingQuality.initBlastingQualityScene(sceneType, group, animatables, disposables);
+    } else if (MiningTruckCycle.isMiningTruckCycleScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MiningTruckCycle.isMiningTruckCycleScene判定为true)`);
+      console.log(`调用函数: MiningTruckCycle.initMiningTruckCycleScene(${sceneType}, group, animatables, disposables)`);
+      MiningTruckCycle.initMiningTruckCycleScene(sceneType, group, animatables, disposables);
+    } else if (MiningOee.isMiningOeeScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MiningOee.isMiningOeeScene判定为true)`);
+      console.log(`调用函数: MiningOee.initMiningOeeScene(${sceneType}, group, animatables, disposables)`);
+      MiningOee.initMiningOeeScene(sceneType, group, animatables, disposables);
+    } else if (MineralRecovery.isMineralRecoveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MineralRecovery.isMineralRecoveryScene判定为true)`);
+      console.log(`调用函数: MineralRecovery.initMineralRecoveryScene(${sceneType}, group, animatables, disposables)`);
+      MineralRecovery.initMineralRecoveryScene(sceneType, group, animatables, disposables);
+    } else if (MiningRecovery.isMiningRecoveryScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MiningRecovery.isMiningRecoveryScene判定为true)`);
+      console.log(`调用函数: MiningRecovery.initMiningRecoveryScene(${sceneType}, group, animatables, disposables)`);
+      MiningRecovery.initMiningRecoveryScene(sceneType, group, animatables, disposables);
+    } else if (MaritimeSafety.isMaritimeSafetyScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (MaritimeSafety.isMaritimeSafetyScene判定为true)`);
+      console.log(`调用函数: MaritimeSafety.initMaritimeSafetyScene(${sceneType}, group, animatables, disposables)`);
+      MaritimeSafety.initMaritimeSafetyScene(sceneType, group, animatables, disposables);
+    } else if (GreenPort.isGreenPortScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (GreenPort.isGreenPortScene判定为true)`);
+      console.log(`调用函数: GreenPort.initGreenPortScene(${sceneType}, group, animatables, disposables)`);
+      GreenPort.initGreenPortScene(sceneType, group, animatables, disposables);
+    } else if (InlandWaterway.isInlandWaterwayScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (InlandWaterway.isInlandWaterwayScene判定为true)`);
+      console.log(`调用函数: InlandWaterway.initInlandWaterwayScene(${sceneType}, group, animatables, disposables)`);
+      InlandWaterway.initInlandWaterwayScene(sceneType, group, animatables, disposables);
+    } else if (ContainerTerminal.isContainerTerminalScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (ContainerTerminal.isContainerTerminalScene判定为true)`);
+      console.log(`调用函数: ContainerTerminal.initContainerTerminalScene(${sceneType}, group, animatables, disposables)`);
+      ContainerTerminal.initContainerTerminalScene(sceneType, group, animatables, disposables);
+    } else if (Irrigation.isIrrigationScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (Irrigation.isIrrigationScene判定为true)`);
+      console.log(`调用函数: Irrigation.initIrrigationScene(${sceneType}, group, animatables, disposables)`);
+      Irrigation.initIrrigationScene(sceneType, group, animatables, disposables);
+    } else if (SmartWater.isSmartWaterScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (SmartWater.isSmartWaterScene判定为true)`);
+      console.log(`调用函数: SmartWater.initSmartWaterScene(${sceneType}, group, animatables, disposables)`);
+      SmartWater.initSmartWaterScene(sceneType, group, animatables, disposables);
+    } else if (Cockpit.isCockpitScene(sceneType)) {
+      // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+      console.log(`进入条件: sceneType === '${sceneType}' (Cockpit.isCockpitScene判定为true)`);
+      console.log(`调用函数: Cockpit.initCockpitScene(${sceneType}, group, animatables, disposables)`);
+      Cockpit.initCockpitScene(sceneType, group, animatables, disposables);
+    } 
+    // else if (SmartOps.isSmartOpsScene(sceneType)) {
+    //   // 2026.03.17 添加控制台输出，打印进入条件和调用函数
+    //   console.log(`进入条件: sceneType === '${sceneType}' (SmartOps.isSmartOpsScene判定为true)`);
+    //   console.log(`调用函数: SmartOps.initSmartOpsScene(${sceneType}, group, animatables, disposables, { wireframe: wireframeMaterial, solid: solidMaterial })`);
+    //   SmartOps.initSmartOpsScene(sceneType, group, animatables, disposables, { wireframe: wireframeMaterial, solid: solidMaterial });
+    // }
+
+
+
+
+
     // 2026.02.02，以下三段注释代码生成了另一套不受动画控制的静止3d模型，如需恢复需修复以下函数与现有3d模型生成代码的冲突
     // if (MaritimeSafety.isMaritimeSafetyScene(sceneType)) {
     //   MaritimeSafety.initMaritimeSafetyScene(sceneType, group, animatables, disposables);
@@ -1118,6 +1555,99 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
           // Outfall specific animation if needed (particles static jitter handled by material/re-creation usually, but let's add flow)
           // Simple jitter
       }
+
+      //2026.03.16
+      if (MineSafetyDelivery.isMineSafetyDeliveryScene(sceneType)) {
+        MineSafetyDelivery.animateMineSafetyDeliveryScene(sceneType, animatables, time);
+      } else if (MineEquipLifecycleDelivery.isMineEquipLifecycleScene(sceneType)) {
+        MineEquipLifecycleDelivery.animateMineEquipLifecycleScene(sceneType, animatables, time);
+      } else if (MineProcessDelivery.isMineProcessDeliveryScene(sceneType)) {
+        MineProcessDelivery.animateMineProcessDeliveryScene(sceneType, animatables, time);
+      } else if (MineProcessingDelivery.isMineProcessingDeliveryScene(sceneType)) {
+        MineProcessingDelivery.animateMineProcessingDeliveryScene(sceneType, animatables, time);
+      } else if (MineBimDelivery.isMineBimDeliveryScene(sceneType)) {
+        MineBimDelivery.animateMineBimDeliveryScene(sceneType, animatables, time);
+      } else if (MineConstructionDelivery.isMineConstructionDeliveryScene(sceneType)) {
+        MineConstructionDelivery.animateMineConstructionDeliveryScene(sceneType, animatables, time);
+      } else if (HydroAssetDelivery.isHydroAssetDeliveryScene(sceneType)) {
+        HydroAssetDelivery.animateHydroAssetDeliveryScene(sceneType, animatables, time);
+      } else if (FloodDispatchDelivery.isFloodDispatchDeliveryScene(sceneType)) {
+        FloodDispatchDelivery.animateFloodDispatchDeliveryScene(sceneType, animatables, time);
+      } else if (HydroMonitorDelivery.isHydroMonitorDeliveryScene(sceneType)) {
+        HydroMonitorDelivery.animateHydroMonitorDeliveryScene(sceneType, animatables, time);
+      } else if (DamSafetyDelivery.isDamSafetyDeliveryScene(sceneType)) {
+        DamSafetyDelivery.animateDamSafetyDeliveryScene(sceneType, animatables, time);
+      } else if (HydroEquipLifecycle.isHydroEquipLifecycleScene(sceneType)) {
+        HydroEquipLifecycle.animateHydroEquipLifecycleScene(sceneType, animatables, time);
+      } else if (HydroDispatch.isHydroDispatchScene(sceneType)) {
+        HydroDispatch.animateHydroDispatchScene(sceneType, animatables, time);
+      } else if (HydroBimDelivery.isHydroBimDeliveryScene(sceneType)) {
+        HydroBimDelivery.animateHydroBimDeliveryScene(sceneType, animatables, time);
+      } else if (HydroTwinDelivery.isHydroTwinDeliveryScene(sceneType)) {
+        HydroTwinDelivery.animateHydroTwinDeliveryScene(sceneType, animatables, time);
+      } else if (HydroDelivery.isHydroDeliveryScene(sceneType)) {
+        HydroDelivery.animateHydroDeliveryScene(sceneType, animatables, time);
+      } else if (ChannelSafety.isChannelSafetyScene(sceneType)) {
+        ChannelSafety.animateChannelSafetyScene(sceneType, animatables, time);
+      } else if (TransportConnect.isTransportConnectScene(sceneType)) {
+        TransportConnect.animateTransportConnectScene(sceneType, animatables, time);
+      } else if (LockEfficiency.isLockEfficiencyScene(sceneType)) {
+        LockEfficiency.animateLockEfficiencyScene(sceneType, animatables, time);
+      } else if (ShipCii.isShipCiiScene(sceneType)) {
+        ShipCii.animateShipCiiScene(sceneType, animatables, time);
+      } else if (ShipEeoi.isShipEeoiScene(sceneType)) {
+        ShipEeoi.animateShipEeoiScene(sceneType, animatables, time);
+      } else if (CraneEfficiency.isCraneEfficiencyScene(sceneType)) {
+        CraneEfficiency.animateCraneEfficiencyScene(sceneType, animatables, time);
+      } else if (BerthUtil.isBerthUtilScene(sceneType)) {
+        BerthUtil.animateBerthUtilScene(sceneType, animatables, time);
+      } else if (PowerRam.isPowerRamScene(sceneType)) {
+        PowerRam.animatePowerRamScene(sceneType, animatables, time);
+      } else if (PumpedStorageEfficiency.isPumpedStorageEfficiencyScene(sceneType)) {
+        PumpedStorageEfficiency.animatePumpedStorageEfficiencyScene(sceneType, animatables, time);
+      } else if (DamHealth.isDamHealthScene(sceneType)) {
+        DamHealth.animateDamHealthScene(sceneType, animatables, time);
+      } else if (ReservoirBenefit.isReservoirBenefitScene(sceneType)) {
+        ReservoirBenefit.animateReservoirBenefitScene(sceneType, animatables, time);
+      } else if (TurbineWear.isTurbineWearScene(sceneType)) {
+        TurbineWear.animateTurbineWearScene(sceneType, animatables, time);
+      } else if (SpillageLoss.isSpillageLossScene(sceneType)) {
+        SpillageLoss.animateSpillageLossScene(sceneType, animatables, time);
+      } else if (HydroUtil.isHydroUtilScene(sceneType)) {
+        HydroUtil.animateHydroUtilScene(sceneType, animatables, time);
+      } else if (VentilationEfficiency.isVentilationEfficiencyScene(sceneType)) {
+        VentilationEfficiency.animateVentilationEfficiencyScene(sceneType, animatables, time);
+      } else if (MiningEnergy.isMiningEnergyScene(sceneType)) {
+        MiningEnergy.animateMiningEnergyScene(sceneType, animatables, time);
+      } else if (BlastingQuality.isBlastingQualityScene(sceneType)) {
+        BlastingQuality.animateBlastingQualityScene(sceneType, animatables, time);
+      } else if (MiningTruckCycle.isMiningTruckCycleScene(sceneType)) {
+        MiningTruckCycle.animateMiningTruckCycleScene(sceneType, animatables, time);
+      } else if (MiningOee.isMiningOeeScene(sceneType)) {
+        MiningOee.animateMiningOeeScene(sceneType, animatables, time);
+      } else if (MineralRecovery.isMineralRecoveryScene(sceneType)) {
+        MineralRecovery.animateMineralRecoveryScene(sceneType, animatables, time);
+      } else if (MiningRecovery.isMiningRecoveryScene(sceneType)) {
+        MiningRecovery.animateMiningRecoveryScene(sceneType, animatables, time);
+      } else if (MaritimeSafety.isMaritimeSafetyScene(sceneType)) {
+        MaritimeSafety.animateMaritimeSafetyScene(sceneType, animatables, time);
+      } else if (GreenPort.isGreenPortScene(sceneType)) {
+        GreenPort.animateGreenPortScene(sceneType, animatables, time);
+      } else if (InlandWaterway.isInlandWaterwayScene(sceneType)) {
+        InlandWaterway.animateInlandWaterwayScene(sceneType, animatables, time);
+      } else if (ContainerTerminal.isContainerTerminalScene(sceneType)) {
+        ContainerTerminal.animateContainerTerminalScene(sceneType, animatables, time);
+      } else if (Irrigation.isIrrigationScene(sceneType)) {
+        Irrigation.animateIrrigationScene(sceneType, animatables, time);
+      } else if (SmartWater.isSmartWaterScene(sceneType)) {
+        SmartWater.animateSmartWaterScene(sceneType, animatables, time);
+      } else if (Cockpit.isCockpitScene(sceneType)) {
+        Cockpit.animateCockpitScene(sceneType, animatables, time);
+      } else if (SmartOps.isSmartOpsScene(sceneType)) {
+        SmartOps.animateSmartOpsScene(sceneType, animatables, time);
+      }
+
+
 
       renderer.render(scene, camera);
     };
