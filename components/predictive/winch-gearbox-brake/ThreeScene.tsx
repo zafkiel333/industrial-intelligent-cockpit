@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -19,7 +18,24 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
   isBraking = false
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  
+  // 2026.03.18 - Bug修复：使用ref存储实时属性值，避免依赖项变化触发useEffect重建3D场景
+  // Bug情况：3D模型频繁闪烁，渲染不稳定
+  // Bug原因：useEffect依赖项（gearHealth/brakeWear/rpm/isBraking）反复变化，导致useEffect频繁执行，销毁并重建整个Three.js场景
+  const gearHealthRef = useRef(gearHealth);
+  const brakeWearRef = useRef(brakeWear);
+  const rpmRef = useRef(rpm);
+  const isBrakingRef = useRef(isBraking);
 
+  // 仅更新ref值，不触发3D场景重建
+  useEffect(() => {
+    gearHealthRef.current = gearHealth;
+    brakeWearRef.current = brakeWear;
+    rpmRef.current = rpm;
+    isBrakingRef.current = isBraking;
+  }, [gearHealth, brakeWear, rpm, isBraking]);
+
+  // 初始化3D场景（仅执行一次）
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===winch-gearbox-brake useEffect===");
@@ -153,7 +169,11 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     const animate = () => {
       animationId = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
-      const rotationSpeed = (rpm / 60) * 0.1;
+      // 读取ref中的实时值
+      const currentRpm = rpmRef.current;
+      const currentIsBraking = isBrakingRef.current;
+      const currentGearHealth = gearHealthRef.current;
+      const rotationSpeed = (currentRpm / 60) * 0.1;
 
       // 齿轮啮合动画
       if (animatables.sunGear) animatables.sunGear.rotation.x += rotationSpeed;
@@ -164,9 +184,9 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
       // 制动盘自转与动作
       if (animatables.brakeDisc) {
-          animatables.brakeDisc.rotation.x += isBraking ? rotationSpeed * 0.1 : rotationSpeed;
+          animatables.brakeDisc.rotation.x += currentIsBraking ? rotationSpeed * 0.1 : rotationSpeed;
           // 热力反馈
-          const heat = isBraking ? 1.0 : (1 - gearHealth) * 0.5;
+          const heat = currentIsBraking ? 1.0 : (1 - currentGearHealth) * 0.5;
           (animatables.brakeDisc.material as THREE.MeshStandardMaterial).emissiveIntensity = THREE.MathUtils.lerp(
               (animatables.brakeDisc.material as THREE.MeshStandardMaterial).emissiveIntensity, 
               heat, 0.05
@@ -176,13 +196,13 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
       // 闸瓦动作模拟
       if (animatables.brakeShoeL && animatables.brakeShoeR) {
-          const targetX = isBraking ? 0.3 : 0.6;
+          const targetX = currentIsBraking ? 0.3 : 0.6;
           animatables.brakeShoeL.position.x = THREE.MathUtils.lerp(animatables.brakeShoeL.position.x, targetX, 0.1);
           animatables.brakeShoeR.position.x = THREE.MathUtils.lerp(animatables.brakeShoeR.position.x, -targetX, 0.1);
       }
 
       // 整体微小震动 (随健康度)
-      group.position.y = Math.sin(time * 50) * (0.01 * (1 - gearHealth));
+      group.position.y = Math.sin(time * 50) * (0.01 * (1 - currentGearHealth));
 
       controls.update();
       renderer.render(scene, camera);
@@ -206,7 +226,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       scene.clear();
       renderer.dispose();
     };
-  }, [gearHealth, brakeWear, rpm, isBraking]);
+  }, []); // 移除所有业务依赖项，仅在组件挂载/卸载时执行
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

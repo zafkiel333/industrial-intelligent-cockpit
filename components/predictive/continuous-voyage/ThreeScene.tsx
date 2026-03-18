@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -19,7 +18,24 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
   viewMode = 'cumulative-damage'
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  
+  // 2026.03.18 - Bug修复：使用ref保存实时变量，避免依赖项变化触发useEffect重建3D场景
+  // Bug情况：原代码useEffect依赖fatigueLevel/voyageTime/stressAmplitude/viewMode，这些变量实时变化会导致useEffect反复执行
+  // Bug原因：每次依赖项变化都会销毁并重建整个3D场景，引发模型闪烁、性能损耗
+  const fatigueLevelRef = useRef(fatigueLevel);
+  const voyageTimeRef = useRef(voyageTime);
+  const stressAmplitudeRef = useRef(stressAmplitude);
+  const viewModeRef = useRef(viewMode);
 
+  // 仅更新ref值，不触发3D场景重建
+  useEffect(() => {
+    fatigueLevelRef.current = fatigueLevel;
+    voyageTimeRef.current = voyageTime;
+    stressAmplitudeRef.current = stressAmplitude;
+    viewModeRef.current = viewMode;
+  }, [fatigueLevel, voyageTime, stressAmplitude, viewMode]);
+
+  // 3D场景初始化：仅在mountRef挂载时执行一次，依赖项为空数组
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===continuous-voyage useEffect===");
@@ -173,6 +189,10 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       animationId = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
 
+      // 读取实时ref值（核心修复：不再依赖useEffect依赖项，而是直接读取最新值）
+      const currentFatigue = fatigueLevelRef.current;
+      const currentStressAmplitude = stressAmplitudeRef.current;
+
       // 海面后退模拟航行
       if (animatables.oceanGrid) {
           animatables.oceanGrid.position.x = (time * 5) % 10;
@@ -192,7 +212,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       // 船体呼吸 (Cyclic Stress)
       if (animatables.shipHull) {
           // 模拟船体在中拱/中垂中的弹性变形
-          const bending = Math.sin(time * 2) * 0.005 * stressAmplitude;
+          const bending = Math.sin(time * 2) * 0.005 * currentStressAmplitude;
           animatables.shipHull.scale.y = 1 + bending;
           animatables.shipHull.position.y = Math.sin(time) * 0.5;
           animatables.shipHull.rotation.z = Math.sin(time * 0.5) * 0.02; // Pitch
@@ -204,7 +224,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
           animatables.stressHotspots.children.forEach((spot: any) => {
               // 随机闪烁频率，强度受疲劳度控制
               const pulse = Math.sin(time * 5 + spot.position.x) * 0.5 + 0.5;
-              spot.material.opacity = pulse * fatigueLevel;
+              spot.material.opacity = pulse * currentFatigue;
               const scale = 1 + pulse * 0.5;
               spot.scale.set(scale, scale, scale);
           });
@@ -212,10 +232,10 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
       // 关键部件高亮
       if (keel) {
-          keel.material.emissiveIntensity = fatigueLevel * 0.5 + (Math.sin(time) * 0.1);
+          keel.material.emissiveIntensity = currentFatigue * 0.5 + (Math.sin(time) * 0.1);
       }
       if (mount) {
-          mount.material.emissiveIntensity = fatigueLevel > 0.5 ? (fatigueLevel - 0.5) * 2 : 0;
+          mount.material.emissiveIntensity = currentFatigue > 0.5 ? (currentFatigue - 0.5) * 2 : 0;
       }
 
       controls.update();
@@ -240,7 +260,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       disposables.forEach(d => d?.dispose());
       renderer.dispose();
     };
-  }, [fatigueLevel, voyageTime, stressAmplitude, viewMode]);
+  }, []); // 依赖项清空：仅在组件挂载/卸载时执行一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -17,7 +16,22 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
   healthScore = 90
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  
+  // 2026.03.18 bug修复：使用ref保存实时变量值，避免依赖项变化触发useEffect重建3D场景导致闪烁
+  // bug情况：原代码useEffect依赖daysOffset/isSimulating/healthScore，这些变量频繁变化会导致useEffect反复执行，重建整个3D场景，表现为模型闪烁
+  // 修复方案：将动态变量存入ref，仅在变量变化时更新ref值，useEffect仅初始化一次3D场景，动画循环中读取ref的最新值
+  const daysOffsetRef = useRef(daysOffset);
+  const isSimulatingRef = useRef(isSimulating);
+  const healthScoreRef = useRef(healthScore);
 
+  // 监听变量变化，更新ref值（不重建3D场景）
+  useEffect(() => {
+    daysOffsetRef.current = daysOffset;
+    isSimulatingRef.current = isSimulating;
+    healthScoreRef.current = healthScore;
+  }, [daysOffset, isSimulating, healthScore]);
+
+  // 初始化3D场景（仅执行一次，无频繁触发的依赖项）
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===steering-failure-window useEffect===");
@@ -123,10 +137,13 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       animationId = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
 
+      // 读取ref中的最新值（关键修复：不再依赖props直接值，而是实时ref值）
+      const currentDaysOffset = daysOffsetRef.current;
+      const currentIsSimulating = isSimulatingRef.current;
       // 模拟劣化程度随时间轴增加 (0-30天映射)
-      const severity = daysOffset / 30; 
+      const severity = currentDaysOffset / 30; 
       
-      if (isSimulating) {
+      if (currentIsSimulating) {
         // 随动运动
         const angle = Math.sin(time) * 0.5;
         if (animatables.mainTiller) animatables.mainTiller.rotation.y = angle;
@@ -180,7 +197,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       disposables.forEach(d => d?.dispose());
       renderer.dispose();
     };
-  }, [daysOffset, isSimulating, healthScore]);
+  }, []); // 依赖数组置空，仅初始化一次3D场景
 
   return <div ref={mountRef} className="w-full h-full cursor-crosshair" />;
 };

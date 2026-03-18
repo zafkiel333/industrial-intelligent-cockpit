@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -20,6 +19,23 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
+  // 2026.03.18 - 修复：使用ref存储实时props值，避免依赖项触发useEffect重建3D场景
+  // Bug情况：3D模型出现频繁闪烁问题，表现为场景反复销毁和重建
+  // Bug原因：原代码中渲染3D场景的useEffect依赖了windSpeed/solarIntensity/batteryTemp/viewMode，这些变量实时变化会触发useEffect重新执行，销毁原有3D场景并重建，造成视觉闪烁
+  const windSpeedRef = useRef(windSpeed);
+  const solarIntensityRef = useRef(solarIntensity);
+  const batteryTempRef = useRef(batteryTemp);
+  const viewModeRef = useRef(viewMode);
+
+  // 2026.03.18 - 仅更新ref值以保留最新props，不触发3D场景重建
+  useEffect(() => {
+    windSpeedRef.current = windSpeed;
+    solarIntensityRef.current = solarIntensity;
+    batteryTempRef.current = batteryTemp;
+    viewModeRef.current = viewMode;
+  }, [windSpeed, solarIntensity, batteryTemp, viewMode]);
+
+  // 2026.03.18 - 移除原依赖项，改为空依赖，仅初始化一次3D场景
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===lighthouse-power useEffect===");
@@ -55,8 +71,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     // --- 环境光影 ---
     scene.add(new THREE.AmbientLight(0xffffff, 0.2));
     
-    // 模拟太阳/月亮
-    const skyLight = new THREE.DirectionalLight(0xffffff, solarIntensity > 0.1 ? 1.5 : 0.2);
+    // 模拟太阳/月亮 - 初始值使用ref
+    const skyLight = new THREE.DirectionalLight(0xffffff, solarIntensityRef.current > 0.1 ? 1.5 : 0.2);
     skyLight.position.set(-10, 20, -10);
     scene.add(skyLight);
 
@@ -187,7 +203,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
         metalness: 0.9, 
         roughness: 0.1,
         emissive: 0x1e3a8a,
-        emissiveIntensity: solarIntensity * 0.5
+        emissiveIntensity: solarIntensityRef.current * 0.5
     });
     const panel = new THREE.Mesh(panelGeo, panelMat);
     panelGroup.add(panel);
@@ -198,7 +214,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     stand.position.y = -0.7;
     panelGroup.add(stand);
     disposables.push(panelGeo, panelMat);
-
 
     // --- 6. 电池舱 (Battery Bunker) ---
     // 可视化为半透明盒子，显示热力
@@ -225,7 +240,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     animatables.batteryBank = battery; // Store group ref, use children for anim
     disposables.push(battGeo, battMat, heatCoreGeo, heatCoreMat);
 
-
     // --- 7. 海浪 (Sea Surface) ---
     const seaGeo = new THREE.PlaneGeometry(100, 100, 60, 60);
     seaGeo.rotateX(-Math.PI / 2);
@@ -243,7 +257,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     animatables.waves = sea;
     disposables.push(seaGeo, seaMat);
 
-
     // --- 8. 能量粒子流 (Energy Particles) ---
     const pCount = 200;
     const pGeo = new THREE.BufferGeometry();
@@ -256,11 +269,15 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     animatables.energyParticles = particles;
     disposables.push(pGeo, pMat);
 
-
     let animationId: number;
     const animate = () => {
       animationId = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
+
+      // 2026.03.18 - 读取ref最新值：更新太阳/月亮光强度
+      skyLight.intensity = solarIntensityRef.current > 0.1 ? 1.5 : 0.2;
+      // 2026.03.18 - 读取ref最新值：更新光伏板发光强度
+      (panel.material as THREE.MeshStandardMaterial).emissiveIntensity = solarIntensityRef.current * 0.5;
 
       // 灯塔旋转
       if (animatables.beaconMesh) {
@@ -270,9 +287,9 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
           spotTarget.position.set(Math.cos(angle) * 10, 11, Math.sin(angle) * 10);
       }
 
-      // 风机旋转
+      // 2026.03.18 - 读取ref最新值：风机旋转速度
       if (animatables.turbineBlades) {
-          animatables.turbineBlades.rotation.z -= windSpeed * 0.02;
+          animatables.turbineBlades.rotation.z -= windSpeedRef.current * 0.02;
       }
 
       // 海浪波动
@@ -281,14 +298,14 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
          animatables.waves.position.y = -1 + Math.sin(time) * 0.2;
       }
 
-      // 视图模式逻辑
-      if (viewMode === 'battery-thermal') {
+      // 2026.03.18 - 读取ref最新值：电池热力视图模式
+      if (viewModeRef.current === 'battery-thermal') {
           // 电池热力显现
           if (animatables.batteryBank && animatables.batteryBank.children[0]) {
               const core = animatables.batteryBank.children[0] as THREE.Mesh;
               (core.material as THREE.MeshBasicMaterial).opacity = 0.5 + Math.sin(time * 2) * 0.2;
-              // 颜色随温度变化 (Green -> Red)
-              (core.material as THREE.MeshBasicMaterial).color.setHSL(0.3 - batteryTemp * 0.3, 1, 0.5);
+              // 2026.03.18 - 读取ref最新值：电池温度对应颜色
+              (core.material as THREE.MeshBasicMaterial).color.setHSL(0.3 - batteryTempRef.current * 0.3, 1, 0.5);
           }
       } else {
           if (animatables.batteryBank && animatables.batteryBank.children[0]) {
@@ -296,7 +313,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
           }
       }
 
-      if (viewMode === 'energy-flow' && animatables.energyParticles) {
+      // 2026.03.18 - 读取ref最新值：能量流视图模式
+      if (viewModeRef.current === 'energy-flow' && animatables.energyParticles) {
           (animatables.energyParticles.material as THREE.PointsMaterial).opacity = 0.8;
           const pos = animatables.energyParticles.geometry.attributes.position.array as Float32Array;
           // 简单的粒子飞向电池动画
@@ -350,7 +368,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       disposables.forEach(d => d?.dispose());
       renderer.dispose();
     };
-  }, [windSpeed, solarIntensity, batteryTemp, viewMode]);
+  }, []); // 2026.03.18 - 空依赖，仅初始化一次3D场景
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

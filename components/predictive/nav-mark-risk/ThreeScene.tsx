@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -20,6 +19,23 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
+  // 2026.03.18 修复：创建ref存储实时props值，避免主useEffect因依赖项变化反复执行
+  // Bug情况：3D模型渲染时出现闪烁问题
+  // Bug原因：useEffect依赖项（waveHeight/lightStatus/driftDistance/viewMode）反复变化，导致useEffect频繁触发，重建整个Three.js场景，引发模型闪烁
+  const waveHeightRef = useRef(waveHeight);
+  const lightStatusRef = useRef(lightStatus);
+  const driftDistanceRef = useRef(driftDistance);
+  const viewModeRef = useRef(viewMode);
+
+  // 2026.03.18 修复：仅监听props变化更新ref，不重建场景
+  useEffect(() => {
+    waveHeightRef.current = waveHeight;
+    lightStatusRef.current = lightStatus;
+    driftDistanceRef.current = driftDistance;
+    viewModeRef.current = viewMode;
+  }, [waveHeight, lightStatus, driftDistance, viewMode]);
+
+  // 主渲染逻辑：依赖数组置空，仅在挂载/卸载时执行，避免反复重建场景
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===nav-mark-risk useEffect===");
@@ -166,13 +182,14 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
       // 1. Wave Motion (Buoy Bobbing)
       if (animatables.buoyGroup) {
-          const waveY = Math.sin(time * 2) * (waveHeight * 0.2);
-          const roll = Math.sin(time * 1.5) * (waveHeight * 0.05);
-          const pitch = Math.cos(time * 1.3) * (waveHeight * 0.05);
+          // 读取ref中最新的waveHeight值
+          const waveY = Math.sin(time * 2) * (waveHeightRef.current * 0.2);
+          const roll = Math.sin(time * 1.5) * (waveHeightRef.current * 0.05);
+          const pitch = Math.cos(time * 1.3) * (waveHeightRef.current * 0.05);
 
           animatables.buoyGroup.position.y = waveY;
-          // Apply drift visual
-          animatables.buoyGroup.position.x = Math.sin(time * 0.5) * (driftDistance * 0.1); 
+          // 读取ref中最新的driftDistance值
+          animatables.buoyGroup.position.x = Math.sin(time * 0.5) * (driftDistanceRef.current * 0.1); 
           animatables.buoyGroup.rotation.x = pitch;
           animatables.buoyGroup.rotation.z = roll;
 
@@ -201,13 +218,14 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
       // 3. Water Animation
       if (animatables.waterPlane) {
-          // Simple UV scroll simulation by moving position slightly
-          animatables.waterPlane.position.y = Math.sin(time * 2 - 1) * (waveHeight * 0.1) - 1;
+          // 读取ref中最新的waveHeight值
+          animatables.waterPlane.position.y = Math.sin(time * 2 - 1) * (waveHeightRef.current * 0.1) - 1;
       }
 
       // 4. Light Flashing (ISO Standard pattern simulation)
       if (animatables.lightSource && animatables.lightMesh) {
-          if (lightStatus) {
+          // 读取ref中最新的lightStatus值
+          if (lightStatusRef.current) {
               // Flash every 4 seconds (FL 4s)
               const flash = Math.floor(time * 2) % 8 === 0; 
               animatables.lightSource.intensity = flash ? 50 : 0;
@@ -219,7 +237,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
       // 5. Radar/Drift Warning
       if (animatables.radarScanner) {
-          if (viewMode === 'mooring-strain' || driftDistance > 20) {
+          // 读取ref中最新的viewMode和driftDistance值
+          if (viewModeRef.current === 'mooring-strain' || driftDistanceRef.current > 20) {
               const s = 1 + (Math.sin(time * 5) + 1) * 0.5;
               animatables.radarScanner.scale.setScalar(s);
               (animatables.radarScanner.material as THREE.MeshBasicMaterial).opacity = 0.5 - s * 0.2;
@@ -251,7 +270,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       disposables.forEach(d => d?.dispose());
       renderer.dispose();
     };
-  }, [waveHeight, lightStatus, driftDistance, viewMode]);
+  }, []); // 清空依赖数组，仅挂载/卸载执行
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

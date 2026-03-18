@@ -39,11 +39,38 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
-    // --- 精密实验照明 ---
-    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-    const spotLight = new THREE.SpotLight(0x0ea5e9, 100);
+    // --- 精密实验照明系统优化 2026.03.18 ---
+    // Bug情况：原光照系统仅依赖单环境光+单聚光灯，导致模型整体亮度不足、细节层次感缺失，底部区域暗部死黑，无视觉纵深
+    // 原因：光照方案单一，缺乏补光和氛围光效，未做曝光度优化，无法充分展示模型细节
+    // 优化方案：提升基础光照强度、新增半球光/底部补光、添加雾效、优化全局曝光
+
+    // 1. 增强环境光（基础照明）
+    scene.add(new THREE.AmbientLight(0xffffff, 1.2)); // 从0.4提升至1.2
+
+    // 2. 增强主聚光灯（关键照明）
+    const spotLight = new THREE.SpotLight(0x0ea5e9, 250); // 强度从100提升至250
     spotLight.position.set(5, 10, 5);
+    spotLight.angle = Math.PI / 4; // 扩大照射角度
+    spotLight.penumbra = 0.2; // 柔化边缘
     scene.add(spotLight);
+
+    // 3. 新增半球光（环境氛围光）
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+    hemisphereLight.position.set(0, 5, 0);
+    scene.add(hemisphereLight);
+
+    // 4. 新增底部补光（消除暗部死黑）
+    const bottomLight = new THREE.PointLight(0xffffff, 100, 20);
+    bottomLight.position.set(0, -8, 0); // 底部位置补光
+    bottomLight.decay = 2; // 物理衰减
+    scene.add(bottomLight);
+
+    // 5. 新增雾效（提升视觉纵深）
+    scene.fog = new THREE.Fog(0xffffff, 8, 25); // 线性雾，增强空间感
+
+    // 6. 优化全局曝光度
+    renderer.toneMapping = THREE.ReinhardToneMapping; // 启用色调映射
+    renderer.toneMappingExposure = 1.5; // 提升曝光度
 
     const group = new THREE.Group();
     scene.add(group);

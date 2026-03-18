@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -20,6 +19,23 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
+  // 2026.03.18 - Bug修复：使用ref存储实时props值，避免依赖项变化触发useEffect重复执行
+  // Bug情况：模型渲染时出现闪烁，3D场景反复初始化
+  // Bug原因：useEffect依赖项（waveHeight/shipPitch/rpm/viewMode）频繁变化，导致useEffect反复触发，3D场景被重复创建和销毁
+  const waveHeightRef = useRef<number>(waveHeight);
+  const shipPitchRef = useRef<number>(shipPitch);
+  const rpmRef = useRef<number>(rpm);
+  const viewModeRef = useRef<SeaRiskViewMode>(viewMode);
+
+  // 仅更新ref值，不触发3D场景重渲染
+  useEffect(() => {
+    waveHeightRef.current = waveHeight;
+    shipPitchRef.current = shipPitch;
+    rpmRef.current = rpm;
+    viewModeRef.current = viewMode;
+  }, [waveHeight, shipPitch, rpm, viewMode]);
+
+  // 3D场景初始化与渲染逻辑：依赖数组置空，仅执行一次
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===severe-sea useEffect===");
@@ -76,7 +92,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
         color: 0x0f2436, 
         roughness: 0.1, 
         metalness: 0.6,
-        wireframe: viewMode === 'hydro-elasticity',
+        wireframe: viewModeRef.current === 'hydro-elasticity', // 初始值从ref读取
         transparent: true,
         opacity: 0.9
     });
@@ -163,6 +179,12 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
         animationId = requestAnimationFrame(animate);
         time += 0.02;
 
+        // 读取实时ref值
+        const currentWaveHeight = waveHeightRef.current;
+        const currentShipPitch = shipPitchRef.current;
+        const currentRpm = rpmRef.current;
+        const currentViewMode = viewModeRef.current;
+
         // 1. 模拟海浪 (Wave Motion)
         if (animatables.waterMesh) {
             const pos = animatables.waterMesh.geometry.attributes.position;
@@ -171,32 +193,38 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
                 vertex.fromBufferAttribute(pos, i);
                 // 叠加正弦波模拟不规则海浪
                 const z = 
-                    Math.sin(vertex.x * 0.2 + time) * waveHeight * 0.5 +
-                    Math.cos(vertex.y * 0.15 + time * 1.2) * waveHeight * 0.3;
+                    Math.sin(vertex.x * 0.2 + time) * currentWaveHeight * 0.5 +
+                    Math.cos(vertex.y * 0.15 + time * 1.2) * currentWaveHeight * 0.3;
                 pos.setZ(i, z);
             }
             pos.needsUpdate = true;
         }
 
+        // 实时更新水面wireframe模式（适配viewMode变化）
+        if (waterMat.wireframe !== (currentViewMode === 'hydro-elasticity')) {
+            waterMat.wireframe = currentViewMode === 'hydro-elasticity';
+            waterMat.needsUpdate = true;
+        }
+
         // 2. 船体运动 (Ship Motions)
         if (animatables.shipStern) {
             // Pitch (纵摇) & Heave (垂荡)
-            const pitch = Math.sin(time * 0.8) * shipPitch * 0.2;
-            const heave = Math.cos(time * 0.8 + 0.5) * waveHeight * 0.4;
+            const pitch = Math.sin(time * 0.8) * currentShipPitch * 0.2;
+            const heave = Math.cos(time * 0.8 + 0.5) * currentWaveHeight * 0.4;
             
             animatables.shipStern.rotation.z = pitch; // Along Z axis for side view pitch
             animatables.shipStern.position.y = heave;
 
             // 螺旋桨深度检测
             const propDepth = heave + (-3); // Prop center Y relative to calm water
-            const waterLevelAtProp = Math.sin(0 * 0.2 + time) * waveHeight * 0.5; // Water level at X=0
+            const waterLevelAtProp = Math.sin(0 * 0.2 + time) * currentWaveHeight * 0.5; // Water level at X=0
             
             const immersion = waterLevelAtProp - propDepth;
 
             // 3. 螺旋桨飞车/出水逻辑 (Propeller Racing)
             if (immersion < 1.0) { // Propeller nearing surface
                  // 飞车加速
-                 if (animatables.propeller) animatables.propeller.rotation.x += (rpm / 60) * 0.3;
+                 if (animatables.propeller) animatables.propeller.rotation.x += (currentRpm / 60) * 0.3;
                  
                  // 变红警告
                  if (animatables.propeller) {
@@ -208,7 +236,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
                  warningLight.intensity = 2;
             } else {
                  // 正常转速
-                 if (animatables.propeller) animatables.propeller.rotation.x += (rpm / 60) * 0.1;
+                 if (animatables.propeller) animatables.propeller.rotation.x += (currentRpm / 60) * 0.1;
                  if (animatables.propeller) {
                     (animatables.propeller as any).children.forEach((c: any) => {
                          c.material.emissiveIntensity = 0;
@@ -263,7 +291,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
         disposables.forEach(d => d?.dispose());
         renderer.dispose();
     };
-  }, [waveHeight, shipPitch, rpm, viewMode]);
+  }, []); // 移除所有业务依赖，仅执行一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

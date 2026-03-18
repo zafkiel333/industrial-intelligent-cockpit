@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -18,6 +17,21 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
+  // 2026.03.18 - Bug修复：使用ref保存实时props值，避免依赖项变化触发useEffect重建场景
+  // Bug情况：原代码主useEffect依赖loadPercentage/seaState/viewMode，这些变量反复变化导致useEffect频繁执行，
+  // 场景被反复销毁和重建，表现为3D模型持续闪烁；原因：依赖项数组包含易变的props变量，每次props更新都会重新执行整个Three.js场景初始化逻辑
+  const loadPercentageRef = useRef<number>(loadPercentage);
+  const seaStateRef = useRef<number>(seaState);
+  const viewModeRef = useRef<LoadViewMode>(viewMode);
+
+  // 仅更新ref值，不触发场景重建（依赖项为原始props，保证ref实时性）
+  useEffect(() => {
+    loadPercentageRef.current = loadPercentage;
+    seaStateRef.current = seaState;
+    viewModeRef.current = viewMode;
+  }, [loadPercentage, seaState, viewMode]);
+
+  // 主渲染逻辑：仅在组件挂载/卸载时执行，依赖项置空，避免反复重建场景
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===heavy-load useEffect===");
@@ -71,11 +85,12 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     // --- 1. 海面 (Dynamic Sea) ---
     const waterGeo = new THREE.PlaneGeometry(200, 200, 64, 64);
     waterGeo.rotateX(-Math.PI / 2);
+    // 替换为ref读取实时viewMode值
     const waterMat = new THREE.MeshStandardMaterial({ 
         color: 0x0c2e4e, 
         roughness: 0.1, 
         metalness: 0.8,
-        wireframe: viewMode === 'hydrodynamics',
+        wireframe: viewModeRef.current === 'hydrodynamics',
         transparent: true,
         opacity: 0.8
     });
@@ -141,30 +156,37 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     const contGeo = new THREE.BoxGeometry(0.8, 0.8, 2);
     const colors = [0xef4444, 0x3b82f6, 0xeab308, 0x10b981];
     
-    // 根据负载百分比生成集装箱
-    const rows = 4;
-    const cols = 3;
-    const layers = Math.ceil(loadPercentage * 5); // Max 5 layers at 100%
+    // 封装集装箱更新逻辑，支持实时读取loadPercentageRef
+    const updateContainers = () => {
+      containerGroup.clear();
+      // 从ref读取实时负载百分比
+      const layers = Math.ceil(loadPercentageRef.current * 5); // Max 5 layers at 100%
+      const rows = 4;
+      const cols = 3;
 
-    for(let l=0; l<layers; l++) {
-        for(let r=0; r<rows; r++) {
-            for(let c=0; c<cols; c++) {
-                const mat = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random()*colors.length)] });
-                const cont = new THREE.Mesh(contGeo, mat);
-                cont.position.set(
-                    (c - 1) * 1.0, 
-                    hullDepth + 0.4 + l * 0.8, 
-                    (r - 1.5) * 2.2 - 2
-                );
-                containerGroup.add(cont);
-            }
-        }
-    }
+      for(let l=0; l<layers; l++) {
+          for(let r=0; r<rows; r++) {
+              for(let c=0; c<cols; c++) {
+                  const mat = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random()*colors.length)] });
+                  const cont = new THREE.Mesh(contGeo, mat);
+                  cont.position.set(
+                      (c - 1) * 1.0, 
+                      hullDepth + 0.4 + l * 0.8, 
+                      (r - 1.5) * 2.2 - 2
+                  );
+                  containerGroup.add(cont);
+              }
+          }
+      }
+    };
+    // 初始化集装箱
+    updateContainers();
     shipGroup.add(containerGroup);
     animatables.containerStack = containerGroup;
 
     // --- 4. 应力云图覆盖 (Stress Overlay) ---
-    if (viewMode === 'structural-stress') {
+    // 替换为ref读取实时viewMode值
+    if (viewModeRef.current === 'structural-stress') {
         const stressGeo = new THREE.BoxGeometry(hullWidth + 0.1, hullDepth + 0.1, hullLength);
         const stressMat = new THREE.MeshBasicMaterial({ 
             color: 0xff0000, 
@@ -176,6 +198,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
         stressOverlay.position.copy(hull.position);
         shipGroup.add(stressOverlay);
         animatables.stressOverlay = stressOverlay;
+        disposables.push(stressGeo, stressMat);
     }
 
     // --- 5. 尾迹粒子 (Wake) ---
@@ -192,6 +215,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     const wake = new THREE.Points(pGeo, pMat);
     shipGroup.add(wake);
     animatables.wakeParticles = wake;
+    disposables.push(pGeo, pMat);
 
     // --- 6. 废气 (Exhaust) ---
     const eCount = 200;
@@ -203,41 +227,42 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     exhaust.position.set(0, hullDepth + 4, hullLength / 2 - 2);
     shipGroup.add(exhaust);
     animatables.exhaust = exhaust;
+    disposables.push(eGeo, eMat);
 
     let animationId: number;
     const animate = () => {
       animationId = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
 
-      // 海浪动态
+      // 海浪动态（读取实时seaStateRef）
       if (animatables.seaMesh) {
           const positions = animatables.seaMesh.geometry.attributes.position.array as Float32Array;
           for(let i=0; i<positions.length; i+=3) {
               const x = positions[i];
               const y = positions[i+1]; // Z in world space
-              // Perlin-ish noise
-              positions[i+2] = Math.sin(x * 0.2 + time) * Math.cos(y * 0.1 + time) * (seaState * 0.3);
+              // Perlin-ish noise（使用seaStateRef.current获取实时海况）
+              positions[i+2] = Math.sin(x * 0.2 + time) * Math.cos(y * 0.1 + time) * (seaStateRef.current * 0.3);
           }
           animatables.seaMesh.geometry.attributes.position.needsUpdate = true;
       }
 
-      // 船体摇晃 (Pitch & Roll)
+      // 船体摇晃 (Pitch & Roll)（读取实时seaStateRef和loadPercentageRef）
       if (animatables.shipGroup) {
-          const heave = Math.sin(time * 0.8) * (0.2 + seaState * 0.05);
-          const pitch = Math.cos(time * 0.7) * (0.02 + seaState * 0.005);
-          const roll = Math.sin(time * 0.5) * (0.03 + seaState * 0.008);
+          const heave = Math.sin(time * 0.8) * (0.2 + seaStateRef.current * 0.05);
+          const pitch = Math.cos(time * 0.7) * (0.02 + seaStateRef.current * 0.005);
+          const roll = Math.sin(time * 0.5) * (0.03 + seaStateRef.current * 0.008);
           
-          // 吃水深度随负载增加
-          const draftOffset = -(loadPercentage * 1.5); 
+          // 吃水深度随负载增加（读取实时loadPercentageRef）
+          const draftOffset = -(loadPercentageRef.current * 1.5); 
           
           animatables.shipGroup.position.y = heave + draftOffset;
           animatables.shipGroup.rotation.x = pitch;
           animatables.shipGroup.rotation.z = roll;
       }
 
-      // 螺旋桨旋转
+      // 螺旋桨旋转（读取实时loadPercentageRef）
       if (animatables.propeller) {
-          animatables.propeller.rotation.z += 0.2 * (1 + loadPercentage * 0.2); // 负载高转速可能更高以维持速度
+          animatables.propeller.rotation.z += 0.2 * (1 + loadPercentageRef.current * 0.2); // 负载高转速可能更高以维持速度
       }
 
       // 尾迹喷射
@@ -254,7 +279,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
           animatables.wakeParticles.geometry.attributes.position.needsUpdate = true;
       }
 
-      // 废气排放
+      // 废气排放（读取实时loadPercentageRef）
       if (animatables.exhaust) {
           const pos = animatables.exhaust.geometry.attributes.position.array as Float32Array;
           for(let i=0; i<eCount; i++) {
@@ -267,14 +292,14 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
               }
           }
           animatables.exhaust.geometry.attributes.position.needsUpdate = true;
-          // 重载时黑烟更浓
-          (animatables.exhaust.material as THREE.PointsMaterial).opacity = loadPercentage > 0.9 ? 0.6 : 0.2;
-          (animatables.exhaust.material as THREE.PointsMaterial).color.setHex(loadPercentage > 1.0 ? 0x000000 : 0x555555);
+          // 重载时黑烟更浓（读取实时loadPercentageRef）
+          (animatables.exhaust.material as THREE.PointsMaterial).opacity = loadPercentageRef.current > 0.9 ? 0.6 : 0.2;
+          (animatables.exhaust.material as THREE.PointsMaterial).color.setHex(loadPercentageRef.current > 1.0 ? 0x000000 : 0x555555);
       }
 
-      // 应力集中显示
-      if (viewMode === 'structural-stress' && animatables.stressOverlay) {
-          const stress = Math.max(0, (loadPercentage - 0.7) * 3); // 只有高负载才显示
+      // 应力集中显示（读取实时viewModeRef和loadPercentageRef）
+      if (viewModeRef.current === 'structural-stress' && animatables.stressOverlay) {
+          const stress = Math.max(0, (loadPercentageRef.current - 0.7) * 3); // 只有高负载才显示
           (animatables.stressOverlay.material as THREE.MeshBasicMaterial).opacity = 0.2 + Math.sin(time * 5) * 0.1 * stress;
           
           // 船体中拱/中垂模拟 (Visual bending)
@@ -285,6 +310,13 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
           stressLight.intensity = 0;
           if (animatables.stressOverlay) (animatables.stressOverlay.material as THREE.MeshBasicMaterial).opacity = 0;
       }
+
+      // 实时更新集装箱（响应loadPercentage变化）
+      updateContainers();
+
+      // 实时更新海面wireframe（响应viewMode变化）
+      waterMat.wireframe = viewModeRef.current === 'hydrodynamics';
+      waterMat.needsUpdate = true;
 
       controls.update();
       renderer.render(scene, camera);
@@ -308,7 +340,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       disposables.forEach(d => d?.dispose());
       renderer.dispose();
     };
-  }, [loadPercentage, seaState, viewMode]);
+  }, []); // 清空依赖项，仅在组件挂载/卸载时执行
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

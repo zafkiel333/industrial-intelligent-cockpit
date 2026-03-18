@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -13,6 +12,14 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
   systemHealth
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  // 2026.03.18 - Bug修复：创建ref保存实时systemHealth值，避免渲染逻辑依赖项频繁变化
+  // Bug情况：3D模型出现闪烁，原因是useEffect依赖项systemHealth频繁变化导致渲染逻辑反复触发
+  const systemHealthRef = useRef<Record<string, number>>(systemHealth);
+
+  // 单独更新ref值，不触发渲染逻辑重执行
+  useEffect(() => {
+    systemHealthRef.current = systemHealth;
+  }, [systemHealth]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -111,19 +118,26 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     disposables.push(hullGeo, wireMat, fillMat, towerGeo);
 
     // --- 2. 关键系统节点 (System Nodes) ---
-    const systems: ShipSystemNode[] = [
-        { id: 'main-engine', name: '主机 (ME)', position: [-5, 5, 0], status: systemHealth['main'] < 80 ? 'warning' : 'optimal' },
-        { id: 'aux-engine', name: '辅机 (AE)', position: [-5, 8, 3], status: systemHealth['aux'] < 80 ? 'warning' : 'optimal' },
-        { id: 'propulsion', name: '轴系 (Shaft)', position: [10, 2, 0], status: systemHealth['shaft'] < 80 ? 'warning' : 'optimal' },
-        { id: 'deck', name: '甲板机械', position: [15, 11, 0], status: 'optimal' },
-        { id: 'bridge', name: '舰桥通导', position: [-15, 20, 0], status: 'optimal' },
-        { id: 'cargo', name: '货舱监控', position: [5, 8, 0], status: 'optimal' },
+    // 定义系统节点基础配置（不含动态状态）
+    const systemConfigs: Omit<ShipSystemNode, 'status'>[] = [
+        { id: 'main-engine', name: '主机 (ME)', position: [-5, 5, 0] },
+        { id: 'aux-engine', name: '辅机 (AE)', position: [-5, 8, 3] },
+        { id: 'propulsion', name: '轴系 (Shaft)', position: [10, 2, 0] },
+        { id: 'deck', name: '甲板机械', position: [15, 11, 0] },
+        { id: 'bridge', name: '舰桥通导', position: [-15, 20, 0] },
+        { id: 'cargo', name: '货舱监控', position: [5, 8, 0] },
     ];
 
     const nodeGeo = new THREE.IcosahedronGeometry(0.8, 1);
+    // 存储节点材质引用，用于实时更新颜色
+    const nodeMaterialMap = new Map<string, THREE.MeshStandardMaterial>();
+    const ringMaterialMap = new Map<string, THREE.MeshBasicMaterial>();
     
-    systems.forEach(sys => {
-        const color = sys.status === 'optimal' ? 0x10b981 : sys.status === 'warning' ? 0xf59e0b : 0xef4444;
+    systemConfigs.forEach(sys => {
+        // 初始状态从ref获取
+        const healthValue = systemHealthRef.current[sys.id.split('-')[0]] ?? 100;
+        const status = healthValue < 80 ? 'warning' : 'optimal';
+        const color = status === 'optimal' ? 0x10b981 : 0xf59e0b;
         
         const nodeGroup = new THREE.Group();
         nodeGroup.position.set(...sys.position);
@@ -152,13 +166,14 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
         // 垂直指示线
         const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0, -sys.position[1], 0)]);
         const lineMat = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.2 });
-        const line = new THREE.Mesh(lineGeo as any, lineMat); // Use Mesh for simplicity or Line
-        // Actually Line is better
         const lineObj = new THREE.Line(lineGeo, lineMat);
         nodeGroup.add(lineObj);
 
         group.add(nodeGroup);
         animatables.nodes?.set(sys.id, nodeGroup);
+        // 存储材质引用用于实时更新
+        nodeMaterialMap.set(sys.id, coreMat);
+        ringMaterialMap.set(sys.id, ringMat);
         disposables.push(nodeGeo, coreMat, ringGeo, ringMat, lineGeo, lineMat);
     });
 
@@ -199,13 +214,29 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
           animatables.scanningPlane.position.x = Math.sin(time * 0.5) * 20;
       }
 
-      // 节点动态
+      // 节点动态 - 实时读取systemHealthRef.current的值更新状态
       animatables.nodes?.forEach((node, id) => {
           const ring = node.children[1];
           ring.lookAt(camera.position);
           
+          // 从ref获取实时健康值
+          const sysKey = id.split('-')[0];
+          const healthValue = systemHealthRef.current[sysKey] ?? 100;
+          const sysStatus = healthValue < 80 ? 'warning' : 'optimal';
+          
+          // 实时更新节点颜色
+          const color = sysStatus === 'optimal' ? 0x10b981 : 0xf59e0b;
+          const coreMat = nodeMaterialMap.get(id);
+          const ringMat = ringMaterialMap.get(id);
+          if (coreMat) {
+              coreMat.color.setHex(color);
+              coreMat.emissive.setHex(color);
+          }
+          if (ringMat) {
+              ringMat.color.setHex(color);
+          }
+
           // 警告节点脉动更快
-          const sysStatus = systems.find(s => s.id === id)?.status;
           const speed = sysStatus === 'warning' ? 10 : 3;
           
           const scale = 1 + Math.sin(time * speed) * 0.1;
@@ -236,7 +267,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       disposables.forEach(d => d?.dispose());
       renderer.dispose();
     };
-  }, [systemHealth]);
+  }, []); // 2026.03.18 - Bug修复：剔除systemHealth依赖项，避免频繁触发渲染
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };

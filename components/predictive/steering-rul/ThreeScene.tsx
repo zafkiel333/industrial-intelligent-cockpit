@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
@@ -15,7 +14,19 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
   isScanning = true 
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  // 2026.03.18 - Bug修复：创建ref保存实时值，避免依赖项变化触发useEffect重建场景
+  // Bug情况：模型渲染时频繁闪烁，每次componentHealth/isScanning变化都会触发useEffect重新创建整个Three.js场景
+  // Bug原因：useEffect依赖项包含componentHealth和isScanning，这两个变量反复变化导致场景被反复销毁重建，表现为模型闪烁
+  const componentHealthRef = useRef<Record<string, number>>(componentHealth);
+  const isScanningRef = useRef<boolean>(isScanning);
 
+  // 仅更新ref值，不触发场景重建
+  useEffect(() => {
+    componentHealthRef.current = componentHealth;
+    isScanningRef.current = isScanning;
+  }, [componentHealth, isScanning]);
+
+  // 场景初始化仅执行一次，剔除易变依赖项
   useEffect(() => {
     if (!mountRef.current) return;
     console.log("===steering-rul useEffect===");    
@@ -69,7 +80,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
         color: 0x475569, 
         metalness: 0.9, 
         roughness: 0.2,
-        emissive: getHealthColor(componentHealth.pump || 100),
+        emissive: getHealthColor(componentHealthRef.current.pump || 100),
         emissiveIntensity: 0.3
     });
     const pump = new THREE.Mesh(pumpGeo, pumpMat);
@@ -82,7 +93,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     const tillerGeo = new THREE.BoxGeometry(6, 0.4, 1.2);
     const tillerMat = new THREE.MeshStandardMaterial({ 
         color: 0x334155,
-        emissive: getHealthColor(componentHealth.tiller || 100),
+        emissive: getHealthColor(componentHealthRef.current.tiller || 100),
         emissiveIntensity: 0.2
     });
     const tiller = new THREE.Mesh(tillerGeo, tillerMat);
@@ -108,7 +119,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     // 内部活塞 (模拟密封件健康点)
     const pistonGeo = new THREE.CylinderGeometry(0.4, 0.4, 5, 32);
     pistonGeo.rotateZ(Math.PI / 2);
-    const sealColor = getHealthColor(componentHealth.seal || 100);
+    const sealColor = getHealthColor(componentHealthRef.current.seal || 100);
     const pistonMat = new THREE.MeshStandardMaterial({ 
         color: 0x94a3b8, 
         emissive: sealColor,
@@ -142,6 +153,14 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       animationId = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
 
+      // 2026.03.18 - 从ref读取实时值，更新材质属性（而非重建场景）
+      // 更新液压泵组发光颜色
+      pumpMat.emissive = getHealthColor(componentHealthRef.current.pump || 100);
+      // 更新舵柄轴发光颜色
+      tillerMat.emissive = getHealthColor(componentHealthRef.current.tiller || 100);
+      // 更新活塞发光颜色
+      pistonMat.emissive = getHealthColor(componentHealthRef.current.seal || 100);
+
       // 整体缓慢自转与浮动
       group.rotation.y = Math.sin(time * 0.2) * 0.1;
       group.position.y = Math.sin(time * 0.5) * 0.2;
@@ -155,8 +174,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
       // 泵组旋转
       if (pumpGroup) pumpGroup.rotation.y += 0.05;
 
-      // 扫描动画
-      if (isScanning && scanner) {
+      // 扫描动画（读取实时isScanning值）
+      if (isScanningRef.current && scanner) {
           scanner.position.y = Math.sin(time * 1.5) * 5;
           scanner.visible = true;
       } else if (scanner) {
@@ -183,8 +202,19 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      // 额外清理材质和几何体，避免内存泄漏
+      pumpMat.dispose();
+      pumpGeo.dispose();
+      tillerMat.dispose();
+      tillerGeo.dispose();
+      cylMat.dispose();
+      cylGeo.dispose();
+      pistonMat.dispose();
+      pistonGeo.dispose();
+      scanMat.dispose();
+      scanGeo.dispose();
     };
-  }, [componentHealth, isScanning]);
+  }, []); // 剔除componentHealth和isScanning依赖，仅初始化一次
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };
