@@ -489,6 +489,7 @@ import { IncidentRecordView } from './views/maintenance/IncidentRecordView';
 import { WasteDeclareView } from './views/maintenance/WasteDeclareView';
 import { FiveSScoreView } from './views/maintenance/FiveSScoreView';
 import { RcfaReportView } from './views/maintenance/RcfaReportView';
+import { PPEMgmtView } from './views/maintenance/PPEMgmtView';
 import { MtbfMttrAnalysisView } from './views/maintenance/MtbfMttrAnalysisView';
 import { RepeatFaultView } from './views/maintenance/RepeatFaultView';
 import { KnowledgeBackflowView } from './views/maintenance/KnowledgeBackflowView';
@@ -670,6 +671,60 @@ import { BlastingControlKbView } from './views/knowledge-manage/BlastingControlK
 import { UnmannedTruckEdgeScenarioView } from './views/knowledge-manage/UnmannedTruckEdgeScenarioView';
 import { ScraperChainTensionView } from './views/knowledge-manage/ScraperChainTensionView';
 import { GenericView } from './views/GenericView';
+//2026.03.24
+import { InspectionView } from './views/InspectionView';
+import { MiningRailView } from './views/Equipment-Point-Inspection/MiningRailView';
+import { MiningBlastingView } from './views/Equipment-Point-Inspection/BlastingArea/MiningBlastingView';
+import { TailingsYardView } from './views/Equipment-Point-Inspection/TailingsYard/TailingsYardView';
+import { MiningSupportView } from './views/Equipment-Point-Inspection/SupportStructure/MiningSupportView';
+import { MiningVentilationView } from './views/Equipment-Point-Inspection/Ventilation/MiningVentilationView';
+import { ExcavationFaceView } from './views/Equipment-Point-Inspection/ExcavationFace/ExcavationFaceView';
+import { MiningHazardousAreaView } from './views/Equipment-Point-Inspection/HazardousArea/MiningHazardousAreaView';
+import { MiningDrainageWellView } from './views/Equipment-Point-Inspection/DrainageWell/MiningDrainageWellView';
+import { MiningEnergyControlView } from './views/Equipment-Point-Inspection/EnergyControl/MiningEnergyControlView';
+import { MiningVehicleDispatchView } from './views/Equipment-Point-Inspection/VehicleDispatch/MiningVehicleDispatchView';
+import { PortBerthInspectionView } from './views/Equipment-Point-Inspection/PortBerth/PortBerthInspectionView';
+import { ChannelBuoyView } from './views/Equipment-Point-Inspection/ChannelBuoy/ChannelBuoyView';
+import { ShipCargoHoldInspectionView } from './views/Equipment-Point-Inspection/ShipCargoHold/ShipCargoHoldInspectionView';
+import { PassengerBoardingBridgeView } from './views/Equipment-Point-Inspection/PassengerBoardingBridge/PassengerBoardingBridgeView';
+import { HullStructureInspectionView } from './views/Equipment-Point-Inspection/HullStructure/HullStructureInspectionView';
+import { BallastWaterInspectionView } from './views/Equipment-Point-Inspection/BallastWater/BallastWaterInspectionView';
+import { LightSignalsInspectionView } from './views/Equipment-Point-Inspection/LightSignals/LightSignalsInspectionView';
+import { FuelTankInspectionView } from './views/Equipment-Point-Inspection/FuelTank/FuelTankInspectionView';
+import { ChannelEmbankmentView } from './views/Equipment-Point-Inspection/ChannelEmbankment/ChannelEmbankmentView';
+import { PortWaterQualityView } from './views/Equipment-Point-Inspection/PortWaterQuality/PortWaterQualityView';
+import { GateBladeView } from './views/Equipment-Point-Inspection/GateBlade/GateBladeView';
+import { SpillwayView } from './views/Equipment-Point-Inspection/Spillway/SpillwayView';
+import { HydrologicalStationView } from './views/Equipment-Point-Inspection/HydrologicalStation/HydrologicalStationView';
+import { TurbineBearingView } from './views/Equipment-Point-Inspection/TurbineBearing/TurbineBearingView';
+import { PlantRoofView } from './views/Equipment-Point-Inspection/PlantRoof/PlantRoofView';
+import { StoragePoolSlopeView } from './views/Equipment-Point-Inspection/StoragePoolSlope/StoragePoolSlopeView';
+import { ControlRoomNetworkView } from './views/Equipment-Point-Inspection/ControlRoomNetwork/ControlRoomNetworkView';
+import { SluiceGateCableView } from './views/Equipment-Point-Inspection/SluiceGateCable/SluiceGateCableView';
+import { WaterQualitySamplingView } from './views/Equipment-Point-Inspection/WaterQualitySampling/WaterQualitySamplingView';
+import { DamShoulderView } from './views/Equipment-Point-Inspection/DamShoulder/DamShoulderView';
+import { HydraulicSupportRoofView } from './views/Equipment-Point-Inspection/HydraulicSupportRoof/HydraulicSupportRoofView';
+import { VentilationDoorView } from './views/Equipment-Point-Inspection/VentilationDoor/VentilationDoorView';
+import { FillingOperationAreaView } from './views/Equipment-Point-Inspection/FillingOperationArea/FillingOperationAreaView';
+import { HazardousChemicalWarehouseView } from './views/Equipment-Point-Inspection/HazardousChemicalWarehouse/HazardousChemicalWarehouseView';
+import { UndergroundTransportTrackView } from './views/Equipment-Point-Inspection/UndergroundTransportTrack/UndergroundTransportTrackView';
+import { DeckLifesavingEquipmentView } from './views/Equipment-Point-Inspection/DeckLifesavingEquipment/DeckLifesavingEquipmentView';
+import { PortLiftingOperationView } from './views/Equipment-Point-Inspection/PortLiftingOperation/PortLiftingOperationView';
+import { ColdChainCabinView } from './views/Equipment-Point-Inspection/ColdChainCabin/ColdChainCabinView';
+import { ChannelScourAreaView } from './views/Equipment-Point-Inspection/ChannelScourArea/ChannelScourAreaView';
+import { PortWaterPumpView } from './views/Equipment-Point-Inspection/PortWaterPump/PortWaterPumpView';
+import { TailraceChannelView } from './views/Equipment-Point-Inspection/TailraceChannel/TailraceChannelView';
+import { MineGasView } from './views/Equipment-Point-Inspection/MineGas/MineGasView';
+import { WaterLevelDamView } from './views/Equipment-Point-Inspection/WaterLevelDam/WaterLevelDamView';
+import { WaterTunnelView } from './views/Equipment-Point-Inspection/WaterTunnel/WaterTunnelView';
+import { DiversionChannelView } from './views/Equipment-Point-Inspection/DiversionChannel/DiversionChannelView';
+import { SluiceGateView } from './views/Equipment-Point-Inspection/SluiceGate/SluiceGateView';
+import { SurfaceSubsidenceView } from './views/Equipment-Point-Inspection/SurfaceSubsidence/SurfaceSubsidenceView';
+import { UndergroundLightingView } from './views/Equipment-Point-Inspection/UndergroundLighting/UndergroundLightingView';
+import { TailingsDamView } from './views/Equipment-Point-Inspection/TailingsDam/TailingsDamView';
+import { ElectricalCabinetView } from './views/Equipment-Point-Inspection/ElectricalCabinet/ElectricalCabinetView';
+import { HazardousGasView } from './views/Equipment-Point-Inspection/HazardousGas/HazardousGasView';
+
 import { SIMULATION_CHILDREN } from './constants';
 import { EQUIPMENT_LIST } from './constants';
 import { MENU_ITEMS } from './constants';
@@ -1503,6 +1558,7 @@ export const App = () => {
       case 'am-incident-record': return <IncidentRecordView />;
       case 'am-waste-declare': return <WasteDeclareView />;
       case 'am-5s-score': return <FiveSScoreView />;
+      case 'am-ppe-mgmt': return <PPEMgmtView />;
       case 'am-rcfa-report': return <RcfaReportView />;
       case 'am-mtbf-mttr': return <MtbfMttrAnalysisView />;
       case 'am-repeat-fault': return <RepeatFaultView />;
@@ -1702,25 +1758,78 @@ export const App = () => {
     }
 
     // 5. 故障/专业运维视图 Fallback
-    const label = activeItem.label;
-    if (label.includes('船') && !label.includes('闸')) return <ShipView />;
-    if (label.includes('发电机')) return <GeneratorView />;
-    if (label.includes('水轮机')) return <EquipmentView title={label} />;
-    if (label.includes('起重') || label.includes('吊')) return <CraneView />;
-    if (label.includes('泵站')) return <PumpStationView />;
-    if (label.includes('风力')) return <WindTurbineView />;
-    if (label.includes('污水')) return <WastewaterView />;
-    if (label.includes('排污')) return <OutfallView />;
-    if (label.includes('钻孔') || label.includes('钻机')) return <DrillingRigView />;
-    if (label.includes('掘进')) return <TunnelBoringMachineView />;
-    if (label.includes('提升机')) return <MineHoistView />;
-    if (label.includes('破碎')) return <CrushingEquipmentView />;
-    if (label.includes('制砂')) return <SandMakingView />;
-    if (label.includes('选矿')) return <MineralProcessingView />;
-    if (label.includes('靠泊')) return <BerthingView />;
-    if (label.includes('航标')) return <NavigationMarkView />;
-    if (label.includes('测速')) return <TachometerView />;
-    if (label.includes('输电')) return <TransmissionView />;
+    // const label = activeItem.label;
+    // if (label.includes('船') && !label.includes('闸')) return <ShipView />;
+    // if (label.includes('发电机')) return <GeneratorView />;
+    // if (label.includes('水轮机')) return <EquipmentView title={label} />;
+    // if (label.includes('起重') || label.includes('吊')) return <CraneView />;
+    // if (label.includes('泵站')) return <PumpStationView />;
+    // if (label.includes('风力')) return <WindTurbineView />;
+    // if (label.includes('污水')) return <WastewaterView />;
+    // if (label.includes('排污')) return <OutfallView />;
+    // if (label.includes('钻孔') || label.includes('钻机')) return <DrillingRigView />;
+    // if (label.includes('掘进')) return <TunnelBoringMachineView />;
+    // if (label.includes('提升机')) return <MineHoistView />;
+    // if (label.includes('破碎')) return <CrushingEquipmentView />;
+    // if (label.includes('制砂')) return <SandMakingView />;
+    // if (label.includes('选矿')) return <MineralProcessingView />;
+    // if (label.includes('靠泊')) return <BerthingView />;
+    // if (label.includes('航标')) return <NavigationMarkView />;
+    // if (label.includes('测速')) return <TachometerView />;
+    // if (label.includes('输电')) return <TransmissionView />;
+
+
+    // Special Case Registry for Equipment Point Inspection，2026.03.24
+    if (activeTabId === 'ins-0') return <MiningRailView />;
+    if (activeTabId === 'ins-1') return <MiningBlastingView />;
+    if (activeTabId === 'ins-2') return <TailingsYardView />;
+    if (activeTabId === 'ins-3') return <MiningSupportView />;
+    if (activeTabId === 'ins-4') return <MiningVentilationView />;
+    if (activeTabId === 'ins-5') return <ExcavationFaceView />;
+    if (activeTabId === 'ins-6') return <MiningHazardousAreaView />;
+    if (activeTabId === 'ins-7') return <MiningDrainageWellView />;
+    if (activeTabId === 'ins-8') return <MiningEnergyControlView />;
+    if (activeTabId === 'ins-9') return <MiningVehicleDispatchView />;
+    if (activeTabId === 'ins-10') return <PortBerthInspectionView />;
+    if (activeTabId === 'ins-11') return <ChannelBuoyView />;
+    if (activeTabId === 'ins-12') return <ShipCargoHoldInspectionView />;
+    if (activeTabId === 'ins-13') return <PassengerBoardingBridgeView />;
+    if (activeTabId === 'ins-14') return <HullStructureInspectionView />;
+    if (activeTabId === 'ins-15') return <BallastWaterInspectionView />;
+    if (activeTabId === 'ins-16') return <LightSignalsInspectionView />;
+    if (activeTabId === 'ins-17') return <FuelTankInspectionView />;
+    if (activeTabId === 'ins-18') return <ChannelEmbankmentView />;
+    if (activeTabId === 'ins-19') return <PortWaterQualityView />;
+    if (activeTabId === 'ins-20') return <GateBladeView />;
+    if (activeTabId === 'ins-21') return <SpillwayView />;
+    if (activeTabId === 'ins-22') return <HydrologicalStationView />;
+    if (activeTabId === 'ins-23') return <TurbineBearingView />;
+    if (activeTabId === 'ins-24') return <PlantRoofView />;
+    if (activeTabId === 'ins-25') return <StoragePoolSlopeView />;
+    if (activeTabId === 'ins-26') return <ControlRoomNetworkView />;
+    if (activeTabId === 'ins-27') return <SluiceGateCableView />;
+    if (activeTabId === 'ins-28') return <WaterQualitySamplingView />;
+    if (activeTabId === 'ins-29') return <DamShoulderView />;
+    if (activeTabId === 'ins-30') return <HydraulicSupportRoofView />;
+    if (activeTabId === 'ins-31') return <VentilationDoorView />;
+    if (activeTabId === 'ins-32') return <FillingOperationAreaView />;
+    if (activeTabId === 'ins-33') return <HazardousChemicalWarehouseView />;
+    if (activeTabId === 'ins-34') return <UndergroundTransportTrackView />;
+    if (activeTabId === 'ins-35') return <DeckLifesavingEquipmentView />;
+    if (activeTabId === 'ins-36') return <PortLiftingOperationView />;
+    if (activeTabId === 'ins-37') return <ColdChainCabinView />;
+    if (activeTabId === 'ins-38') return <ChannelScourAreaView />;
+    if (activeTabId === 'ins-39') return <PortWaterPumpView />;
+    if (activeTabId === 'ins-40') return <TailraceChannelView />;
+    if (activeTabId === 'ins-41') return <WaterLevelDamView />;
+    if (activeTabId === 'ins-42') return <WaterTunnelView />;
+    if (activeTabId === 'ins-43') return <DiversionChannelView />;
+    if (activeTabId === 'ins-44') return <SluiceGateView />;
+    if (activeTabId === 'ins-45') return <SurfaceSubsidenceView />;
+    if (activeTabId === 'ins-46') return <UndergroundLightingView />;
+    if (activeTabId === 'ins-47') return <TailingsDamView />;
+    if (activeTabId === 'ins-48') return <ElectricalCabinetView />;
+    if (activeTabId === 'ins-49') return <HazardousGasView />;
 
     //服务数据管理, 2026.01.19, update
     // Special Case: Mining Service Data Management (Page 1)
@@ -2056,6 +2165,11 @@ export const App = () => {
     // Special Case: Sand Making Smart Ops (index 17 in the list, so id is eq-17)
     if (activeTabId === 'eq-17') {
       return <SandMakingView />;
+    }
+
+    // Handle Inspection Sub-items，2026.03.24
+    if (activeTabId.startsWith('ins-')) {
+      return <InspectionView title={activeItem.label} />;
     }
 
     // Handle other Sub-items of Smart Ops (Equipment Views)

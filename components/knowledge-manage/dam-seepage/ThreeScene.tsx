@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 // @ts-ignore
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -12,6 +11,10 @@ interface ThreeSceneProps {
 
 export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  // 核心修复：新增标记ref，确保自动刷新仅执行一次
+  const autoRefreshedRef = useRef(false); // 初始为未执行
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -30,8 +33,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
-    //2026.02.04,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
-    // 新增：清空挂载节点，避免多canvas
     const existingCanvas = mountRef.current.querySelector('canvas');
     if (existingCanvas) {
       mountRef.current.removeChild(existingCanvas);
@@ -71,7 +72,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
       time += 0.02;
       controls.update();
       
-      // Dynamic light intensity
       if (state === 'LEAK_DETECT') {
           heatLight.intensity = 5 + Math.sin(time*10)*2;
       } else {
@@ -93,7 +93,18 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
     };
     window.addEventListener('resize', handleResize);
 
+    // 修复：仅在未执行过自动刷新时触发
+    const autoRefreshTimer = setTimeout(() => {
+      // 判断是否已执行过，避免重复触发
+      if (autoRefreshedRef.current) return;
+      
+      console.log('模型初始化完成，触发唯一一次自动刷新');
+      autoRefreshedRef.current = true; // 标记为已执行
+      setRefreshTrigger(prev => prev + 1);
+    }, 1000);
+
     return () => {
+      clearTimeout(autoRefreshTimer);
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationId);
       if (mountRef.current && mountRef.current.contains(renderer.domElement)) {
@@ -102,7 +113,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
       disposables.forEach(d => d.dispose());
       renderer.dispose();
     };
-  }, [state]);
+  }, [state, refreshTrigger]);
 
   return <div ref={mountRef} className="w-full h-full cursor-move" />;
 };
