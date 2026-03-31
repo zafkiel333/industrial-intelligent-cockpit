@@ -1,5 +1,5 @@
 //import React, { useState } from 'react'; /////
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { SmartOperationsView } from './views/SmartOperationsView';
 
@@ -737,11 +737,154 @@ import { PowerTransformerMaintenanceView } from './views/Maintenance-plan-manage
 import * as MPMViews from './views/Maintenance-plan-management';
 
 
+
+// Lazy load CV views
+const CV_VIEWS: Record<string, any> = {
+  'cv-dam-crack': lazy(() => import('./views/computer-visual-inspection/DamCrackDetection')),
+  'cv-turbine-cavitation': lazy(() => import('./views/computer-visual-inspection/TurbineCavitation')),
+  'cv-sluice-gate-seal': lazy(() => import('./views/computer-visual-inspection/SluiceGateSeal')),
+  'cv-transformer-leak': lazy(() => import('./views/computer-visual-inspection/TransformerLeak')),
+  'cv-insulator-flashover': lazy(() => import('./views/computer-visual-inspection/InsulatorDefect')),
+  'cv-spillway-monitoring': lazy(() => import('./views/computer-visual-inspection/SpillwayMonitoring')),
+  'cv-dam-seepage': lazy(() => import('./views/computer-visual-inspection/DamSeepage')),
+  'cv-fish-way-status': lazy(() => import('./views/computer-visual-inspection/FishWayStatus')),
+  'cv-solar-panel': lazy(() => import('./views/computer-visual-inspection/SolarPanelHotspot')),
+  'cv-conveyor-tear': lazy(() => import('./views/computer-visual-inspection/ConveyorTear')),
+  'cv-slope-stability': lazy(() => import('./views/computer-visual-inspection/SlopeStability')),
+  'cv-crusher-liner-wear': lazy(() => import('./views/computer-visual-inspection/CrusherLinerWear')),
+  'cv-shovel-tooth-loss': lazy(() => import('./views/computer-visual-inspection/ShovelToothLoss')),
+  'cv-conveyor-alignment': lazy(() => import('./views/computer-visual-inspection/ConveyorAlignment')),
+  'cv-crusher-feeding': lazy(() => import('./views/computer-visual-inspection/CrusherFeeding')),
+  'cv-hydraulic-cylinder': lazy(() => import('./views/computer-visual-inspection/HydraulicCylinder')),
+  'cv-mine-ventilation': lazy(() => import('./views/computer-visual-inspection/MineVentilation')),
+  'cv-tailing-dam': lazy(() => import('./views/computer-visual-inspection/TailingDam')),
+  'cv-belt-cleaner': lazy(() => import('./views/computer-visual-inspection/BeltCleaner')),
+  'cv-excavator-bucket': lazy(() => import('./views/computer-visual-inspection/ExcavatorBucket')),
+  'cv-open-pit-slope': lazy(() => import('./views/computer-visual-inspection/OpenPitSlope')),
+  'cv-stockpile-volume': lazy(() => import('./views/computer-visual-inspection/StockpileVolume')),
+  'cv-belt-foreign-object': lazy(() => import('./views/computer-visual-inspection/BeltForeignObject')),
+  'cv-truck-tire': lazy(() => import('./views/computer-visual-inspection/TruckTire')),
+  'cv-hoist-rope': lazy(() => import('./views/computer-visual-inspection/HoistRope')),
+  'cv-drill-bit-wear': lazy(() => import('./views/computer-visual-inspection/DrillBitWear')),
+  'cv-screen-mesh': lazy(() => import('./views/computer-visual-inspection/ScreenMesh')),
+  'cv-conveyor-roller': lazy(() => import('./views/computer-visual-inspection/ConveyorRoller')),
+  'cv-quay-crane-fatigue': lazy(() => import('./views/computer-visual-inspection/QuayCraneFatigue')),
+  'cv-hull-biofouling': lazy(() => import('./views/computer-visual-inspection/HullBiofouling')),
+  'cv-hull-damage': lazy(() => import('./views/computer-visual-inspection/HullDamage')),
+  'cv-berthing-distance': lazy(() => import('./views/computer-visual-inspection/BerthingDistance')),
+  'cv-ship-propeller': lazy(() => import('./views/computer-visual-inspection/ShipPropeller')),
+  'cv-port-fender': lazy(() => import('./views/computer-visual-inspection/PortFender')),
+  'cv-container-spreader': lazy(() => import('./views/computer-visual-inspection/ContainerSpreader')),
+  'cv-engine-room-oil-mist': lazy(() => import('./views/computer-visual-inspection/EngineRoomOilMist')),
+  'cv-ship-anchor-chain': lazy(() => import('./views/computer-visual-inspection/ShipAnchorChain')),
+  'cv-mooring-tension': lazy(() => import('./views/computer-visual-inspection/MooringTension')),
+  'cv-channel-obstacle': lazy(() => import('./views/computer-visual-inspection/ChannelObstacle')),
+  'cv-motor-bearing': lazy(() => import('./views/computer-visual-inspection/MotorBearing')),
+  'cv-pump-seal-leak': lazy(() => import('./views/computer-visual-inspection/PumpSealLeak')),
+  'cv-hydraulic-hose': lazy(() => import('./views/computer-visual-inspection/HydraulicHose')),
+  'cv-robot-joint-wear': lazy(() => import('./views/computer-visual-inspection/RobotJointWear')),
+  'cv-hvac-cleanliness': lazy(() => import('./views/computer-visual-inspection/HVACCleanliness')),
+  'cv-fire-extinguisher': lazy(() => import('./views/computer-visual-inspection/FireExtinguisher')),
+  'cv-electrical-cabinet': lazy(() => import('./views/computer-visual-inspection/ElectricalCabinet')),
+  'cv-flange-bolt-loosening': lazy(() => import('./views/computer-visual-inspection/FlangeBoltLoosening')),
+  'cv-battery-corrosion': lazy(() => import('./views/computer-visual-inspection/BatteryCorrosion')),
+  'cv-rack-integrity': lazy(() => import('./views/computer-visual-inspection/RackIntegrity')),
+  'cv-generator-exhaust': lazy(() => import('./views/computer-visual-inspection/GeneratorExhaust')),
+  'cv-cooling-tower-fan': lazy(() => import('./views/computer-visual-inspection/CoolingTowerFan')),
+  'cv-steam-trap-status': lazy(() => import('./views/computer-visual-inspection/SteamTrapStatus')),
+  'cv-lighting-failure': lazy(() => import('./views/computer-visual-inspection/LightingFailure')),
+  'cv-workshop-floor': lazy(() => import('./views/computer-visual-inspection/WorkshopFloor')),
+  'cv-ppe-compliance': lazy(() => import('./views/computer-visual-inspection/PPECompliance')),
+  'cv-cable-tunnel': lazy(() => import('./views/computer-visual-inspection/CableTunnel')),
+  'cv-warehouse-security': lazy(() => import('./views/computer-visual-inspection/WarehouseSecurity')),
+  'cv-crane-rail-wear': lazy(() => import('./views/computer-visual-inspection/CraneRailWear')),
+  'cv-gas-pipe-leak': lazy(() => import('./views/computer-visual-inspection/GasPipeLeak')),
+  'cv-cooling-tower': lazy(() => import('./views/computer-visual-inspection/CoolingTower')),
+  'cv-pump-vibration': lazy(() => import('./views/computer-visual-inspection/PumpVibration')),
+  'cv-valve-position': lazy(() => import('./views/computer-visual-inspection/ValvePosition')),
+  'cv-ladder-integrity': lazy(() => import('./views/computer-visual-inspection/LadderIntegrity')),
+  'cv-oil-tank-corrosion': lazy(() => import('./views/computer-visual-inspection/OilTankCorrosion')),
+  'cv-pipe-hanger': lazy(() => import('./views/computer-visual-inspection/PipeHanger')),
+  'cv-dust-collector': lazy(() => import('./views/computer-visual-inspection/DustCollector')),
+  'cv-conveyor-misalignment': lazy(() => import('./views/computer-visual-inspection/ConveyorMisalignment')),
+};
+
+// Lazy load Vibration views
+const VIBE_VIEWS: Record<string, any> = {
+  'vibe-TurbineShaft': lazy(() => import('./views/vibration-monitoring/TurbineShaft')),
+  'vibe-StatorCore': lazy(() => import('./views/vibration-monitoring/StatorCore')),
+  'vibe-GuideBearing': lazy(() => import('./views/vibration-monitoring/GuideBearing')),
+  'vibe-ThrustBearing': lazy(() => import('./views/vibration-monitoring/ThrustBearing')),
+  'vibe-VoluteHydraulic': lazy(() => import('./views/vibration-monitoring/VoluteHydraulic')),
+  'vibe-DraftTubePulsation': lazy(() => import('./views/vibration-monitoring/DraftTubePulsation')),
+  'vibe-DamGalleryMicroseism': lazy(() => import('./views/vibration-monitoring/DamGalleryMicroseism')),
+  'vibe-SpillwayGate': lazy(() => import('./views/vibration-monitoring/SpillwayGate')),
+  'vibe-SurgeTankVibration': lazy(() => import('./views/vibration-monitoring/SurgeTankVibration')),
+  'vibe-PumpedStorageSwitch': lazy(() => import('./views/vibration-monitoring/PumpedStorageSwitch')),
+  'vibe-MineHoist': lazy(() => import('./views/vibration-monitoring/MineHoist')),
+  'vibe-ConveyorBeltVibration': lazy(() => import('./views/vibration-monitoring/ConveyorBeltVibration')),
+  'vibe-JawCrusher': lazy(() => import('./views/vibration-monitoring/JawCrusher')),
+  'vibe-ConeCrusherVibration': lazy(() => import('./views/vibration-monitoring/ConeCrusherVibration')),
+  'vibe-BallMillVibration': lazy(() => import('./views/vibration-monitoring/BallMillVibration')),
+  'vibe-VibratingScreen': lazy(() => import('./views/vibration-monitoring/VibratingScreen')),
+  'vibe-MineVentilator': lazy(() => import('./views/vibration-monitoring/MineVentilator')),
+  'vibe-SlurryPumpVibration': lazy(() => import('./views/vibration-monitoring/SlurryPumpVibration')),
+  'vibe-UndergroundLoader': lazy(() => import('./views/vibration-monitoring/UndergroundLoader')),
+  'vibe-MineTruckVibration': lazy(() => import('./views/vibration-monitoring/MineTruckVibration')),
+  'vibe-DrillingRig': lazy(() => import('./views/vibration-monitoring/DrillingRig')),
+  'vibe-MineSubstationVibration': lazy(() => import('./views/vibration-monitoring/MineSubstationVibration')),
+  'vibe-TailingsDam': lazy(() => import('./views/vibration-monitoring/TailingsDam')),
+  'vibe-MineExcavatorVibration': lazy(() => import('./views/vibration-monitoring/MineExcavatorVibration')),
+  'vibe-PortCraneVibration': lazy(() => import('./views/vibration-monitoring/PortCraneVibration')),
+  'vibe-ShipPropulsionVibration': lazy(() => import('./views/vibration-monitoring/ShipPropulsionVibration')),
+  'vibe-ContainerSpreader': lazy(() => import('./views/vibration-monitoring/ContainerSpreader')),
+  'vibe-ShipUnloaderVibration': lazy(() => import('./views/vibration-monitoring/ShipUnloaderVibration')),
+  'vibe-PortTugboat': lazy(() => import('./views/vibration-monitoring/PortTugboat')),
+  'vibe-DredgerVibration': lazy(() => import('./views/vibration-monitoring/DredgerVibration')),
+  'vibe-PortConveyor': lazy(() => import('./views/vibration-monitoring/PortConveyor')),
+  'vibe-ShipGeneratorVibration': lazy(() => import('./views/vibration-monitoring/ShipGeneratorVibration')),
+  'vibe-PortOilPump': lazy(() => import('./views/vibration-monitoring/PortOilPump')),
+  'vibe-ShipCraneVibration': lazy(() => import('./views/vibration-monitoring/ShipCraneVibration')),
+  'vibe-PortStackerReclaimer': lazy(() => import('./views/vibration-monitoring/PortStackerReclaimer')),
+  'vibe-ShipCompressorVibration': lazy(() => import('./views/vibration-monitoring/ShipCompressorVibration')),
+  'vibe-PortShipLoader': lazy(() => import('./views/vibration-monitoring/PortShipLoader')),
+  'vibe-ShipBoilerVibration': lazy(() => import('./views/vibration-monitoring/ShipBoilerVibration')),
+  'vibe-PortBeltScale': lazy(() => import('./views/vibration-monitoring/PortBeltScale')),
+  'vibe-ShipThrusterVibration': lazy(() => import('./views/vibration-monitoring/ShipThrusterVibration')),
+  'vibe-PortTugboatEngine': lazy(() => import('./views/vibration-monitoring/PortTugboatEngine')),
+  'vibe-ShipPropellerShaft': lazy(() => import('./views/vibration-monitoring/ShipPropellerShaft')),
+  'vibe-PortQuayCrane': lazy(() => import('./views/vibration-monitoring/PortQuayCrane')),
+  'vibe-ShipAuxiliaryEngine': lazy(() => import('./views/vibration-monitoring/ShipAuxiliaryEngine')),
+  'vibe-PortUnloader': lazy(() => import('./views/vibration-monitoring/PortUnloader')),
+  'vibe-ShipMainEngine': lazy(() => import('./views/Vibration monitoring/ShipMainEngineShafting')),
+  'vibe-PortConveyorBelt': lazy(() => import('./views/vibration-monitoring/PortConveyorBelt')),
+  'vibe-ShipGenerator': lazy(() => import('./views/vibration-monitoring/ShipGenerator')),
+  'vibe-PortStacker': lazy(() => import('./views/vibration-monitoring/PortStacker')),
+  'vibe-ShipCompressor': lazy(() => import('./views/Vibration monitoring/ShipCompressor')),
+  'vibe-PortWinch': lazy(() => import('./views/Vibration monitoring/WindlassOpeningClosing')),
+  'vibe-ShipPump': lazy(() => import('./views/Vibration monitoring/ShipPump')),
+  'vibe-PortHopper': lazy(() => import('./views/vibration-monitoring/PortHopper')),
+  'vibe-ShipFan': lazy(() => import('./views/vibration-monitoring/ShipFan')),
+  'vibe-PortFender': lazy(() => import('./views/vibration-monitoring/PortFender')),
+  'vibe-ShipHull': lazy(() => import('./views/Vibration monitoring/ShipHullVerticalVibration')),
+  'vibe-PortPipeline': lazy(() => import('./views/Vibration monitoring/PortPipeline')),
+  'vibe-ShipSeparator': lazy(() => import('./views/Vibration monitoring/ShipSeparator')),
+  'vibe-PortSubstation': lazy(() => import('./views/Vibration monitoring/PortSubstation')),
+  'vibe-ShipSteering': lazy(() => import('./views/Vibration monitoring/ShipSteering')),
+  'vibe-PortConveyorIdler': lazy(() => import('./views/Vibration monitoring/PortConveyorIdler')),
+  'vibe-ShipWaterMaker': lazy(() => import('./views/Vibration monitoring/ShipWaterMaker')),
+  'vibe-PortHighMast': lazy(() => import('./views/Vibration monitoring/PortHighMast')),
+  'vibe-PortLightingTower': lazy(() => import('./views/Vibration monitoring/PortHighMastVortexVibration')),
+  'vibe-ShipAirConditioning': lazy(() => import('./views/Vibration monitoring/ShipAirConditioningFanCoil')),
+  'vibe-PortFirePump': lazy(() => import('./views/Vibration monitoring/PortFirePumpEmergencyStart')),
+};
+
+
 import { SIMULATION_CHILDREN } from './constants';
 import { EQUIPMENT_LIST } from './constants';
 import { MENU_ITEMS } from './constants';
 import { MenuItem } from './types';
-import { Globe, Clock, Settings, Bell } from 'lucide-react';
+import { Globe, Clock, Settings, Bell, Loader2 } from 'lucide-react';
 export const App = () => {
   //const [activeTabId, setActiveTabId] = useState('smart-ops');
 
@@ -1920,6 +2063,38 @@ export const App = () => {
       const ViewComponent = (MPMViews as any)[viewName];
       if (ViewComponent) return <ViewComponent />;
     }
+
+
+
+    // Handle CV Views
+    if (activeTabId.startsWith('cv-') && CV_VIEWS[activeTabId]) {
+      const CVComponent = CV_VIEWS[activeTabId];
+      return (
+        <Suspense fallback={
+          <div className="h-full w-full flex items-center justify-center">
+            <Loader2 className="animate-spin text-cyan-500" size={48} />
+          </div>
+        }>
+          <CVComponent />
+        </Suspense>
+      );
+    }
+
+    // Handle Vibration Views
+    if (activeTabId.startsWith('vibe-') && VIBE_VIEWS[activeTabId]) {
+      const VibeComponent = VIBE_VIEWS[activeTabId];
+      return (
+        <Suspense fallback={
+          <div className="h-full w-full flex items-center justify-center">
+            <Loader2 className="animate-spin text-cyan-500" size={48} />
+          </div>
+        }>
+          <VibeComponent />
+        </Suspense>
+      );
+    }
+
+
 
 
     //服务数据管理, 2026.01.19, update
