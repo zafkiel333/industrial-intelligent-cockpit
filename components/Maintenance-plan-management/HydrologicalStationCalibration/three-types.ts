@@ -1,0 +1,1 @@
+export interface HydrologicalStationCalibrationProps {\n  status?: string;\n  calibrationProgress?: number;\n}\n

@@ -725,6 +725,18 @@ import { TailingsDamView } from './views/Equipment-Point-Inspection/TailingsDam/
 import { ElectricalCabinetView } from './views/Equipment-Point-Inspection/ElectricalCabinet/ElectricalCabinetView';
 import { HazardousGasView } from './views/Equipment-Point-Inspection/HazardousGas/HazardousGasView';
 
+
+//Maintenance-plan-management
+import { AirCompressorOverhaulView } from './views/Maintenance-plan-management/AirCompressorOverhaul/AirCompressorOverhaulView';
+import { HVACSystemCleaningView } from './views/Maintenance-plan-management/HVACSystemCleaning/HVACSystemCleaningView';
+import { FireExtinguishingSystemView } from './views/Maintenance-plan-management/FireExtinguishingSystem/FireExtinguishingSystemView';
+import { EmergencyGeneratorTestView } from './views/Maintenance-plan-management/EmergencyGeneratorTest/EmergencyGeneratorTestView';
+import { OverheadCraneTrackView } from './views/Maintenance-plan-management/OverheadCraneTrack/OverheadCraneTrackView';
+import { PowerTransformerMaintenanceView } from './views/Maintenance-plan-management/PowerTransformerMaintenance/PowerTransformerMaintenanceView';
+
+import * as MPMViews from './views/Maintenance-plan-management';
+
+
 import { SIMULATION_CHILDREN } from './constants';
 import { EQUIPMENT_LIST } from './constants';
 import { MENU_ITEMS } from './constants';
@@ -1830,6 +1842,85 @@ export const App = () => {
     if (activeTabId === 'ins-47') return <TailingsDamView />;
     if (activeTabId === 'ins-48') return <ElectricalCabinetView />;
     if (activeTabId === 'ins-49') return <HazardousGasView />;
+
+
+
+    // Handle Maintenance Plan Management Sub-items
+    if (activeTabId.startsWith('mpm-')) {
+      const index = parseInt(activeTabId.replace('mpm-', ''), 10);
+      const scenarios = [
+        'HydroTurbineOverhaulView',
+        'SpillwayGateMaintenanceView',
+        'DamStructureReinforcementView',
+        'PenstockAntiCorrosionView',
+        'TransformerPreventiveView',
+        'PumpStationAnnualView',
+        'ReservoirDesiltingView',
+        'NavigationLockOverhaulView',
+        'HydraulicHoistMaintenanceView',
+        'TailraceTunnelInspectionView',
+        'GeneratorRotorReplacementView',
+        'GovernorSystemCalibrationView',
+        'ExcitationSystemUpgradeView',
+        'CoolingWaterSystemCleaningView',
+        'SluiceGateSealReplacementView',
+        'TrashRackCleaningView',
+        'SurgeChamberInspectionView',
+        'PenstockValveMaintenanceView',
+        'HydrologicalStationCalibrationView',
+        'DamSeepageMonitoringView',
+        'MainHoistRopeReplacementView',
+        'VentilationFanOverhaulView',
+        'ConveyorBeltSplicingView',
+        'CrusherLinerReplacementView',
+        'BallMillGearLubricationView',
+        'UndergroundSubstationMaintenanceView',
+        'DrainagePumpOverhaulView',
+        'ElectricShovelMaintenanceView',
+        'HaulTruckFleetScheduleView',
+        'DrillingRigHydraulicView',
+        'FlotationMachineRotorView',
+        'ThickenerDriveMaintenanceView',
+        'TailingsDamReinforcementView',
+        'MineLocomotiveOverhaulView',
+        'RoadheaderCutterReplacementView',
+        'ShearerDrumMaintenanceView',
+        'HydraulicSupportOverhaulView',
+        'ScraperConveyorChainView',
+        'UndergroundRefugeChamberView',
+        'GasMonitoringCalibrationView',
+        'STSCraneWireRopeView',
+        'RTGEngineOverhaulView',
+        'AGVFleetBatteryView',
+        'ShipMainEngineMaintenanceView',
+        'PropellerPolishingView',
+        'HullAntiFoulingPaintView',
+        'BallastWaterSystemView',
+        'MooringWinchBrakeView',
+        'NavigationalRadarCalibrationView',
+        'PortConveyorBeltView',
+        'ShipLoaderChuteView',
+        'BerthFenderReplacementView',
+        'TugboatPropulsionView',
+        'ReeferContainerRackView',
+        'PortSubstationPreventiveView',
+        'DredgerCutterHeadView',
+        'VTSRadarTowerView',
+        'MarineBoilerCleaningView',
+        'LifeboatDavitTestView',
+        'PortGateAutomationView',
+        'AirCompressorOverhaulView',
+        'HVACSystemCleaningView',
+        'FireExtinguishingSystemView',
+        'EmergencyGeneratorTestView',
+        'OverheadCraneTrackView',
+        'PowerTransformerMaintenanceView'
+      ];
+      const viewName = scenarios[index];
+      const ViewComponent = (MPMViews as any)[viewName];
+      if (ViewComponent) return <ViewComponent />;
+    }
+
 
     //服务数据管理, 2026.01.19, update
     // Special Case: Mining Service Data Management (Page 1)

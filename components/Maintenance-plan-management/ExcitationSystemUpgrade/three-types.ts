@@ -1,0 +1,1 @@
+export interface ExcitationSystemUpgradeProps {\n  status?: string;\n  upgradeProgress?: number;\n}\n

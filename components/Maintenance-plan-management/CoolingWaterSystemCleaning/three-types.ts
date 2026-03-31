@@ -1,0 +1,1 @@
+export interface CoolingWaterSystemCleaningProps {\n  status?: string;\n  cleaningProgress?: number;\n}\n
