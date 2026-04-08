@@ -17,6 +17,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect }) => {
     );
   };
 
+  // [新增代码] 递归计算某个菜单项下的所有子页面（叶子节点）数量
+  const getLeafCount = (item: MenuItem): number => {
+    // 如果有子菜单，则递归累加所有子菜单的页面数
+    if (item.children && item.children.length > 0) {
+      return item.children.reduce((sum, child) => sum + getLeafCount(child), 0);
+    }
+    // 如果没有子菜单，说明它本身就是一个页面，计为 1
+    return 1;
+  };
+
+  // [新增代码] 计算整个系统的总页面数，遍历 MENU_ITEMS 累加
+  const totalCount = MENU_ITEMS.reduce((acc, item) => acc + getLeafCount(item), 0);
+
+
   const renderMenuItem = (item: MenuItem, depth = 0) => {
     const isExpanded = expandedIds.includes(item.id);
     const hasChildren = item.children && item.children.length > 0;
@@ -91,7 +105,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect }) => {
           <Hexagon className="text-cyan-400 animate-pulse" size={24} />
           工业智脑
         </h1>
-        <p className="text-xs text-cyan-600 mt-1 tracking-[0.2em] uppercase">Industrial Mind</p>
+        <div className="flex justify-between items-center mt-1">
+          <p className="text-xs text-cyan-600 tracking-[0.2em] uppercase">Industrial Mind</p>
+          {/* ADDED: Total count badge */}
+          <span className="text-[10px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-800/50" title="总页面数">
+            总计: {totalCount}
+          </span>
+        </div>
       </div>
 
       <nav className="flex-1 py-4">

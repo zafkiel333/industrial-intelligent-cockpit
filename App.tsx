@@ -3,6 +3,30 @@ import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { SmartOperationsView } from './views/SmartOperationsView';
 
+import { InspectionOverviewView } from './views/InspectionOverviewView';
+import { MaintenancePlanOverviewView } from './views/MaintenancePlanOverviewView';
+
+import { AdvancedGenericView } from './views/AdvancedGenericView';
+import { CockpitView } from './views/CockpitView';
+import { PredictiveMaintenanceView } from './views/PredictiveMaintenanceView';
+import { SparePartsView } from './views/SparePartsView';
+
+import { ProductKnowledgeBaseOverviewView } from './views/ProductKnowledgeBaseOverviewView';
+import { IndexAnalysisOverviewView } from './views/IndexAnalysisOverviewView';
+import { DigitalDeliveryOverviewView } from './views/DigitalDeliveryOverviewView';
+import { SimulationOverviewView } from './views/SimulationOverviewView';
+import { CustomerDataOverviewView } from './views/CustomerDataOverviewView';
+import { RemoteExpertOverviewView } from './views/RemoteExpertOverviewView';
+import { AppMaintenanceOverviewView } from './views/AppMaintenanceOverviewView';
+import { MockMaintenanceOverviewView } from './views/MockMaintenanceOverviewView';
+import { OpsKnowledgeOverviewView } from './views/OpsKnowledgeOverviewView';
+import { ServiceDataOverviewView } from './views/ServiceDataOverviewView';
+import { LifeWarningOverviewView } from './views/LifeWarningOverviewView';
+import { CVMonitorOverviewView } from './views/CVMonitorOverviewView';
+import { VibrationMonitorOverviewView } from './views/VibrationMonitorOverviewView';
+import { MaintenanceTrainingOverviewView } from './views/MaintenanceTrainingOverviewView';
+
+
 import { EquipmentView } from './views/EquipmentView';
 import { GeneratorView } from './views/GeneratorView';
 import { TransmissionView } from './views/TransmissionView';
@@ -339,6 +363,14 @@ import { LocomotiveGearboxWearView } from './views/predictive/mining/LocomotiveG
 import { LocomotiveBrakingReliabilityView } from './views/predictive/mining/LocomotiveBrakingReliabilityView';
 import { MiningLocomotiveRulView } from './views/predictive/mining/MiningLocomotiveRulView';
 import { JawCrusherHealthView } from './views/predictive/mining/JawCrusherHealthView';
+
+
+import { PortGroupSimulationView } from './views/simulation/port-group';
+import { PortAutoSimulationView } from './views/simulation/port-auto';
+import { PortCarbonSimulationView } from './views/simulation/port-carbon';
+import { PortEvacSimulationView } from './views/simulation/port-evac';
+
+
 
 //Service data management view, 2026.01.19, update
 import { MiningServiceDataView } from './views/MiningServiceDataView';
@@ -880,6 +912,11 @@ const VIBE_VIEWS: Record<string, any> = {
 };
 
 
+import { MaintenanceTrainingView } from './views/MaintenanceTrainingView';
+import { LIFE_WARNING_CHILDREN, MAINTENANCE_TRAINING_CHILDREN } from './constants';
+const maintenanceViews = import.meta.glob('./views/life-warning/*/View.tsx');
+const maintenanceTrainingViews = import.meta.glob('./views/Maintenance-Training/*/index.tsx');
+
 import { SIMULATION_CHILDREN } from './constants';
 import { EQUIPMENT_LIST } from './constants';
 import { MENU_ITEMS } from './constants';
@@ -890,6 +927,12 @@ export const App = () => {
 
   const [activeTabId, setActiveTabId] = useState<string>(MENU_ITEMS[0].id);
   const [currentTime, setCurrentTime] = useState<string>('');
+
+  const [LoadedMaintenanceView, setLoadedMaintenanceView] = useState<React.ComponentType | null>(null);
+  const [LoadedMaintenanceTrainingView, setLoadedMaintenanceTrainingView] = useState<React.ComponentType | null>(null);
+  const [LoadedMockMaintenanceView, setLoadedMockMaintenanceView] = useState<React.ComponentType | null>(null);
+
+
 
   // Clock effect
   useEffect(() => {
@@ -919,10 +962,43 @@ export const App = () => {
     return undefined;
   };
 
+  
+  useEffect(() => {
+    const isLifeWarning = LIFE_WARNING_CHILDREN.some(child => child.id === activeTabId);
+    if (isLifeWarning) {
+      const viewPath = `./views/life-warning/${activeTabId}/View.tsx`;
+      const loader = maintenanceViews[viewPath];
+      if (loader) {
+        loader().then((module: any) => {
+          setLoadedMaintenanceView(() => module.View);
+        });
+      }
+    } else {
+      setLoadedMaintenanceView(null);
+    }
+  }, [activeTabId]);
+
+  // Handle dynamic view loading for maintenance training
+  useEffect(() => {
+    const isMaintenanceTrainingChild = MAINTENANCE_TRAINING_CHILDREN.some(child => child.id === activeTabId);
+    if (isMaintenanceTrainingChild) {
+      const viewPath = `./views/Maintenance-Training/${activeTabId}/index.tsx`;
+      const loader = maintenanceTrainingViews[viewPath];
+      if (loader) {
+        loader().then((module: any) => {
+          setLoadedMaintenanceTrainingView(() => module.default);
+        });
+      }
+    } else {
+      setLoadedMaintenanceTrainingView(null);
+    }
+  }, [activeTabId]);
+
   const activeItem = useMemo(() => findItemById(MENU_ITEMS, activeTabId), [activeTabId]);
 
   const renderContent = () => {
-    if (!activeItem) return <GenericView title="Loading..." />;
+    //if (!activeItem) return <GenericView title="Loading..." />;
+    if (!activeItem) return <AdvancedGenericView title="Loading..." id="loading" />;
 
     // Smart Ops
     if (activeTabId === 'smart-ops') return <SmartOperationsView />;
@@ -1094,7 +1170,12 @@ export const App = () => {
     if (activeTabId === 'sim-port-sched') return <PortSchedSimView />;
     if (activeTabId === 'sim-port-bridge') return <PortBridgeSimView />;
     if (activeTabId === 'sim-port-surge') return <PortSurgeSimView />;
+    if (activeTabId === 'sim-port-group') return <PortGroupSimulationView />;
+    if (activeTabId === 'sim-port-auto') return <PortAutoSimulationView />;
+    if (activeTabId === 'sim-port-carbon') return <PortCarbonSimulationView />;
+    if (activeTabId === 'sim-port-evac') return <PortEvacSimulationView />;
 
+    
     //CDM views
     if (activeTabId === 'cdm-master') {
       return <CustomerMasterDataView />;
@@ -2096,6 +2177,20 @@ export const App = () => {
 
 
 
+    if (LoadedMaintenanceView) {
+      return <LoadedMaintenanceView />;
+    }
+
+    if (LoadedMaintenanceTrainingView) {
+      return <LoadedMaintenanceTrainingView />;
+    }
+    // Handle Maintenance Training View
+    if (activeTabId === 'maintenance-training') {
+      return <MaintenanceTrainingView />;
+    }
+
+
+
 
     //服务数据管理, 2026.01.19, update
     // Special Case: Mining Service Data Management (Page 1)
@@ -2444,9 +2539,36 @@ export const App = () => {
     }
 
 
+    // Handle Maintenance Training View
+    if (activeTabId === 'maintenance-training') {
+      return <MaintenanceTrainingView />;
+    }
 
+    //侧边栏父级页面拦截
+    if (activeTabId === 'maintenance-plan') {
+      return <MaintenancePlanOverviewView />;
+    }
 
-
+    if (activeTabId === 'inspection') {
+      return <InspectionOverviewView />;
+    }
+    if (activeTabId === 'cockpit') return <CockpitView />;
+    if (activeTabId === 'predictive-maintenance') return <PredictiveMaintenanceView />;
+    if (activeTabId === 'spare-parts') return <SparePartsView />;
+    if (activeTabId === 'product-kb') return <ProductKnowledgeBaseOverviewView />;
+    if (activeTabId === 'index-analysis') return <IndexAnalysisOverviewView />;
+    if (activeTabId === 'digital-delivery') return <DigitalDeliveryOverviewView />;
+    if (activeTabId === 'simulation') return <SimulationOverviewView />;
+    if (activeTabId === 'customer-data') return <CustomerDataOverviewView />;
+    if (activeTabId === 'remote-expert') return <RemoteExpertOverviewView />;
+    if (activeTabId === 'app-maintenance') return <AppMaintenanceOverviewView />;
+    if (activeTabId === 'mock-maintenance') return <MockMaintenanceOverviewView />;
+    if (activeTabId === 'ops-knowledge') return <OpsKnowledgeOverviewView />;
+    if (activeTabId === 'service-data') return <ServiceDataOverviewView />;
+    if (activeTabId === 'life-warning') return <LifeWarningOverviewView />;
+    if (activeTabId === 'cv-monitor') return <CVMonitorOverviewView />;
+    if (activeTabId === 'vibration-monitor') return <VibrationMonitorOverviewView />;
+    if (activeTabId === 'maintenance-training') return <MaintenanceTrainingOverviewView />;
 
     // Handle other Sub-items of Smart Ops (Equipment Views)
     if (activeTabId.startsWith('eq-')) {
@@ -2458,8 +2580,11 @@ export const App = () => {
         return <GenericView title={sim ? sim.label : 'Simulation Analysis'} />;
     }
 
+    // // Default Fallback
+    // return <GenericView title={activeItem.label} />;
     // Default Fallback
-    return <GenericView title={activeItem.label} />;
+    return <AdvancedGenericView title={activeItem.label} id={activeItem.id} />;
+
 
     
 
