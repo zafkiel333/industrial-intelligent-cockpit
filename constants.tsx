@@ -9,10 +9,27 @@ export const EQUIPMENT_LIST = [
 ];
 
 // Generate children items for the Smart Ops menu
-const SMART_OPS_CHILDREN: MenuItem[] = EQUIPMENT_LIST.map((name, index) => ({
-  id: `eq-${index}`,
-  label: `${name}智能运维`
-}));
+const SMART_OPS_CHILDREN: MenuItem[] = [
+  { id: 'eq-0', label: '水轮机智能运维' },
+  { id: 'eq-1', label: '发电机智能运维' },
+  { id: 'eq-2', label: '输电装置智能运维' },
+  { id: 'eq-3', label: '泵站智能运维' },
+  { id: 'eq-4', label: '排污口检测智能运维' },
+  { id: 'eq-5', label: '污水处理智能运维' },
+  { id: 'eq-6', label: '风机电组智能运维' },
+  { id: 'eq-7', label: '船舶智能运维' },
+  { id: 'eq-8', label: '靠泊系统智能运维' },
+  { id: 'eq-9', label: '起重设备智能运维' },
+  { id: 'eq-10', label: '航标智能运维' },
+  { id: 'eq-11', label: '测速仪智能运维' },
+  { id: 'eq-12', label: '矿山提升机智能运维' },
+  { id: 'eq-13', label: '掘进设备智能运维' },
+  { id: 'eq-14', label: '钻孔设备智能运维' },
+  { id: 'eq-15', label: '破碎设备智能运维' },
+  { id: 'eq-16', label: '选矿设备智能运维' },
+  { id: 'eq-17', label: '制砂机智能运维' },
+  { id: 'eq-18', label: '1号机组异常预测分析' },
+];
 
 // Knowledge Base Children
 const PRODUCT_KB_CHILDREN: MenuItem[] = [
@@ -984,7 +1001,7 @@ export const MENU_ITEMS: MenuItem[] = [
   { 
     id: 'ops-knowledge', 
     label: '运维知识管理',
-    children: KNOWLEDGE_MANAGE_CHILDREN
+    children: KNOWLEDGE_MANAGE_CHILDREN,
   },
   { //2026.01.19, update
     id: 'service-data', 

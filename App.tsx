@@ -26,6 +26,8 @@ import { CVMonitorOverviewView } from './views/CVMonitorOverviewView';
 import { VibrationMonitorOverviewView } from './views/VibrationMonitorOverviewView';
 import { MaintenanceTrainingOverviewView } from './views/MaintenanceTrainingOverviewView';
 
+//add testDataViews
+import { Unit1PredictiveView } from './views/cockpit/unit1-predictive';
 
 import { EquipmentView } from './views/EquipmentView';
 import { GeneratorView } from './views/GeneratorView';
@@ -918,7 +920,7 @@ const maintenanceViews = import.meta.glob('./views/life-warning/*/View.tsx');
 const maintenanceTrainingViews = import.meta.glob('./views/Maintenance-Training/*/index.tsx');
 
 import { SIMULATION_CHILDREN } from './constants';
-import { EQUIPMENT_LIST } from './constants';
+// import { EQUIPMENT_LIST } from './constants';
 import { MENU_ITEMS } from './constants';
 import { MenuItem } from './types';
 import { Globe, Clock, Settings, Bell, Loader2 } from 'lucide-react';
@@ -1004,12 +1006,12 @@ export const App = () => {
     if (activeTabId === 'smart-ops') return <SmartOperationsView />;
     if (activeTabId.startsWith('eq-')) {
         const id = parseInt(activeTabId.split('-')[1]);
-        const titles = [
-            "水轮机", "发电机", "输电装置", "泵站", "排污口检测", 
-            "污水处理", "风机电组", "船舶", "靠泊系统", "起重设备", 
-            "航标", "测速仪", "矿山提升机", "掘进设备", "钻孔设备", 
-            "破碎设备", "选矿设备", "制砂机"
-        ];
+        // const titles = [
+        //     "水轮机", "发电机", "输电装置", "泵站", "排污口检测", 
+        //     "污水处理", "风机电组", "船舶", "靠泊系统", "起重设备", 
+        //     "航标", "测速仪", "矿山提升机", "掘进设备", "钻孔设备", 
+        //     "破碎设备", "选矿设备", "制砂机"
+        // ];
         // Route to specific equipment views based on ID index
         if (id === 0) return <EquipmentView title="水轮机智能运维" />;
         if (id === 1) return <GeneratorView />;
@@ -1029,8 +1031,9 @@ export const App = () => {
         if (id === 15) return <CrushingEquipmentView />;
         if (id === 16) return <MineralProcessingView />;
         if (id === 17) return <SandMakingView />;
+        if (id === 18) return <Unit1PredictiveView />;
         
-        return <GenericView title={`${titles[id] || '设备'}智能运维`} />;
+        //return <GenericView title={`${titles[id] || '设备'}智能运维`} />;
     }
 
     // Knowledge Base
@@ -1495,90 +1498,7 @@ export const App = () => {
        return <GenericView title={activeItem.label} />;
     }
 
-    // Special Case: Generator Smart Ops (index 1 in the list, so id is eq-1)
-    if (activeTabId === 'eq-1') {
-      return <GeneratorView />;
-    }
     
-    // Special Case: Transmission Smart Ops (index 2 in the list, so id is eq-2)
-    if (activeTabId === 'eq-2') {
-      return <TransmissionView />;
-    }
-
-    // Special Case: Pump Station Smart Ops (index 3 in the list, so id is eq-3)
-    if (activeTabId === 'eq-3') {
-      return <PumpStationView />;
-    }
-
-    // Special Case: Outfall Monitoring Smart Ops (index 4 in the list, so id is eq-4)
-    if (activeTabId === 'eq-4') {
-      return <OutfallView />;
-    }
-
-    // Special Case: Wastewater Treatment Smart Ops (index 5 in the list, so id is eq-5)
-    if (activeTabId === 'eq-5') {
-      return <WastewaterView />;
-    }
-
-    // Special Case: Wind Turbine Smart Ops (index 6 in the list, so id is eq-6)
-    if (activeTabId === 'eq-6') {
-      return <WindTurbineView />;
-    }
-
-    // Special Case: Ship Smart Ops (index 7 in the list, so id is eq-7)
-    if (activeTabId === 'eq-7') {
-      return <ShipView />;
-    }
-
-    // Special Case: Berthing System Smart Ops (index 8 in the list, so id is eq-8)
-    if (activeTabId === 'eq-8') {
-      return <BerthingView />;
-    }
-
-    // Special Case: Crane/Lifting Smart Ops (index 9 in the list, so id is eq-9)
-    if (activeTabId === 'eq-9') {
-      return <CraneView />;
-    }
-
-    // Special Case: Navigation Mark Smart Ops (index 10 in the list, so id is eq-10)
-    if (activeTabId === 'eq-10') {
-      return <NavigationMarkView />;
-    }
-
-    // Special Case: Tachometer Smart Ops (index 11 in the list, so id is eq-11)
-    if (activeTabId === 'eq-11') {
-      return <TachometerView />;
-    }
-
-    // Special Case: Mine Hoist Smart Ops (index 12 in the list, so id is eq-12)
-    if (activeTabId === 'eq-12') {
-      return <MineHoistView />;
-    }
-
-    // Special Case: Tunnel Boring Machine Smart Ops (index 13 in the list, so id is eq-13)
-    if (activeTabId === 'eq-13') {
-      return <TunnelBoringMachineView />;
-    }
-
-    // Special Case: Drilling Rig Smart Ops (index 14 in the list, so id is eq-14)
-    if (activeTabId === 'eq-14') {
-      return <DrillingRigView />;
-    }
-
-    // Special Case: Crushing Equipment Smart Ops (index 15 in the list, so id is eq-15)
-    if (activeTabId === 'eq-15') {
-      return <CrushingEquipmentView />;
-    }
-
-    // Special Case: Mineral Processing Smart Ops (index 16 in the list, so id is eq-16)
-    if (activeTabId === 'eq-16') {
-      return <MineralProcessingView />;
-    }
-
-    // Special Case: Sand Making Smart Ops (index 17 in the list, so id is eq-17)
-    if (activeTabId === 'eq-17') {
-      return <SandMakingView />;
-    }
     // 预测性维护
     if (activeTabId === 'pm-pmOther-0') return <JawCrusherPmView />;
     if (activeTabId === 'pm-pmOther-1') return <ConeCrusherWearPmView />;
@@ -2443,100 +2363,16 @@ export const App = () => {
       return <ServiceModeOptimizationView />;
     }
 
-    // Special Case: Generator Smart Ops (index 1 in the list, so id is eq-1)
-    if (activeTabId === 'eq-1') {
-      return <GeneratorView />;
-    }
-    
-    // Special Case: Transmission Smart Ops (index 2 in the list, so id is eq-2)
-    if (activeTabId === 'eq-2') {
-      return <TransmissionView />;
-    }
-
-    // Special Case: Pump Station Smart Ops (index 3 in the list, so id is eq-3)
-    if (activeTabId === 'eq-3') {
-      return <PumpStationView />;
-    }
-
-    // Special Case: Outfall Monitoring Smart Ops (index 4 in the list, so id is eq-4)
-    if (activeTabId === 'eq-4') {
-      return <OutfallView />;
-    }
-
-    // Special Case: Wastewater Treatment Smart Ops (index 5 in the list, so id is eq-5)
-    if (activeTabId === 'eq-5') {
-      return <WastewaterView />;
-    }
-
-    // Special Case: Wind Turbine Smart Ops (index 6 in the list, so id is eq-6)
-    if (activeTabId === 'eq-6') {
-      return <WindTurbineView />;
-    }
-
-    // Special Case: Ship Smart Ops (index 7 in the list, so id is eq-7)
-    if (activeTabId === 'eq-7') {
-      return <ShipView />;
-    }
-
-    // Special Case: Berthing System Smart Ops (index 8 in the list, so id is eq-8)
-    if (activeTabId === 'eq-8') {
-      return <BerthingView />;
-    }
-
-    // Special Case: Crane/Lifting Smart Ops (index 9 in the list, so id is eq-9)
-    if (activeTabId === 'eq-9') {
-      return <CraneView />;
-    }
-
-    // Special Case: Navigation Mark Smart Ops (index 10 in the list, so id is eq-10)
-    if (activeTabId === 'eq-10') {
-      return <NavigationMarkView />;
-    }
-
-    // Special Case: Tachometer Smart Ops (index 11 in the list, so id is eq-11)
-    if (activeTabId === 'eq-11') {
-      return <TachometerView />;
-    }
-
-    // Special Case: Mine Hoist Smart Ops (index 12 in the list, so id is eq-12)
-    if (activeTabId === 'eq-12') {
-      return <MineHoistView />;
-    }
-
-    // Special Case: Tunnel Boring Machine Smart Ops (index 13 in the list, so id is eq-13)
-    if (activeTabId === 'eq-13') {
-      return <TunnelBoringMachineView />;
-    }
-
-    // Special Case: Drilling Rig Smart Ops (index 14 in the list, so id is eq-14)
-    if (activeTabId === 'eq-14') {
-      return <DrillingRigView />;
-    }
-
-    // Special Case: Crushing Equipment Smart Ops (index 15 in the list, so id is eq-15)
-    if (activeTabId === 'eq-15') {
-      return <CrushingEquipmentView />;
-    }
-
-    // Special Case: Mineral Processing Smart Ops (index 16 in the list, so id is eq-16)
-    if (activeTabId === 'eq-16') {
-      return <MineralProcessingView />;
-    }
-
-    // Special Case: Sand Making Smart Ops (index 17 in the list, so id is eq-17)
-    if (activeTabId === 'eq-17') {
-      return <SandMakingView />;
-    }
 
     // Handle Inspection Sub-items，2026.03.24
     if (activeTabId.startsWith('ins-')) {
       return <InspectionView title={activeItem.label} />;
     }
 
-    // Handle other Sub-items of Smart Ops (Equipment Views)
-    if (activeTabId.startsWith('eq-')) {
-      return <EquipmentView title={activeItem.label} />;
-    }
+    // // Handle other Sub-items of Smart Ops (Equipment Views)
+    // if (activeTabId.startsWith('eq-')) {
+    //   return <EquipmentView title={activeItem.label} />;
+    // }
 
 
     // Handle Maintenance Training View
@@ -2570,10 +2406,10 @@ export const App = () => {
     if (activeTabId === 'vibration-monitor') return <VibrationMonitorOverviewView />;
     if (activeTabId === 'maintenance-training') return <MaintenanceTrainingOverviewView />;
 
-    // Handle other Sub-items of Smart Ops (Equipment Views)
-    if (activeTabId.startsWith('eq-')) {
-      return <EquipmentView title={activeItem.label} />;
-    }
+    // // Handle other Sub-items of Smart Ops (Equipment Views)
+    // if (activeTabId.startsWith('eq-')) {
+    //   return <EquipmentView title={activeItem.label} />;
+    // }
     // Default catch-all
     if (activeTabId.startsWith('sim-')) {
         const sim = SIMULATION_CHILDREN.find(s => s.id === activeTabId);
