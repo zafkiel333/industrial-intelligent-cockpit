@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Instances, Instance, Text, Line as DreiLine } from '@react-three/drei';
 import * as THREE from 'three';
 
-const PadInstances = ({ padsTemp, globalMin = 30, globalMax = 80 }: { padsTemp: number[], globalMin?: number, globalMax?: number }) => {
+const PadInstances = ({ padsTemp }: { padsTemp: number[] }) => {
   return (
     <group>
       {/* Dynamic 3D Pads based on Temperature */}
@@ -12,20 +12,17 @@ const PadInstances = ({ padsTemp, globalMin = 30, globalMax = 80 }: { padsTemp: 
         const angle = (i / totalPads) * Math.PI * 2;
         const radius = 3;
         
-        // Use the globally computed temperature scale for the entire dataset
-        const tempRange = Math.max(0.1, globalMax - globalMin);
-        
-        const normalized = Math.max(0, Math.min(1, (temp - globalMin) / tempRange)); 
-        
+        // Heatmap colors: cold(greenish blue) -> hot(red/orange)
+        const normalized = Math.max(0, Math.min(1, (temp - 40) / 30)); 
         const color = new THREE.Color().lerpColors(
-          new THREE.Color('#0ea5e9'), // Sky blue for cool
-          new THREE.Color('#ef4444'), // Red for hot
+          new THREE.Color('#0ea5e9'), // Sky blue
+          new THREE.Color('#ef4444'), // Red
           normalized
         );
         
-        // Moderate the height exaggeration: enough to see differences, but not extreme
+        // Height of the pad extrudes based on temperature to give it a 3D data vibe
         const baseHeight = 0.5;
-        const extrudedHeight = baseHeight + (normalized * 2.5);
+        const extrudedHeight = baseHeight + (normalized * 1.5);
         
         // Positions
         const x = Math.cos(angle) * radius;
@@ -36,7 +33,7 @@ const PadInstances = ({ padsTemp, globalMin = 30, globalMax = 80 }: { padsTemp: 
           <group key={i} position={[x, extrudedHeight / 2 - 0.25, z]} rotation={[0, -angle, 0]}>
             <mesh>
                <boxGeometry args={[1, extrudedHeight, 1.2]} />
-               <meshStandardMaterial color={color} metalness={0.6} roughness={0.2} emissive={color} emissiveIntensity={0.3 + (normalized * 0.5)} />
+               <meshStandardMaterial color={color} metalness={0.6} roughness={0.2} emissive={color} emissiveIntensity={normalized * 0.8} />
             </mesh>
             
             <Text 
@@ -56,7 +53,7 @@ const PadInstances = ({ padsTemp, globalMin = 30, globalMax = 80 }: { padsTemp: 
   );
 };
 
-const RotatingAssembly = ({ padsTemp, isPrediction, globalMin, globalMax }: { padsTemp: number[], isPrediction: boolean, globalMin?: number, globalMax?: number }) => {
+const RotatingAssembly = ({ padsTemp, isPrediction }: { padsTemp: number[], isPrediction: boolean }) => {
   const groupRef = useRef<THREE.Group>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   
@@ -81,10 +78,10 @@ const RotatingAssembly = ({ padsTemp, isPrediction, globalMin, globalMax }: { pa
           <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.1} />
         </mesh>
         
-        {/* Thrust Collar (Mirror finish disc - transparent to see data) */}
+        {/* Thrust Collar (Mirror finish disc) */}
         <mesh position={[0, -0.3, 0]}>
           <cylinderGeometry args={[4.2, 4.2, 0.4, 64]} />
-          <meshStandardMaterial color="#94a3b8" metalness={1} roughness={0.1} transparent opacity={0.15} depthWrite={false} />
+          <meshStandardMaterial color="#94a3b8" metalness={1} roughness={0.1} />
         </mesh>
       </group>
 
@@ -95,7 +92,7 @@ const RotatingAssembly = ({ padsTemp, isPrediction, globalMin, globalMax }: { pa
             <cylinderGeometry args={[2, 4.5, 0.2, 64]} />
             <meshStandardMaterial color="#334155" />
          </mesh>
-         <PadInstances padsTemp={padsTemp} globalMin={globalMin} globalMax={globalMax} />
+         <PadInstances padsTemp={padsTemp} />
          
          {/* Energy Edge Ring (Visual Sci-Fi effect changes color based on prediction state) */}
          <mesh ref={ringRef} position={[0, 0, 0]} rotation={[Math.PI/2, 0, 0]}>
@@ -111,7 +108,7 @@ const RotatingAssembly = ({ padsTemp, isPrediction, globalMin, globalMax }: { pa
   );
 };
 
-export const Unit1ThreeScene = ({ padsTemp, isPrediction, globalMin, globalMax }: { padsTemp: number[], isPrediction: boolean, globalMin?: number, globalMax?: number }) => {
+export const Unit1ThreeScene = ({ padsTemp, isPrediction }: { padsTemp: number[], isPrediction: boolean }) => {
   return (
     <div className="w-full h-full bg-slate-950 rounded-lg overflow-hidden border border-slate-800 shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] relative">
        {/* Background decorative glow changes in prediction mode */}
@@ -123,7 +120,7 @@ export const Unit1ThreeScene = ({ padsTemp, isPrediction, globalMin, globalMax }
         <pointLight position={[0, 5, 0]} intensity={2} color={isPrediction ? "#f59e0b" : "#0ea5e9"} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         
-        <RotatingAssembly padsTemp={padsTemp} isPrediction={isPrediction} globalMin={globalMin} globalMax={globalMax} />
+        <RotatingAssembly padsTemp={padsTemp} isPrediction={isPrediction} />
         
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} autoRotate autoRotateSpeed={0.5} maxPolarAngle={Math.PI/2 - 0.1}/>
         

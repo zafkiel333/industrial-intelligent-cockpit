@@ -28,6 +28,7 @@ import { MaintenanceTrainingOverviewView } from './views/MaintenanceTrainingOver
 
 //add testDataViews
 import { Unit1PredictiveView } from './views/cockpit/unit1-predictive';
+// import { Unit1PredictiveUploadView } from './views/cockpit/unit1-predictive-testUpload';
 
 import { EquipmentView } from './views/EquipmentView';
 import { GeneratorView } from './views/GeneratorView';
