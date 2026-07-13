@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '../../../components/Equipment-Point-Inspection/FillingOperationArea/ThreeScene';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ins-32]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ins-32';
 import { Droplets, Gauge, Activity, ShieldAlert, ShieldCheck, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const FillingOperationAreaView: React.FC = () => {
@@ -84,12 +89,15 @@ export const FillingOperationAreaView: React.FC = () => {
             <span className="font-medium text-sm">{isAlert ? '管网压力异常 / 浓度超限' : '充填系统运行平稳'}</span>
           </div>
         </div>
-        <ThreeScene 
-          slurryConcentration={slurryConcentration} 
-          pipelinePressure={pipelinePressure} 
-          flowRate={flowRate} 
-          isAlert={isAlert} 
+        <ThreeScene
+          slurryConcentration={slurryConcentration}
+          pipelinePressure={pipelinePressure}
+          flowRate={flowRate}
+          isAlert={isAlert}
         />
+        <div className="absolute top-4 right-4 z-20">
+          <ModelLibraryLink url={MODEL_LIB_URL} />
+        </div>
       </div>
 
       {/* Right Sidebar: Gauges */}

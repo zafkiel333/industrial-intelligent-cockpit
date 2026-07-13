@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-plan-management/MarineBoilerCleaning/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mpm-57]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mpm-57';
 import { TimelineWidget, ResourceWidget, RiskWidget, ParameterWidget } from '../../../components/SciFiWidgets';
 import { Flame, Droplets } from 'lucide-react';
 
@@ -68,11 +73,14 @@ export const MarineBoilerCleaningView: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-140px)]">
         <SciFiCard title="锅炉内部 3D 状态监控" className="lg:col-span-7 h-full relative">
           <div className="absolute inset-0 m-4 border border-rose-500/20 rounded-lg overflow-hidden bg-[#1a0a0a]">
-            <ThreeScene 
-              pressure={data.pressure} 
-              temperature={data.temperature} 
-              isCleaning={data.isCleaning} 
+            <ThreeScene
+              pressure={data.pressure}
+              temperature={data.temperature}
+              isCleaning={data.isCleaning}
             />
+          </div>
+          <div className="absolute top-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </SciFiCard>
 

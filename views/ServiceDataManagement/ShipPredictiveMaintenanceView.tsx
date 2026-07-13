@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { ShipPredictiveMaintenanceThreeScene } from '../../components/ServiceDataManagement/ShipPredictiveMaintenance/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[sh-4]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/sh-4';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -176,10 +181,13 @@ export const ShipPredictiveMaintenanceView: React.FC = () => {
                  </div>
               </div>
 
-              <ShipPredictiveMaintenanceThreeScene 
+              <ShipPredictiveMaintenanceThreeScene
                  activeNodeId={activeComponent}
                  onNodeSelect={setActiveComponent}
               />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
                  <div className="flex gap-2">

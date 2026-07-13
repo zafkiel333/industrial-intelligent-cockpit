@@ -2,6 +2,9 @@
 import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { SmartOperationsView } from './views/SmartOperationsView';
+// 2026-07-09 新增：场景库测试方案 - 全局场景信息条（场景ID/更新时间/端到端耗时/场景日志），全站统一生效
+import { ScenarioTelemetryProvider } from './src/scenarioLib/ScenarioTelemetryContext';
+import { ScenarioMetaBar } from './src/scenarioLib/ScenarioMetaBar';
 
 import { InspectionOverviewView } from './views/InspectionOverviewView';
 import { MaintenancePlanOverviewView } from './views/MaintenancePlanOverviewView';
@@ -2438,8 +2441,10 @@ export const App = () => {
 //   );
 // };
   return (
+    // 2026-07-09 新增：ScenarioTelemetryProvider 包裹全局，供 ScenarioMetaBar 统一管理场景耗时/日志数据
+    <ScenarioTelemetryProvider>
     <div className="flex h-screen w-screen bg-[#020617] text-slate-200 overflow-hidden font-[Rajdhani]">
-      
+
       {/* Sidebar Navigation */}
       <Sidebar activeId={activeTabId} onSelect={setActiveTabId} />
 
@@ -2476,12 +2481,15 @@ export const App = () => {
         {/* Dynamic Content Container */}
         <div className="flex-1 p-6 overflow-y-auto relative scroll-smooth">
            <div className="h-full max-w-[1920px] mx-auto">
+             {/* 2026-07-09 新增：场景信息条，挂载在页面内容区、renderContent() 之前，随内容区一起滚动 */}
+             <ScenarioMetaBar scenarioId={activeTabId} />
              {renderContent()}
            </div>
         </div>
 
       </main>
     </div>
+    </ScenarioTelemetryProvider>
   );
 };
 

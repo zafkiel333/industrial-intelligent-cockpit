@@ -1,6 +1,11 @@
 
 import React, { useState } from 'react';
 import { ThreeScene } from '../../components/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[dd-hydro-asset]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/dd-hydro-asset';
 import { SciFiCard } from '../../components/SciFiCard';
 import { 
   Database, Server, HardDrive, ClipboardList, 
@@ -166,6 +171,9 @@ export const HydroAssetDeliveryView: React.FC = () => {
               <div className="flex-1 bg-[#030201] border border-amber-800/40 relative rounded-lg overflow-hidden shadow-2xl">
                   <div className="absolute inset-0">
                       <ThreeScene type="dd-hydro-asset-delivery" color="#f59e0b" />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
                   </div>
 
                   {/* Holographic Labels */}

@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { MaintenanceThreeScene } from '../../components/maintenance/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[am-portal]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/am-portal';
 import { 
   ClipboardList, 
   Cpu, 
@@ -236,6 +241,9 @@ export const PortalView: React.FC = () => {
                 statusColor={activeZone === 'none' ? '#06b6d4' : '#f59e0b'}
                 isScanning={activeZone === 'none'}
               />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
               {/* 扫描线装饰 */}
               <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500/50 shadow-[0_0_15px_cyan] animate-[scan_4s_ease-in-out_infinite] pointer-events-none z-20"></div>

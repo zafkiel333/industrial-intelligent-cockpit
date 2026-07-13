@@ -1,6 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { RiskPredictionScene } from '../../../components/predictive/hydro-risk/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[pm-hydro-7]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/pm-hydro-7';
 import { RiskComponent } from '../../../components/predictive/hydro-risk/three-types';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { 
@@ -228,6 +233,9 @@ export const UnitRiskPredictionView: React.FC = () => {
                    onComponentSelect={setSelectedComp}
                    activeComponentId={selectedComp}
                />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
            </div>
 
            {/* Monte Carlo Distribution */}

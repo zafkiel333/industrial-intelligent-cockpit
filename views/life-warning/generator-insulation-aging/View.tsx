@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Activity, AlertTriangle, Zap, Thermometer, Droplets, ShieldAlert } from 'lucide-react';
 import { ThreeScene } from '../../../components/life-warning/generator-insulation-aging/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[generator-insulation-aging]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/generator-insulation-aging';
 import { InsulationState } from '../../../components/life-warning/generator-insulation-aging/three-types';
 
 export const View: React.FC = () => {
@@ -177,6 +182,9 @@ export const View: React.FC = () => {
           
           <div className="flex-1 relative">
             <ThreeScene state={insulationState} />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
           </div>
 
           {/* Overlay info */}

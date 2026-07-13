@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-plan-management/BerthFenderReplacement/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mpm-51]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mpm-51';
 import { TimelineWidget, ResourceWidget, RiskWidget, ParameterWidget } from '../../../components/SciFiWidgets';
 import { Anchor, ShieldAlert } from 'lucide-react';
 
@@ -73,11 +78,14 @@ export const BerthFenderReplacementView: React.FC = () => {
       <div className="flex flex-col gap-6">
         <SciFiCard title="全景泊位 3D 视图" className="h-[450px] w-full relative">
           <div className="absolute inset-0 m-4 border border-teal-500/20 rounded-lg overflow-hidden bg-[#0a1118]">
-            <ThreeScene 
-              compression={data.compression} 
-              wearLevel={data.wearLevel} 
-              isReplacing={data.isReplacing} 
+            <ThreeScene
+              compression={data.compression}
+              wearLevel={data.wearLevel}
+              isReplacing={data.isReplacing}
             />
+          </div>
+          <div className="absolute top-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </SciFiCard>
 

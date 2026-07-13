@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { HydroUnitThreeScene } from '../../components/ServiceDataManagement/HydroUnit/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[hd-1]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/hd-1';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   BarChart, Bar, ScatterChart, Scatter, ReferenceLine, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -194,13 +199,16 @@ export const HydroUnitStatusView: React.FC = () => {
                  </div>
               </div>
 
-              <HydroUnitThreeScene 
-                 rpm={unitState.rpm} 
+              <HydroUnitThreeScene
+                 rpm={unitState.rpm}
                  load={unitState.activePower / 700 * 100}
                  guideVaneOpen={unitState.guideVane}
                  activePartId={activePart}
                  onPartSelect={setActivePart}
               />
+              <div className="absolute bottom-4 left-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
               <div className="absolute bottom-6 right-6 z-10">
                  <div className="text-[10px] text-slate-500 font-mono">

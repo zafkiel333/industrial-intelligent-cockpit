@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-plan-management/DredgerCutterHead/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mpm-55]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mpm-55';
 import { TimelineWidget, ResourceWidget, RiskWidget, ParameterWidget } from '../../../components/SciFiWidgets';
 import { Anchor, Settings } from 'lucide-react';
 
@@ -67,18 +72,21 @@ export const DredgerCutterHeadView: React.FC = () => {
 
       <div className="relative flex-1 rounded-xl overflow-hidden border border-amber-500/30 min-h-[700px]">
         <div className="absolute inset-0 z-0 bg-[#001122]">
-          <ThreeScene 
-            rpm={data.rpm} 
-            wearLevel={data.wearLevel} 
-            isReplacing={data.isReplacing} 
+          <ThreeScene
+            rpm={data.rpm}
+            wearLevel={data.wearLevel}
+            isReplacing={data.isReplacing}
           />
         </div>
-        
+
         {/* Top Bar Overlay */}
         <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-[#001122] to-transparent flex justify-between items-start pointer-events-none">
            <div className="bg-slate-900/80 backdrop-blur border border-amber-500/50 px-4 py-2 rounded text-amber-400 font-bold flex items-center gap-2 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
              <Anchor size={16} />
              当前作业深度: {data.depth.toFixed(1)}m | 海底地质: 中等硬度黏土/砂岩
+           </div>
+           <div className="pointer-events-auto">
+             <ModelLibraryLink url={MODEL_LIB_URL} />
            </div>
         </div>
 

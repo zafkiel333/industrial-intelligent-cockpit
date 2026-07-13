@@ -1,6 +1,11 @@
 import React from 'react';
 import { SciFiCard } from '@/components/SciFiCard';
 import { ThreeScene } from '@/components/vibration-monitoring/TurbineShaft/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[vibe-TurbineShaft]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/vibe-TurbineShaft';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Activity, Zap, ShieldAlert, BarChart3, Radio } from 'lucide-react';
 
@@ -53,6 +58,9 @@ const TurbineShaftView: React.FC = () => {
           <SciFiCard title="轴系数字孪生动态监测" subtitle="3D TWIN VISUALIZATION" className="flex-1 min-h-[500px]" highlight>
             <div className="relative w-full h-full group">
               <ThreeScene />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
               
               {/* Overlay HUD - Top Left */}
               <div className="absolute top-0 left-0 flex flex-col gap-3">

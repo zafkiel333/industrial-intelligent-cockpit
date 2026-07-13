@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '@/components/SciFiCard';
 import { ThreeScene } from '@/components/vibration-monitoring/ShipPropulsionVibration/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[vibe-ShipPropulsionVibration]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/vibe-ShipPropulsionVibration';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { Activity, Zap, ShieldCheck, AlertCircle, Gauge, Anchor, RotateCw, Wind, Droplets } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -97,6 +102,9 @@ const ShipPropulsionVibrationView: React.FC = () => {
           >
             <div className="absolute inset-0 z-0">
               <ThreeScene state={propState} />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
             </div>
             
             {/* HUD Overlays */}

@@ -2,6 +2,11 @@
 import React, { useState } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { ThreeScene } from '../../components/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[kb-mining-equip]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/kb-mining-equip';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area
@@ -207,6 +212,9 @@ export const MiningEquipKbView: React.FC = () => {
                  {/* Interactive 3D */}
                  <div className="flex-1 relative">
                     <ThreeScene type="tbm" color={activeColor} />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
                     
                     {/* Schematic Overlay Lines (Decorative) */}
                     <div className="absolute inset-0 pointer-events-none opacity-20">

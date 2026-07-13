@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-plan-management/PumpStationAnnual/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mpm-5]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mpm-5';
 import { Calendar, Wrench, Activity, AlertTriangle, CheckCircle, Droplet, Settings, Gauge } from 'lucide-react';
 
 export const PumpStationAnnualView: React.FC = () => {
@@ -125,11 +130,14 @@ export const PumpStationAnnualView: React.FC = () => {
 
         <div className={`w-full lg:w-1/2 h-full transition-all duration-500 ${show3D ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none absolute'}`}>
           <SciFiCard title="大型泵站三维模型" className="h-full flex flex-col overflow-hidden border-cyan-800/30">
-            {show3D && <ThreeScene 
-                  flowRate={data.flowRate} 
-                  status={data.status} 
-                  maintenanceProgress={data.maintenanceProgress} 
+            {show3D && <ThreeScene
+                  flowRate={data.flowRate}
+                  status={data.status}
+                  maintenanceProgress={data.maintenanceProgress}
                 />}
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
           </SciFiCard>
         </div>
 

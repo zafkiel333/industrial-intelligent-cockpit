@@ -1,6 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '../../components/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[dd-hydro-twin]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/dd-hydro-twin';
 import { SciFiCard } from '../../components/SciFiCard';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
@@ -136,6 +141,9 @@ export const HydroTwinDeliveryView: React.FC = () => {
               {/* 3D Scene */}
               <div className="absolute inset-0">
                   <ThreeScene type="hydro-twin-delivery" color="#06b6d4" />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
               </div>
 
               {/* Scanning Overlay UI */}

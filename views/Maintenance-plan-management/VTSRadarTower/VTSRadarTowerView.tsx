@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-plan-management/VTSRadarTower/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mpm-56]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mpm-56';
 import { TimelineWidget, ResourceWidget, RiskWidget, ParameterWidget } from '../../../components/SciFiWidgets';
 import { Radio, Wind } from 'lucide-react';
 
@@ -100,8 +105,11 @@ export const VTSRadarTowerView: React.FC = () => {
             <ThreeScene 
               rpm={data.rpm} 
               windSpeed={data.windSpeed} 
-              isInspecting={data.isInspecting} 
+              isInspecting={data.isInspecting}
             />
+          </div>
+          <div className="absolute bottom-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </SciFiCard>
 

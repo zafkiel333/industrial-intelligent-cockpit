@@ -3,6 +3,11 @@ import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-Training/PenstockLeakageEmergencyDrill/ThreeScene';
 import { LeakageState } from '../../../components/Maintenance-Training/PenstockLeakageEmergencyDrill/three-types';
 import { Droplets, Wrench, ShieldAlert, CheckCircle2, AlertTriangle, Hammer } from 'lucide-react';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[PenstockLeakageEmergencyDrill]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/PenstockLeakageEmergencyDrill';
 
 export default function PenstockLeakageEmergencyDrill() {
   const [state, setState] = useState<LeakageState>({
@@ -160,6 +165,9 @@ export default function PenstockLeakageEmergencyDrill() {
             <p>1. 穿戴防水服及安全带</p>
             <p>2. 选择合适的封堵工具</p>
             <p>3. 迎水面带压作业</p>
+          </div>
+          <div className="absolute bottom-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </div>
       </div>

@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { AuxComparisonScene } from '../../../components/predictive/hydro-aux-compare/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[pm-hydro-34]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/pm-hydro-34';
 import { AuxUnitState } from '../../../components/predictive/hydro-aux-compare/three-types';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { 
@@ -103,6 +108,9 @@ export const AuxSystemComparisonView: React.FC = () => {
            <div className="flex-1 min-h-[400px] bg-[#020202] border border-indigo-800/40 relative rounded-lg overflow-hidden shadow-[inset_0_0_80px_rgba(99,102,241,0.1)]">
                {/* Fix: Changed setSelectedId to setSelectedUnitId to match defined state hook */}
                <AuxComparisonScene units={units} selectedUnitId={selectedUnitId} onSelectUnit={setSelectedUnitId} />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
            </div>
            <SciFiCard title="多维参数偏差对比" subtitle="DEVIATION ANALYSIS" className="h-[280px] border-indigo-900/50" noPadding>
                <ResponsiveContainer width="100%" height="100%">

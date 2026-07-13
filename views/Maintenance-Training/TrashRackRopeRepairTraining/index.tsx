@@ -3,6 +3,11 @@ import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-Training/TrashRackRopeRepairTraining/ThreeScene';
 import { RopeState } from '../../../components/Maintenance-Training/TrashRackRopeRepairTraining/three-types';
 import { AlertOctagon, CheckSquare, ArrowDown, ArrowUp, Wrench } from 'lucide-react';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[TrashRackRopeRepairTraining]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/TrashRackRopeRepairTraining';
 
 export default function TrashRackRopeRepairTraining() {
   const [state, setState] = useState<RopeState>({
@@ -129,7 +134,10 @@ export default function TrashRackRopeRepairTraining() {
         {/* Right Panel - 3D View */}
         <div className="lg:col-span-8 h-full min-h-[500px] border border-slate-700 rounded-xl overflow-hidden relative bg-slate-900/50">
           <ThreeScene state={state} />
-          
+          <div className="absolute top-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
+          </div>
+
           <div className="absolute bottom-4 left-4 z-10 bg-slate-900/80 backdrop-blur border border-slate-700 p-3 rounded-lg flex gap-4 text-xs">
             <div className="flex flex-col gap-1">
               <span className="text-slate-400">抓斗位置</span>

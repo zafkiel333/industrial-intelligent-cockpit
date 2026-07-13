@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/predictive/hatch-cover/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[pm-pmOther-61]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/pm-pmOther-61';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   BarChart, Bar, LineChart, Line, Cell, ReferenceLine, ComposedChart, Legend,
@@ -121,6 +126,9 @@ export const HatchCoverPmView: React.FC = () => {
                 {/* 3D 数字孪生 (中央背景层) */}
                 <div className="absolute inset-0 z-0">
                     <ThreeScene openProgress={openProgress} riskLevel={(100-healthScore)/100} isScanning={isScanning} />
+            <div className="absolute bottom-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
                     
                     {/* HUD 转角标注 (不遮挡模型) */}
                     <div className="absolute top-8 left-1/4 translate-x-[-120px] pointer-events-none">

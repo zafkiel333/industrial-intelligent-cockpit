@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { ThreeScene } from '../../components/knowledge-manage/unmanned-ship/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[km-unmanned-ship]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/km-unmanned-ship';
 import { TrainingPhase } from '../../components/knowledge-manage/unmanned-ship/three-types';
 import { 
   Ship, Cpu, Database, Target, 
@@ -151,6 +156,9 @@ export const UnmannedShipKbView: React.FC = () => {
            <div className="flex-1 bg-black border border-cyan-800/30 rounded-lg overflow-hidden relative shadow-2xl group">
                {/* 3D Scene */}
                <ThreeScene phase={phase} />
+               <div className="absolute bottom-4 right-4 z-20">
+                 <ModelLibraryLink url={MODEL_LIB_URL} />
+               </div>
 
                {/* Overlays */}
                <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-none">

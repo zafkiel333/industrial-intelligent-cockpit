@@ -3,6 +3,11 @@ import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-Training/StationPowerWiringTroubleshoot/ThreeScene';
 import { WiringState } from '../../../components/Maintenance-Training/StationPowerWiringTroubleshoot/three-types';
 import { Activity, Power, Zap, AlertTriangle, RefreshCcw } from 'lucide-react';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[StationPowerWiringTroubleshoot]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/StationPowerWiringTroubleshoot';
 
 export default function StationPowerWiringTroubleshoot() {
   const [state, setState] = useState<WiringState>({
@@ -181,6 +186,9 @@ export default function StationPowerWiringTroubleshoot() {
             <p>1. 点击端子排上的螺丝头放置表笔。</p>
             <p>2. 第一次点击放置红表笔，第二次放置黑表笔。</p>
             <p>3. 第三次点击重置表笔位置。</p>
+          </div>
+          <div className="absolute bottom-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </div>
       </div>

@@ -1,6 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '../../components/knowledge-manage/ship-lock-dispatch/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[km-lock-dispatch]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/km-lock-dispatch';
 import { DispatchAlgorithmMode } from '../../components/knowledge-manage/ship-lock-dispatch/three-types';
 import { SciFiCard } from '../../components/SciFiCard';
 // Add missing icons 'RefreshCw' and 'FileText' to imports
@@ -168,6 +173,9 @@ export const ShipLockJointDispatchView: React.FC = () => {
         <section className="flex-1 flex flex-col gap-4 min-w-0">
            <div className="flex-1 bg-black border border-white/5 rounded-3xl overflow-hidden relative shadow-[inset_0_0_80px_rgba(0,0,0,0.8)] group">
               <ThreeScene mode={simMode} />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
               
               {/* 3D 浮层 HUD */}
               <div className="absolute top-6 left-6 pointer-events-none">

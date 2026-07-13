@@ -2,6 +2,11 @@
 import React, { useState } from 'react';
 import { SciFiCard } from '../components/SciFiCard';
 import { MiningThreeScene } from '../components/Mining/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[sm-1]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/sm-1';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis
@@ -188,7 +193,10 @@ export const MiningServiceDataView: React.FC = () => {
               <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-cyan-900/5 via-transparent to-transparent"></div>
               
               <MiningThreeScene onNodeClick={handleNodeClick} />
-              
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
+
               <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
                  <div className="bg-black/40 backdrop-blur border border-white/5 p-2 rounded flex gap-4 text-[9px] text-slate-400">
                     <span className="flex items-center gap-1"><MapPin size={10} className="text-red-500" /> 设备坐标: E110 N39</span>

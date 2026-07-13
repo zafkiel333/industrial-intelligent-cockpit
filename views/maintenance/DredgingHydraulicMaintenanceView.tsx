@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { ThreeScene } from '../../components/maintenance/dredging-hydraulic/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mm-10]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mm-10';
 import { DredgingSimState } from '../../components/maintenance/dredging-hydraulic/three-types';
 import { 
   Activity, Droplets, RotateCcw, Play, Wrench, 
@@ -196,6 +201,9 @@ export const DredgingHydraulicMaintenanceView: React.FC = () => {
            <div className="flex-1 bg-[#0c0a09] border border-amber-800/40 rounded-lg overflow-hidden relative shadow-inner">
                {/* 3D Scene */}
                <ThreeScene state={currentState} />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
                {/* Overlay: Tools */}
                {currentState === 'FLUSHING' && (

@@ -3,6 +3,11 @@ import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-Training/GroundingResistanceTestVR/ThreeScene';
 import { GroundingState } from '../../../components/Maintenance-Training/GroundingResistanceTestVR/three-types';
 import { Activity, Zap, Ruler, CloudRain, Sun, Cloud, AlertTriangle, CheckCircle2 } from 'lucide-react';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[GroundingResistanceTestVR]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/GroundingResistanceTestVR';
 
 export default function GroundingResistanceTestVR() {
   const [state, setState] = useState<GroundingState>({
@@ -244,7 +249,10 @@ export default function GroundingResistanceTestVR() {
           
           <div className="flex-1 border border-slate-700 rounded-xl overflow-hidden relative bg-slate-900/50 min-h-[400px]">
             <ThreeScene state={state} />
-            
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
+
             <div className="absolute top-4 left-4 z-10 bg-black/80 backdrop-blur border border-slate-700 p-3 rounded-lg text-xs">
               <h3 className="font-bold text-indigo-400 mb-1">直线法 (Fall-of-Potential) 布线视图</h3>
               <p className="text-slate-400">

@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '../../../components/Equipment-Point-Inspection/DamShoulder/ThreeScene';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ins-29]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ins-29';
 import { Activity, AlertTriangle, Crosshair, Move, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 export const DamShoulderView: React.FC = () => {
@@ -53,6 +58,10 @@ export const DamShoulderView: React.FC = () => {
           <div className={`px-6 py-3 rounded-xl flex items-center space-x-3 shadow-lg backdrop-blur-md border transition-all duration-500 ${isAlert ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow-red-500/20 animate-pulse' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-emerald-500/20'}`}>
             {isAlert ? <ShieldAlert className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
             <span className="font-semibold text-lg tracking-wider">{isAlert ? '坝肩结构异常预警' : '坝肩结构稳定'}</span>
+          </div>
+
+          <div>
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </div>
 

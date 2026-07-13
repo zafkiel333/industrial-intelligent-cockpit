@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Equipment-Point-Inspection/PassengerBoardingBridge/ThreeScene';
-import { 
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ins-13]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ins-13';
+import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   LineChart, Line, ComposedChart, Bar
@@ -143,7 +148,10 @@ export const PassengerBoardingBridgeView: React.FC = () => {
               </div>
 
               <ThreeScene length={(bridgeData.length - 12) * 2} rotation={bridgeData.cabYaw * Math.PI / 180} />
-              
+              <div className="absolute bottom-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
+
               <div className="absolute inset-0 tech-grid-bg opacity-10 pointer-events-none"></div>
            </div>
         </div>

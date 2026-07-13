@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ExcavatorThreeScene } from '../../../components/predictive/mining-excavator/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[pm-mining-5]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/pm-mining-5';
 import { ExcavatorComponent } from '../../../components/predictive/mining-excavator/three-types';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { Activity, Gauge } from 'lucide-react';
@@ -49,6 +54,9 @@ export const HydraulicExcavatorHealthView: React.FC = () => {
                             selectedId={selectedId}
                             onSelect={setSelectedId}
                         />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
                     </div>
                 </div>
                 <div className="w-full lg:w-1/4 flex flex-col gap-5">

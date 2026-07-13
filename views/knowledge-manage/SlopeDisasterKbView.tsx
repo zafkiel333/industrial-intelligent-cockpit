@@ -2,6 +2,11 @@
 import React, { useState } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { ThreeScene } from '../../components/knowledge-manage/slope-disaster/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[km-slope-disaster]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/km-slope-disaster';
 import { SlopeSimState } from '../../components/knowledge-manage/slope-disaster/three-types';
 import { 
   Mountain, Waves, CloudRain, AlertTriangle, 
@@ -147,6 +152,9 @@ export const SlopeDisasterKbView: React.FC = () => {
            <div className="flex-1 bg-[#0c0a09] border border-amber-800/30 rounded-lg relative overflow-hidden shadow-2xl group">
                {/* 3D Scene */}
                <ThreeScene state={simState} />
+               <div className="absolute top-4 right-4 z-20">
+                 <ModelLibraryLink url={MODEL_LIB_URL} />
+               </div>
 
                {/* Overlays */}
                <div className="absolute top-4 left-4 z-20 pointer-events-none">

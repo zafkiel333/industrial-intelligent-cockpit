@@ -2,6 +2,11 @@
 import React, { useState } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { HydroScheduleThreeScene } from '../../components/ServiceDataManagement/HydroMaintenanceSchedule/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[hd-4]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/hd-4';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   AreaChart, Area, ComposedChart, Line, ReferenceLine, ScatterChart, Scatter, Cell,
@@ -192,11 +197,14 @@ export const HydroMaintenanceScheduleView: React.FC = () => {
                  </div>
               </div>
 
-              <HydroScheduleThreeScene 
+              <HydroScheduleThreeScene
                  activeUnitId={activeUnit}
                  onUnitSelect={setActiveUnit}
                  simulationDay={simDay}
               />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
               {/* Time Control Bar */}
               <div className="absolute bottom-6 left-6 right-6 z-10 bg-black/60 backdrop-blur border border-teal-500/30 p-2 rounded-lg flex items-center gap-4">

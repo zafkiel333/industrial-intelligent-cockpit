@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { HydroStructureThreeScene } from '../../components/ServiceDataManagement/HydroStructure/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[hd-6]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/hd-6';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   AreaChart, Area, ComposedChart, Line, LineChart, ReferenceLine, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
@@ -194,13 +199,16 @@ export const HydroStructureHealthView: React.FC = () => {
                  </div>
               </div>
 
-              <HydroStructureThreeScene 
+              <HydroStructureThreeScene
                  waterLevel={hydrology.level}
                  stressLoad={hydrology.stressIndex}
                  crackGrowth={0.1}
                  activeSensorId={activeSensor}
                  onSensorSelect={setActiveSensor}
               />
+              <div className="absolute bottom-4 left-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
               <div className="absolute bottom-6 right-6 z-10">
                  <button className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded text-[10px] font-bold shadow-lg transition-all flex items-center gap-2">

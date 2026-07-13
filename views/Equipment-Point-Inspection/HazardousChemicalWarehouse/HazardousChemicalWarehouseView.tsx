@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '../../../components/Equipment-Point-Inspection/HazardousChemicalWarehouse/ThreeScene';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ins-33]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ins-33';
 import { FlaskConical, Thermometer, Droplets, ShieldAlert, ShieldCheck, ScanLine, AlertOctagon } from 'lucide-react';
 
 export const HazardousChemicalWarehouseView: React.FC = () => {
@@ -60,6 +65,10 @@ export const HazardousChemicalWarehouseView: React.FC = () => {
               <span className="font-bold text-lg leading-tight">{isAlert ? '危化品泄漏/环境异常' : '仓储环境安全'}</span>
               <span className="text-xs opacity-80">{isAlert ? '立即启动应急预案' : '各项指标正常'}</span>
             </div>
+          </div>
+
+          <div>
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </div>
 

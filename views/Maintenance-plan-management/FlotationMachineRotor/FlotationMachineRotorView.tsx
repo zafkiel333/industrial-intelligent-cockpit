@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-plan-management/FlotationMachineRotor/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mpm-30]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mpm-30';
 import { TimelineWidget, ChartWidget, ResourceWidget, RiskWidget, DocumentWidget, CameraWidget, ParameterWidget } from '../../../components/SciFiWidgets';
 import { Settings, Activity, AlertTriangle, ShieldCheck } from 'lucide-react';
 
@@ -117,11 +122,14 @@ export const FlotationMachineRotorView: React.FC = () => {
               </div>
             </div>
             <div className="absolute inset-0 m-4 border border-cyan-500/20 rounded-lg overflow-hidden bg-gradient-to-b from-slate-900/80 to-[#020617]">
-              <ThreeScene 
-                rotorSpeed={data.rotorSpeed} 
-                wearLevel={data.wearLevel} 
-                isReplacing={data.isReplacing} 
+              <ThreeScene
+                rotorSpeed={data.rotorSpeed}
+                wearLevel={data.wearLevel}
+                isReplacing={data.isReplacing}
               />
+            </div>
+            <div className="absolute bottom-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
             </div>
           </SciFiCard>
 

@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Activity, Droplets, Waves, Zap, ShieldCheck } from 'lucide-react';
 import { ThreeScene } from '../../../components/Equipment-Point-Inspection/GateBlade/ThreeScene';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ins-20]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ins-20';
 
 export const GateBladeView: React.FC = () => {
   const [waterPressure, setWaterPressure] = useState(45);
@@ -105,12 +110,15 @@ export const GateBladeView: React.FC = () => {
               <Zap className="w-4 h-4 text-indigo-400" />
               <span className="text-sm font-medium text-slate-300">闸门叶片应力 3D 仿真</span>
             </div>
-            <ThreeScene 
+            <ThreeScene
               waterPressure={waterPressure}
               vibrationLevel={vibrationLevel}
               corrosionLevel={corrosionLevel}
               isAlert={isAlert}
             />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
           </div>
         </div>
       </div>

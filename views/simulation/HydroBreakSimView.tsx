@@ -1,6 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { SimThreeScene } from '../../components/scene-simulation/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[sim-hydro-break]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/sim-hydro-break';
 import { SciFiCard } from '../../components/SciFiCard';
 import { 
   ShieldAlert, Activity, Siren, Waves, 
@@ -120,6 +125,9 @@ export const HydroBreakSimView: React.FC = () => {
                 isBreached
             }} 
           />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#0b0c16_100%)] pointer-events-none"></div>
           
           {/* Emergency Flashing Overlay */}

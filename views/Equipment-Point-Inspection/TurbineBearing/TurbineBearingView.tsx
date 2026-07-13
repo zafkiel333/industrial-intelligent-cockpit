@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '../../../components/Equipment-Point-Inspection/TurbineBearing/ThreeScene';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ins-23]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ins-23';
 import { Thermometer, Activity, ShieldAlert, ShieldCheck, Droplet, Settings } from 'lucide-react';
 
 export const TurbineBearingView: React.FC = () => {
@@ -123,12 +128,15 @@ export const TurbineBearingView: React.FC = () => {
               </div>
             </div>
           </div>
-          <ThreeScene 
-            temperature={temperature} 
-            vibration={vibration} 
-            oilPressure={oilPressure} 
-            isAlert={isAlert} 
+          <ThreeScene
+            temperature={temperature}
+            vibration={vibration}
+            oilPressure={oilPressure}
+            isAlert={isAlert}
           />
+          <div className="absolute top-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
+          </div>
         </div>
       </div>
     </div>

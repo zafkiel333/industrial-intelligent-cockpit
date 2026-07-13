@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Wrench, CalendarCheck, Gauge, Play, Pause, RotateCcw, Info, Droplets } from 'lucide-react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-plan-management/SpillwayGateMaintenance/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mpm-1]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mpm-1';
 import { SpillwayGateMaintenanceProps } from '../../../components/Maintenance-plan-management/SpillwayGateMaintenance/three-types';
 
 const fetchRealTimeData = async () => {
@@ -141,6 +146,9 @@ export const SpillwayGateMaintenanceView: React.FC = () => {
         <div className={`w-full lg:w-2/3 h-full transition-all duration-500 ${is3DVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none absolute'}`}>
           <SciFiCard title="闸门结构与水流动力学模型" className="h-full flex flex-col overflow-hidden border-cyan-800/30">
             {is3DVisible && <ThreeScene {...gateProps} />}
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
           </SciFiCard>
         </div>
       </div>

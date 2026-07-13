@@ -1,6 +1,11 @@
 
 import React, { useState } from 'react';
 import { GeoThreeScene } from '../../components/scene-digital-delivery/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[dd-ship-lifecycle]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/dd-ship-lifecycle';
 import { SciFiCard } from '../../components/SciFiCard';
 import { 
   Ship, Anchor, FileText, CheckCircle2, 
@@ -125,6 +130,9 @@ export const ShipLifecycleDeliveryView: React.FC = () => {
                   {/* 3D Scene */}
                   <div className="absolute inset-0">
                       <GeoThreeScene type="dd-ship-lifecycle" color="#22d3ee" />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
                   </div>
 
                   {/* HUD */}

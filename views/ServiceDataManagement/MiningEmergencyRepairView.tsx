@@ -2,6 +2,11 @@
 import React, { useState } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { EmergencyRepairThreeScene } from '../../components/ServiceDataManagement/EmergencyRepair/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[sm-5]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/sm-5';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   AreaChart, Area, PieChart, Pie, Cell, LineChart, Line, ComposedChart,
@@ -154,6 +159,9 @@ export const MiningEmergencyRepairView: React.FC = () => {
               </div>
 
               <EmergencyRepairThreeScene activeIncidentId={selectedIncident} onIncidentSelect={setSelectedIncident} />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
               <div className="absolute bottom-6 right-6 z-10">
                  <button className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-full text-xs font-black shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all flex items-center gap-3">

@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '@/components/SciFiCard';
 import { ThreeScene } from '@/components/vibration-monitoring/PortStacker/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[vibe-PortStacker]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/vibe-PortStacker';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Activity, Zap, ShieldCheck, Thermometer, Layers, RotateCw, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -71,7 +76,10 @@ const PortStackerView: React.FC = () => {
       <div className="flex-1 grid grid-cols-12 gap-4 p-4 overflow-hidden">
         <div className="col-span-12 lg:col-span-8 flex flex-col gap-4 overflow-hidden">
           <SciFiCard title="堆料机数字孪生可视化" subtitle="STACKER DIGITAL TWIN" className="flex-1 relative group" highlight>
-            <div className="absolute inset-0 z-0"><ThreeScene state={state} /></div>
+            <div className="absolute inset-0 z-0"><ThreeScene state={state} />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div></div>
             <div className="absolute inset-0 pointer-events-none p-6 flex flex-col justify-between z-10">
               <div className="flex justify-between items-start">
                 <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="bg-slate-900/80 border-l-4 border-cyan-500 p-4 backdrop-blur-md rounded-r-xl">

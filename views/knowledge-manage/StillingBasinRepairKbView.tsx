@@ -1,6 +1,11 @@
 
 import React, { useState } from 'react';
 import { ThreeScene } from '../../components/knowledge-manage/stilling-basin/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[km-stilling-basin]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/km-stilling-basin';
 import { BasinState } from '../../components/knowledge-manage/stilling-basin/three-types';
 import { SciFiCard } from '../../components/SciFiCard';
 import { 
@@ -79,6 +84,9 @@ export const StillingBasinRepairKbView: React.FC = () => {
            <div className="text-right border-l border-slate-800 pl-8">
               <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">修复可靠性指数</div>
               <div className="text-2xl font-mono font-bold text-emerald-400 leading-none">98.2%</div>
+           </div>
+           <div className="flex items-center border-l border-slate-800 pl-8">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
            </div>
         </div>
       </header>

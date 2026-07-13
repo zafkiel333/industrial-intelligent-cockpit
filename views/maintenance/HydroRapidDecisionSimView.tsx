@@ -2,6 +2,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { ThreeScene } from '../../components/maintenance/hydro-decision/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mm-25]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mm-25';
 import { DecisionStep } from '../../components/maintenance/hydro-decision/three-types';
 import { 
   Activity, AlertCircle, Zap, ShieldAlert, 
@@ -190,6 +195,9 @@ export const HydroRapidDecisionSimView: React.FC = () => {
            <div className="flex-1 bg-black/40 border border-slate-800 rounded-lg overflow-hidden relative shadow-[inset_0_0_80px_rgba(0,0,0,0.8)] group">
                {/* 3D Scene */}
                <ThreeScene step={step} />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
                {/* Stage Overlay HUD */}
                <div className="absolute top-6 left-6 flex flex-col gap-4 pointer-events-none">

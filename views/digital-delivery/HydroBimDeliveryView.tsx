@@ -1,6 +1,11 @@
 
 import React, { useState } from 'react';
 import { ThreeScene } from '../../components/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[dd-hydro-bim]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/dd-hydro-bim';
 import { SciFiCard } from '../../components/SciFiCard';
 import { 
   Box, FileText, CheckCircle, AlertTriangle, 
@@ -124,6 +129,9 @@ export const HydroBimDeliveryView: React.FC = () => {
           <div className="flex-1 relative border border-slate-700 rounded-lg overflow-hidden bg-[#020408]">
               <div className="absolute inset-0">
                   <ThreeScene type="dd-hydro-bim-delivery" color="#22d3ee" />
+            <div className="absolute bottom-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
               </div>
               
               {/* Toolbar */}

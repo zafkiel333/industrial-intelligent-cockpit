@@ -1,6 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { SimThreeScene } from '../../components/scene-simulation/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[sim-port-bridge]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/sim-port-bridge';
 import { SciFiCard } from '../../components/SciFiCard';
 import { 
   ArrowUp, ArrowRight, Wind, Anchor, 
@@ -90,6 +95,9 @@ export const PortBridgeSimView: React.FC = () => {
                 airDraft
             }} 
           />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
           {/* Overlay Grid */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.03)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none"></div>
           {/* Vignette */}

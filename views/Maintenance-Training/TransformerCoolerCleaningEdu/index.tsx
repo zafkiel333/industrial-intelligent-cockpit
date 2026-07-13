@@ -3,6 +3,11 @@ import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-Training/TransformerCoolerCleaningEdu/ThreeScene';
 import { CoolerState } from '../../../components/Maintenance-Training/TransformerCoolerCleaningEdu/three-types';
 import { Droplets, Thermometer, Wind, AlertTriangle, CheckCircle2 } from 'lucide-react';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[TransformerCoolerCleaningEdu]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/TransformerCoolerCleaningEdu';
 
 export default function TransformerCoolerCleaningEdu() {
   const [state, setState] = useState<CoolerState>({
@@ -158,6 +163,9 @@ export default function TransformerCoolerCleaningEdu() {
           <div className="absolute top-4 right-4 z-10 bg-slate-900/80 backdrop-blur border border-slate-700 p-3 rounded-lg flex items-center gap-3">
             <div className={`w-3 h-3 rounded-full ${state.isCleaning ? 'bg-blue-500 animate-pulse' : 'bg-slate-600'}`}></div>
             <span className="text-sm font-bold text-slate-300">{state.isCleaning ? '高压水枪喷射中...' : '水枪待命'}</span>
+          </div>
+          <div className="absolute bottom-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </div>
       </div>

@@ -3,6 +3,11 @@ import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-Training/ShearerGearbox3DTraining/ThreeScene';
 import { GearboxState } from '../../../components/Maintenance-Training/ShearerGearbox3DTraining/three-types';
 import { Layers, Maximize2, Minimize2, Info } from 'lucide-react';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ShearerGearbox3DTraining]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ShearerGearbox3DTraining';
 
 export default function ShearerGearbox3DTraining() {
   const [state, setState] = useState<GearboxState>({
@@ -36,6 +41,10 @@ export default function ShearerGearbox3DTraining() {
         {/* Full screen 3D Scene */}
         <div className="absolute inset-0">
           <ThreeScene state={state} />
+        </div>
+
+        <div className="absolute top-6 right-6 z-20">
+          <ModelLibraryLink url={MODEL_LIB_URL} />
         </div>
 
         {/* Floating UI Overlay - Left */}

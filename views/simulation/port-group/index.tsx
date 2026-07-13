@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/simulation/port-group/ThreeScene';
 import { Activity, Anchor, Droplets, Lock, Ship, Clock, ShieldCheck, AlertTriangle, List } from 'lucide-react';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[sim-port-group]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/sim-port-group';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 
 const WATER_DATA = Array.from({length: 24}, (_, i) => ({
@@ -87,6 +92,9 @@ export const PortGroupSimulationView: React.FC = () => {
           <div className="absolute top-4 right-4 z-10 bg-slate-900/80 backdrop-blur border border-cyan-800/50 p-2 rounded text-xs text-cyan-400 flex items-center gap-2 pointer-events-none">
             <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
             实时渲染中 (支持交互)
+          </div>
+          <div className="absolute bottom-4 right-4 z-10">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </SciFiCard>
 

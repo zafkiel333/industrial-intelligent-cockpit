@@ -2,6 +2,11 @@
 import React, { useState } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { CollaborationThreeScene } from '../../components/ServiceDataManagement/Collaboration/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[sm-6]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/sm-6';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, Line, Cell, PieChart, Pie
@@ -156,6 +161,9 @@ export const MiningMultiFaceCollabView: React.FC = () => {
               </div>
 
               <CollaborationThreeScene activeFaceId={selectedFace} onFaceSelect={setSelectedFace} />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
               <div className="absolute bottom-6 right-6 z-10 flex gap-2">
                  <button className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-lg transition-all flex items-center gap-2">

@@ -16,6 +16,11 @@ import {
   Wind
 } from 'lucide-react';
 import { ThreeScene } from '../../../components/vibration-monitoring/SurgeTankVibration/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[vibe-SurgeTankVibration]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/vibe-SurgeTankVibration';
 import { 
   AreaChart, 
   Area, 
@@ -157,6 +162,9 @@ const SurgeTankVibration: React.FC = () => {
           >
             <div className="absolute inset-0 z-0">
               <ThreeScene />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
             </div>
             
             {/* 3D Overlay HUD */}

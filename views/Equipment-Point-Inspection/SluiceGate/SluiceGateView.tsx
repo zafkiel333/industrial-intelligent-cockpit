@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '../../../components/Equipment-Point-Inspection/SluiceGate/ThreeScene';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ins-44]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ins-44';
 import { Settings, Zap, Activity, AlertTriangle, ShieldCheck, ArrowUpCircle, ArrowDownCircle, PauseCircle } from 'lucide-react';
 
 export const SluiceGateView: React.FC = () => {
@@ -83,13 +88,16 @@ export const SluiceGateView: React.FC = () => {
         
         {/* Left: 3D Visualization */}
         <div className="flex-1 relative bg-slate-900/30">
-          <ThreeScene 
-            gateOpening={gateOpening} 
-            motorCurrent={motorCurrent} 
-            vibration={vibration} 
-            isAlert={isAlert} 
+          <ThreeScene
+            gateOpening={gateOpening}
+            motorCurrent={motorCurrent}
+            vibration={vibration}
+            isAlert={isAlert}
           />
-          
+          <div className="absolute top-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
+          </div>
+
           {/* Floating Status Badge */}
           <div className="absolute top-6 left-6 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-700/50 flex items-center space-x-3">
             <div className={`w-3 h-3 rounded-full ${isMoving ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></div>

@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SciFiCard } from '../components/SciFiCard';
 import { EQUIPMENT_LIST } from '../constants';
-import { 
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, 
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   LineChart, Line, CartesianGrid, AreaChart, Area
 } from 'recharts';
-import { Activity, Cpu, Server, Radio, Wind, Zap } from 'lucide-react';
+import { Activity, Cpu, Server, Radio, Wind, Zap, Download, ChevronDown } from 'lucide-react';
+// 2026-07-09 新增：场景导出（测试方案 8.1"场景导出"），仅在本页（工业智能运维全景视图）提供入口
+import { exportScenarioLibrary, ScenarioExportFormat } from '../src/scenarioLib/scenarioExport';
 
 const MOCK_DATA_STATUS = [
   { name: '水轮机', value: 85, status: 'normal' },
@@ -23,12 +25,59 @@ const MOCK_TIME_SERIES = Array.from({ length: 20 }, (_, i) => ({
   efficiency: Math.floor(Math.random() * 20) + 80,
 }));
 
+// 2026-07-09 新增：导出格式选择项（决策 4：Word/Excel/JSON/Markdown 四选一）
+const EXPORT_FORMAT_OPTIONS: { value: ScenarioExportFormat; label: string }[] = [
+  { value: 'word', label: 'Word (.docx)' },
+  { value: 'excel', label: 'Excel (.xlsx)' },
+  { value: 'json', label: 'JSON' },
+  { value: 'md', label: 'Markdown' },
+];
+
 export const SmartOperationsView: React.FC = () => {
+  // 2026-07-09 新增：场景导出下拉菜单开关状态与导出中状态
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async (format: ScenarioExportFormat) => {
+    setExportMenuOpen(false);
+    setExporting(true);
+    try {
+      await exportScenarioLibrary(format);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col gap-6">
       {/* Header Section */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <SciFiCard className="md:col-span-3" title="工业智能运维全景视图">
+          {/* 2026-07-09 新增：导出全部场景入口，读取 constants.tsx 的 MENU_ITEMS 按分类导出，不经过后端 */}
+          <div className="absolute top-2 right-3 z-10">
+            <button
+              onClick={() => setExportMenuOpen((v) => !v)}
+              disabled={exporting}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-cyan-950/60 border border-cyan-800 text-cyan-300 rounded hover:bg-cyan-900 transition-colors disabled:opacity-50"
+            >
+              <Download size={12} />
+              {exporting ? '导出中...' : '导出全部场景'}
+              <ChevronDown size={12} />
+            </button>
+            {exportMenuOpen && (
+              <div className="absolute right-0 mt-1 w-40 bg-[#0b1221] border border-cyan-900/60 rounded shadow-lg overflow-hidden">
+                {EXPORT_FORMAT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => handleExport(opt.value)}
+                    className="block w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-cyan-900/40 hover:text-cyan-300 transition-colors"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <p className="mb-4 text-slate-300 leading-relaxed">
             装备产品智能运维的应用行业范围宽广。结合设备特定的状态数据和生产数据，系统实时模拟工业现场的设备状况、设备间数据交互和设备运行环境，实现全生命周期的智能化管理。
           </p>

@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '@/components/vibration-monitoring/PortShipLoader/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[vibe-PortShipLoader]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/vibe-PortShipLoader';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Activity, Zap, ShieldCheck, Thermometer, Layers, RotateCw, Settings, Anchor, Wind, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -85,7 +90,10 @@ const PortShipLoaderView: React.FC = () => {
 
         {/* Center: 3D Visualization */}
         <div className="col-span-2 row-span-2 bg-slate-900/20 border border-slate-800 rounded-[40px] relative overflow-hidden group">
-          <div className="absolute inset-0 z-0"><ThreeScene state={state} /></div>
+          <div className="absolute inset-0 z-0"><ThreeScene state={state} />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div></div>
           <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
             <div className="px-4 py-2 bg-slate-900/80 backdrop-blur-md border border-slate-700 rounded-xl flex items-center gap-3">
               <Activity className="text-cyan-400" size={16} />

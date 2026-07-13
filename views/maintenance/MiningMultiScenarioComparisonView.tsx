@@ -3,6 +3,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { SciFiCard } from '../../components/SciFiCard';
 import { ThreeScene } from '../../components/maintenance/mining-comparison/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mm-36]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mm-36';
 import { MaintenanceStrategy, SimMetrics } from '../../components/maintenance/mining-comparison/three-types';
 import { 
   BarChart3, Settings, Zap, ShieldAlert, 
@@ -234,6 +239,9 @@ export const MiningMultiScenarioComparisonView: React.FC = () => {
            <div className="flex-1 bg-black border border-slate-800 rounded-lg overflow-hidden relative shadow-[inset_0_0_80px_rgba(0,0,0,0.8)] group">
                {/* 3D Simulation Scene */}
                <ThreeScene strategy={activeStrategy} />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
                {/* Overlay HUD */}
                <div className="absolute top-4 left-4 z-20 flex flex-col gap-3">

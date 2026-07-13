@@ -3,6 +3,11 @@ import { SciFiCard } from '../../../components/SciFiCard';
 import { Unit1ThreeScene } from '../../../components/cockpit/unit1-predictive/ThreeScene';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine, ReferenceArea, Brush, Legend, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, RadarChart } from 'recharts';
 import { Activity, AlertTriangle, Cpu, TrendingUp, Thermometer, ShieldAlert, Zap, Layers, CheckCircle, Upload, X, Loader2, Trash2 } from 'lucide-react';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[eq-18]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/eq-18';
 
 const differenceInHours = (dateLeft: Date, dateRight: Date) => {
   return Math.round((dateLeft.getTime() - dateRight.getTime()) / 3600000);
@@ -334,6 +339,9 @@ export const Unit1PredictiveView: React.FC = () => {
            <div className="absolute top-4 left-4 right-4 flex justify-between pointer-events-none">
              <div className="bg-slate-900/80 px-3 py-1 rounded border border-slate-700 text-xs shadow flex items-center gap-2">
                 当前检视: <span className={isPrediction ? 'text-amber-400 font-mono' : 'text-blue-400 font-mono'}>{timeLabel}</span>
+             </div>
+             <div className="pointer-events-auto">
+               <ModelLibraryLink url={MODEL_LIB_URL} />
              </div>
            </div>
            

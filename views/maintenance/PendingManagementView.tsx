@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { PendingThreeScene } from '../../components/maintenance_pending/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[am-pending]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/am-pending';
 import { 
   Clock, 
   PauseCircle, 
@@ -171,6 +176,9 @@ export const PendingManagementView: React.FC = () => {
 
               {/* 3D 渲染组件 */}
               <PendingThreeScene onNodeSelect={setSelectedOrder} />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
 
               {/* 背景装饰网格 */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_#020617_80%)] pointer-events-none"></div>

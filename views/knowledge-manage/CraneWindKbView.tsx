@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { ThreeScene } from '../../components/knowledge-manage/crane-wind/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[km-crane-wind]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/km-crane-wind';
 import { WindLevelState } from '../../components/knowledge-manage/crane-wind/three-types';
 import { 
   Wind, Anchor, AlertTriangle, ShieldCheck, 
@@ -200,6 +205,9 @@ export const CraneWindKbView: React.FC = () => {
                
                {/* 3D Scene */}
                <ThreeScene state={windState} />
+               <div className="absolute top-4 right-4 z-20">
+                 <ModelLibraryLink url={MODEL_LIB_URL} />
+               </div>
                
                {/* Active Devices Indicators */}
                <div className="absolute bottom-6 right-6 flex flex-col gap-2 items-end">

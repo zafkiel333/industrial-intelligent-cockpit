@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '../../../components/Equipment-Point-Inspection/HazardousGas/ThreeScene';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ins-49]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ins-49';
 import { Wind, AlertTriangle, ShieldCheck, Activity, Flame, Skull, Fan } from 'lucide-react';
 
 export const HazardousGasView: React.FC = () => {
@@ -137,13 +142,16 @@ export const HazardousGasView: React.FC = () => {
 
         {/* Center: 3D Visualization */}
         <div className="flex-1 relative bg-slate-900/30">
-          <ThreeScene 
-            ch4Level={ch4Level} 
-            coLevel={coLevel} 
-            ventilationRate={ventilationRate} 
-            isAlert={isAlert} 
+          <ThreeScene
+            ch4Level={ch4Level}
+            coLevel={coLevel}
+            ventilationRate={ventilationRate}
+            isAlert={isAlert}
           />
-          
+          <div className="absolute bottom-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
+          </div>
+
           {/* Overlay Info */}
           <div className="absolute top-6 right-6 bg-slate-900/80 backdrop-blur-md p-4 rounded-xl border border-slate-700/50">
             <h4 className="text-xs font-semibold text-slate-400 mb-2 uppercase">监测点位信息</h4>

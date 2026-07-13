@@ -3,6 +3,11 @@ import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-Training/StandbyGeneratorGovernorTuningSim/ThreeScene';
 import { GovernorState } from '../../../components/Maintenance-Training/StandbyGeneratorGovernorTuningSim/three-types';
 import { Activity, Zap, Settings2, Power, AlertTriangle, TrendingUp } from 'lucide-react';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[StandbyGeneratorGovernorTuningSim]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/StandbyGeneratorGovernorTuningSim';
 import * as d3 from 'd3';
 
 export default function StandbyGeneratorGovernorTuningSim() {
@@ -313,6 +318,9 @@ export default function StandbyGeneratorGovernorTuningSim() {
           {/* 3D Environment */}
           <div className="flex-1 border border-slate-700 rounded-xl overflow-hidden relative bg-slate-900/50 min-h-[250px]">
             <ThreeScene state={state} />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
             <div className="absolute top-4 left-4 z-10 bg-black/80 backdrop-blur border border-slate-700 p-3 rounded-lg text-xs">
               <h3 className="font-bold text-indigo-400 mb-1">执行机构 3D 视图</h3>
               <p className="text-slate-400">

@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/simulation/port-carbon/ThreeScene';
 import { Wind, Leaf, Factory, TrendingDown, BatteryCharging, CloudRain, ShieldAlert, CheckCircle, Clock } from 'lucide-react';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[sim-port-carbon]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/sim-port-carbon';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const EMISSION_DATA = Array.from({length: 12}, (_, i) => ({
@@ -83,6 +88,9 @@ export const PortCarbonSimulationView: React.FC = () => {
           <div className="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur border border-emerald-800/50 p-2 rounded text-xs text-emerald-400 flex items-center gap-2 pointer-events-none">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
             绿电并网运行中 (支持交互)
+          </div>
+          <div className="absolute top-4 right-4 z-10">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </SciFiCard>
 

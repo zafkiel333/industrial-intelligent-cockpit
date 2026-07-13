@@ -3,6 +3,11 @@ import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-Training/TurbineRunnerHoistingTraining/ThreeScene';
 import { HoistingState } from '../../../components/Maintenance-Training/TurbineRunnerHoistingTraining/three-types';
 import { Play, Pause, ArrowUp, ArrowDown, AlertTriangle, CheckCircle2 } from 'lucide-react';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[TurbineRunnerHoistingTraining]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/TurbineRunnerHoistingTraining';
 
 export default function TurbineRunnerHoistingTraining() {
   const [hoistState, setHoistState] = useState<HoistingState>({
@@ -157,7 +162,11 @@ export default function TurbineRunnerHoistingTraining() {
             </div>
           </div>
           <ThreeScene state={hoistState} />
-          
+
+          <div className="absolute top-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
+          </div>
+
           {/* Overlay scanning effect */}
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(to_bottom,transparent_0%,rgba(6,182,212,0.05)_50%,transparent_100%)] bg-[length:100%_200%] animate-[scan_4s_ease-in-out_infinite]"></div>
         </div>

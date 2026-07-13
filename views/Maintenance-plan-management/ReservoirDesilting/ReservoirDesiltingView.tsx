@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-plan-management/ReservoirDesilting/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mpm-6]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mpm-6';
 import { Calendar, Wrench, Waves, Map, AlertTriangle, CheckCircle, Navigation, BarChart3, Activity } from 'lucide-react';
 
 export const ReservoirDesiltingView: React.FC = () => {
@@ -91,12 +96,15 @@ export const ReservoirDesiltingView: React.FC = () => {
         <div className="w-full lg:w-2/3 flex flex-col gap-5 relative">
            {show3D && (
              <div className="flex-1 bg-[#020617] border border-blue-500/20 rounded-sm relative group overflow-hidden min-h-[400px]">
-                <ThreeScene 
-                  siltLevel={data.siltLevel} 
-                  status={data.status} 
-                  progress={data.progress} 
+                <ThreeScene
+                  siltLevel={data.siltLevel}
+                  status={data.status}
+                  progress={data.progress}
                 />
-                
+                <div className="absolute top-4 right-4 z-20">
+                  <ModelLibraryLink url={MODEL_LIB_URL} />
+                </div>
+
                 {/* Overlay UI */}
                 <div className="absolute top-4 left-4 flex flex-col gap-2">
                   <div className="bg-slate-900/80 backdrop-blur border border-slate-700 p-3 rounded-sm">

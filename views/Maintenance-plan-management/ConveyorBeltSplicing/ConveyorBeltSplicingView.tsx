@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { ThreeScene } from '../../../components/Maintenance-plan-management/ConveyorBeltSplicing/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[mpm-22]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mpm-22';
 import { TimelineWidget, ChartWidget, ResourceWidget, RiskWidget, DocumentWidget, CameraWidget, ParameterWidget } from '../../../components/SciFiWidgets';
 
 export const ConveyorBeltSplicingView: React.FC = () => {
@@ -88,6 +93,9 @@ export const ConveyorBeltSplicingView: React.FC = () => {
         <SciFiCard title="长距离皮带机硫化接头排期 - 沉浸视图" className="h-[500px]">
           <div className="absolute inset-0 m-4 border border-slate-700/50 rounded-lg overflow-hidden bg-slate-900/50">
             <ThreeScene {...data} />
+          </div>
+          <div className="absolute top-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
           </div>
         </SciFiCard>
         <div className="flex flex-col gap-6">

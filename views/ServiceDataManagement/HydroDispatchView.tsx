@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { ReservoirDispatchThreeScene } from '../../components/ServiceDataManagement/ReservoirDispatch/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[hd-5]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/hd-5';
 import { GateNode } from '../../components/ServiceDataManagement/ReservoirDispatch/three-types';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -125,6 +130,10 @@ export const HydroDispatchView: React.FC = () => {
            <div className="text-right">
               <div className="text-[10px] text-slate-400 uppercase font-bold">Total Outflow</div>
               <div className="text-3xl font-mono font-black text-white">{hydrology.outflow.toFixed(0)} <span className="text-sm font-normal text-slate-500">m³/s</span></div>
+           </div>
+           <div className="w-[1px] h-10 bg-slate-700"></div>
+           <div className="flex items-center">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
            </div>
         </div>
       </div>

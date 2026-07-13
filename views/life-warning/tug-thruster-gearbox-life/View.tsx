@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, ShieldAlert, RefreshCw, Anchor, Activity as VibrationIcon } from 'lucide-react';
 import { ThreeScene } from '../../../components/life-warning/tug-thruster-gearbox-life/ThreeScene';
+// 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[tug-thruster-gearbox-life]: 2026-07-09 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/tug-thruster-gearbox-life';
 import { ThrusterGearboxState } from '../../../components/life-warning/tug-thruster-gearbox-life/three-types';
 
 export const View: React.FC = () => {
@@ -163,6 +168,9 @@ export const View: React.FC = () => {
           </div>
           <div className="flex-1 relative">
             <ThreeScene state={gearboxState} />
+            <div className="absolute top-4 right-4 z-20">
+              <ModelLibraryLink url={MODEL_LIB_URL} />
+            </div>
           </div>
           <div className="absolute bottom-4 left-4 right-4 flex justify-between">
             <div className="bg-zinc-900/80 backdrop-blur px-4 py-2 rounded-lg border border-zinc-700 flex items-center gap-3">

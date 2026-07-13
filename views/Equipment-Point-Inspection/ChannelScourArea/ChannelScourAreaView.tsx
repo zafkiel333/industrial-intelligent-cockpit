@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ThreeScene } from '../../../components/Equipment-Point-Inspection/ChannelScourArea/ThreeScene';
+// 2026-07-10 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[ins-38]: 2026-07-10 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/ins-38';
 import { Waves, Droplets, Activity, AlertTriangle, ShieldCheck, Navigation, Map, TrendingDown } from 'lucide-react';
 
 export const ChannelScourAreaView: React.FC = () => {
@@ -65,13 +70,16 @@ export const ChannelScourAreaView: React.FC = () => {
         
         {/* Left: 3D Scene (Takes up more space) */}
         <div className="w-2/3 relative bg-slate-900/30 border-r border-slate-800">
-          <ThreeScene 
-            waterFlowSpeed={waterFlowSpeed} 
-            scourDepth={scourDepth} 
-            sedimentConcentration={sedimentConcentration} 
-            isAlert={isAlert} 
+          <ThreeScene
+            waterFlowSpeed={waterFlowSpeed}
+            scourDepth={scourDepth}
+            sedimentConcentration={sedimentConcentration}
+            isAlert={isAlert}
           />
-          
+          <div className="absolute top-4 right-4 z-20">
+            <ModelLibraryLink url={MODEL_LIB_URL} />
+          </div>
+
           {/* Overlay Info on 3D */}
           <div className="absolute top-6 left-6 bg-slate-900/80 backdrop-blur-md border border-slate-700 p-4 rounded-xl shadow-xl">
             <div className="flex items-center space-x-2 text-slate-300 mb-2">

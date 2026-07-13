@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { SciFiCard } from '../../components/SciFiCard';
 import { BomThreeScene } from '../../components/maintenance_bom/ThreeScene';
+// 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
+import { ModelLibraryLink } from '../../src/scenarioLib/ModelLibraryLink';
+// MODEL_LIB_LINK[am-bom-check]: 2026-07-13 新增，占位模型库地址；
+// 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
+const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/am-bom-check';
 import { BomPart } from '../../components/maintenance_bom/three-types';
 import { 
   Scan, 
@@ -161,6 +166,9 @@ export const BomCheckView: React.FC = () => {
                     explodeLevel={explodeLevel}
                     onPartSelect={setSelectedPartId}
                  />
+              <div className="absolute top-4 right-4 z-20">
+                <ModelLibraryLink url={MODEL_LIB_URL} />
+              </div>
               </div>
               
               {/* Background Grid */}
