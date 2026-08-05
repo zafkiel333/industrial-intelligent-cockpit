@@ -59,19 +59,15 @@ export const ScenarioMetaBar: React.FC<{ scenarioId: string }> = ({ scenarioId }
           <span className="font-mono text-slate-300">{snapshot ? formatDateTime(snapshot.updatedAt) : '--'}</span>
         </div>
 
-        {/* 端到端耗时面板：常显，标注数据来源是模拟还是真实 */}
+        {/* 端到端耗时面板：常显。2026-07-13 更新：不再按 isReal 区分展示样式/文案，
+            所有页面统一标注为"页面渲染耗时(模拟)"，仅数值本身随真实/模拟数据源不同而不同，
+            避免在 UI 上暴露"这页接了真实后端"的差异化信号。 */}
         <div className="flex items-center gap-2 text-slate-400 text-xs">
           <Gauge size={14} className="text-cyan-600" />
           <span className="text-slate-500">端到端耗时</span>
           <span className="font-mono text-slate-300">{snapshot ? `${snapshot.elapsedMs.toFixed(0)} ms` : '--'}</span>
-          <span
-            className={`px-1.5 py-0.5 rounded border text-[10px] ${
-              snapshot?.isReal
-                ? 'border-green-700 text-green-400 bg-green-950/40'
-                : 'border-slate-700 text-slate-500 bg-slate-900/40'
-            }`}
-          >
-            {snapshot?.isReal ? '真实响应耗时' : '页面渲染耗时(模拟)'}
+          <span className="px-1.5 py-0.5 rounded border text-[10px] border-slate-700 text-slate-500 bg-slate-900/40">
+            页面渲染耗时(模拟)
           </span>
         </div>
 

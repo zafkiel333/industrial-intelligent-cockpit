@@ -1,68 +1,108 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, ShieldAlert, RefreshCw, Link2, Activity as TensionIcon } from 'lucide-react';
+import { Activity, ShieldAlert, RefreshCw, Link2, Activity as TensionIcon, Upload, Trash2 } from 'lucide-react';
 import { ThreeScene } from '../../../components/life-warning/mining-shovel-rope-life/ThreeScene';
 // 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
 import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
 // MODEL_LIB_LINK[mining-shovel-rope-life]: 2026-07-09 新增，占位模型库地址；
 // 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
 const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/mining-shovel-rope-life';
+// 2026-07-13 新增：场景库测试方案 Phase 4.9 —— 真实后端数据流转（重大修改）。
+import { useScenarioRealData } from '../../../src/scenarioLib/useScenarioRealData';
+import { ScenarioDataUploadModal } from '../../../src/scenarioLib/ScenarioDataUploadModal';
+// 2026-07-14 新增：真实张力分布直方图 + 现场报告导出（场景库测试方案 Phase 4 修正）。
+import { downloadScenarioReport } from '../../../src/scenarioLib/scenarioFieldReport';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { FileDown } from 'lucide-react';
+const SCENARIO_ID = 'mining-shovel-rope-life';
 import { ShovelRopeState } from '../../../components/life-warning/mining-shovel-rope-life/three-types';
 
-export const View: React.FC = () => {
-  const [ropeState, setRopeState] = useState<ShovelRopeState>({
-    tension: 800, // kN
-    bendingCycles: 150000, // cycles
-    abrasion: 15, // %
-    brokenWires: 2, // count
-    operatingHours: 1200, // hours
-  });
+const DEFAULT_STATE: ShovelRopeState = {
+  tension: 800, // kN
+  bendingCycles: 150000, // cycles
+  abrasion: 15, // %
+  brokenWires: 2, // count
+  operatingHours: 1200, // hours
+};
 
+export const View: React.FC = () => {
+  // 2026-07-13 重塑：真实数据接入，替换原来的 setInterval + Math.random() 模拟。
+  const { unifiedData, refetch, clearData } = useScenarioRealData(SCENARIO_ID);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [ropeState, setRopeState] = useState<ShovelRopeState>(DEFAULT_STATE);
   const [healthScore, setHealthScore] = useState(82);
   const [estimatedLife, setEstimatedLife] = useState(800); // Hours
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setRopeState(prev => {
-        const newHours = prev.operatingHours + 1;
-        const newCycles = prev.bendingCycles + 150; // Fast forward
-        
-        // Simulate digging cycle tension
-        const isDigging = Math.random() > 0.4;
-        const newTension = isDigging 
-            ? Math.max(1000, Math.min(2200, prev.tension + (Math.random() * 500 - 100)))
-            : Math.max(200, Math.min(800, prev.tension - 300));
+    if (unifiedData.length === 0) return;
+    const idx = unifiedData.length - 1;
+    const latest = unifiedData[idx];
+    const tension = Number(latest.tension);
+    const abrasion = Number(latest.abrasion);
 
-        // Abrasion increases slowly
-        const newAbrasion = Math.min(100, prev.abrasion + 0.02);
+    // bendingCycles/operatingHours 原为"随时间快进累加"，现按上传数据序号派生（每条读数代表一次巡检采样）
+    const bendingCycles = 150000 + idx * 150;
+    const operatingHours = 1200 + idx;
+    // brokenWires 原为概率触发，现改为基于真实 tension 历史的简单阈值穿越计数：
+    // 每出现一次 tension>1800kN 的高张力读数，累计断丝数 +1（基础值 2 根）。
+    const highTensionCrossings = unifiedData.filter(row => Number(row.tension) > 1800).length;
+    const brokenWires = Math.min(12, 2 + highTensionCrossings);
 
-        // Broken wires increase based on fatigue (cycles) and tension spikes
-        let newBrokenWires = prev.brokenWires;
-        if (newCycles > 200000 && Math.random() > 0.98) newBrokenWires += 1;
-        if (newTension > 1800 && Math.random() > 0.95) newBrokenWires += 1;
+    const tensionPenalty = Math.max(0, (tension - 1500) / 700) * 10;
+    const abrasionPenalty = (abrasion / 100) * 30;
+    const wirePenalty = Math.min(60, brokenWires * 5);
+    const health = Math.max(0, Math.floor(100 - tensionPenalty - abrasionPenalty - wirePenalty));
+    const baseLife = 2500;
+    const remainingLife = Math.max(0, Math.floor((baseLife - operatingHours) * (health / 100)));
 
-        const tensionPenalty = Math.max(0, (newTension - 1500) / 700) * 10;
-        const abrasionPenalty = (newAbrasion / 100) * 30;
-        const wirePenalty = Math.min(60, newBrokenWires * 5); // 12 wires is critical
+    setHealthScore(health);
+    setEstimatedLife(remainingLife);
+    setRopeState({ tension, bendingCycles, abrasion, brokenWires, operatingHours });
+  }, [unifiedData]);
 
-        const health = Math.max(0, Math.floor(100 - tensionPenalty - abrasionPenalty - wirePenalty));
-        
-        const baseLife = 2500;
-        const remainingLife = Math.max(0, Math.floor((baseLife - newHours) * (health / 100)));
-        setEstimatedLife(remainingLife);
+  const handleClear = async () => {
+    if (!window.confirm('确定要清空所有上传的数据文件吗？操作不可逆。')) return;
+    const res = await clearData();
+    if (!res.success) alert(res.message || '清空失败');
+    else setRopeState(DEFAULT_STATE);
+  };
 
-        return {
-          ...prev,
-          operatingHours: newHours,
-          bendingCycles: newCycles,
-          tension: newTension,
-          abrasion: newAbrasion,
-          brokenWires: newBrokenWires,
-        };
-      });
-    }, 1000);
+  // 2026-07-14 新增：真实张力分布直方图——把上传数据按张力区间分桶统计，
+  // 与本页"阈值穿越计数"的断丝派生逻辑相呼应，直观展示高张力读数的出现频率。
+  const TENSION_BINS = [0, 500, 1000, 1500, 1800, 2000, 2500];
+  const tensionHistogram = TENSION_BINS.slice(0, -1).map((lo, i) => {
+    const hi = TENSION_BINS[i + 1];
+    const count = unifiedData.filter((row) => {
+      const t = Number(row.tension);
+      return t >= lo && t < hi;
+    }).length;
+    return { range: `${lo}-${hi}`, count, highRisk: hi > 1800 };
+  });
 
-    return () => clearInterval(interval);
-  }, []);
+  const handleExportReport = () => {
+    downloadScenarioReport({
+      scenarioId: SCENARIO_ID,
+      title: '矿用电铲钢丝绳寿命预警报告',
+      dataPointCount: unifiedData.length,
+      metrics: [
+        { label: '钢丝绳健康度', value: healthScore.toString(), unit: '%' },
+        { label: '预计剩余寿命', value: estimatedLife.toString(), unit: '小时' },
+        { label: '实时张力', value: ropeState.tension.toFixed(0), unit: 'kN' },
+        { label: '表面磨损率', value: ropeState.abrasion.toFixed(1), unit: '%' },
+        { label: '单捻距断丝数', value: ropeState.brokenWires.toString(), unit: '根' },
+        { label: '累计运行时间', value: ropeState.operatingHours.toLocaleString(), unit: '小时' },
+      ],
+      conclusion:
+        ropeState.brokenWires >= 6
+          ? '【危急】单捻距内断丝数已达报废标准，钢丝绳承载能力严重下降，极易发生断绳坠斗事故！必须立即停机更换钢丝绳。'
+          : ropeState.tension > 2000
+          ? '【危急】挖掘张力异常偏高，可能遇到大块硬岩或根底。请规范操作，避免强行挖掘导致钢丝绳过载损伤。'
+          : ropeState.abrasion > 60
+          ? '【警告】钢丝绳表面磨损严重，截面积减小。建议检查天轮槽磨损情况，并加强钢丝绳润滑保养。'
+          : ropeState.brokenWires > 2
+          ? '【注意】已出现散发性断丝，表明钢丝绳进入疲劳期。建议缩短探伤周期，密切关注断丝发展趋势。'
+          : '【正常】钢丝绳各项指标正常，润滑良好，未见明显疲劳损伤。',
+    });
+  };
 
   const handleReset = () => {
     setRopeState({
@@ -103,6 +143,20 @@ export const View: React.FC = () => {
           <button onClick={handleReset} className="bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg px-4 flex items-center gap-2 transition-colors">
             <RefreshCw className="w-5 h-5" />
             <span>穿新绳作业</span>
+          </button>
+          <button
+            onClick={() => setUploadModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 flex items-center gap-2 transition-colors"
+          >
+            <Upload className="w-5 h-5" />
+            <span>数据入库</span>
+          </button>
+          <button
+            onClick={handleClear}
+            className="bg-red-900/80 hover:bg-red-800 text-red-200 rounded-lg px-4 flex items-center gap-2 transition-colors"
+          >
+            <Trash2 className="w-5 h-5" />
+            <span>一键清空</span>
           </button>
         </div>
       </div>
@@ -200,9 +254,44 @@ export const View: React.FC = () => {
                 <span className="text-emerald-400">【正常】 钢丝绳各项指标正常，润滑良好，未见明显疲劳损伤。</span>
               )}
             </div>
+
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-blue-300 mb-2">张力分布直方图（真实数据）</h4>
+              <div className="h-32">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={tensionHistogram}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                    <XAxis dataKey="range" stroke="#64748b" fontSize={8} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#64748b" fontSize={9} tickLine={false} axisLine={false} width={20} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', fontSize: '10px' }} />
+                    <Bar dataKey="count" name="读数次数" radius={[3, 3, 0, 0]}>
+                      {tensionHistogram.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.highRisk ? '#f43f5e' : '#3b82f6'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <button
+              onClick={handleExportReport}
+              className="mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+              <FileDown className="w-4 h-4" />
+              导出寿命预警报告
+            </button>
           </div>
         </div>
       </div>
+
+      <ScenarioDataUploadModal
+        scenarioId={SCENARIO_ID}
+        open={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        onUploaded={refetch}
+        metricsHint="tension(kN) / abrasion(%)"
+      />
     </div>
   );
 };

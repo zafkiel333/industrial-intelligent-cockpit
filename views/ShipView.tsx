@@ -6,16 +6,29 @@ import { ModelLibraryLink } from '../src/scenarioLib/ModelLibraryLink';
 // MODEL_LIB_LINK[eq-7]: 2026-07-13 新增，占位模型库地址；
 // 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
 const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/eq-7';
-import { 
+// 2026-07-13 新增：场景库测试方案 Phase 4.6 —— 真实后端数据流转（重大修改）。
+import { useScenarioRealData } from '../src/scenarioLib/useScenarioRealData';
+import { ScenarioDataUploadModal } from '../src/scenarioLib/ScenarioDataUploadModal';
+// 2026-07-14 新增：真实动力趋势 + 燃油效率散点图 + 现场报告导出（场景库测试方案 Phase 4 修正）。
+import { downloadScenarioReport } from '../src/scenarioLib/scenarioFieldReport';
+const SCENARIO_ID = 'eq-7';
+import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-  AreaChart, Area, ReferenceLine, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+  AreaChart, Area, ReferenceLine, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  ScatterChart, Scatter, ZAxis
 } from 'recharts';
-import { 
-  Anchor, Navigation, Compass, Wind, Thermometer, 
-  Activity, Gauge, Box, ArrowUpRight, LocateFixed 
+import {
+  Anchor, Navigation, Compass, Wind, Thermometer,
+  Activity, Gauge, Box, ArrowUpRight, LocateFixed, Upload, Trash2, FileDown
 } from 'lucide-react';
 
 export const ShipView: React.FC = () => {
+  // 2026-07-13 重塑：speed/rpm/fuelConsumption/exhaustTemp 改为真实数据；
+  // heading/depth/load/姿态/环境等次要指标保持原有模拟，避免单页指标过多超出试点范畴。
+  const { unifiedData, refetch, clearData } = useScenarioRealData(SCENARIO_ID);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const latestRow = unifiedData.length > 0 ? unifiedData[unifiedData.length - 1] : null;
+
   // --- STATE ---
   const [navData, setNavData] = useState({
     speed: 18.5, // Knots
@@ -32,6 +45,12 @@ export const ShipView: React.FC = () => {
     exhaustTemp: 420, // C
   });
 
+  const handleClear = async () => {
+    if (!window.confirm('确定要清空所有上传的数据文件吗？操作不可逆。')) return;
+    const res = await clearData();
+    if (!res.success) alert(res.message || '清空失败');
+  };
+
   const [stability, setStability] = useState({
     pitch: 0.5,
     roll: 1.2,
@@ -45,35 +64,34 @@ export const ShipView: React.FC = () => {
     waveHeight: 2.5, // m
   });
 
-  const [engineTrend, setEngineTrend] = useState<any[]>([]);
-
-  // Simulation Loop
+  // 2026-07-13 新增：latestRow 变化时（新数据上传/清空）同步真实指标到 navData/engineData
   useEffect(() => {
-    // Init History
-    const initHist = Array.from({length: 30}, (_, i) => ({
-        time: i,
-        rpm: 90 + Math.random() * 5,
-        load: 80 + Math.random() * 10
+    if (!latestRow) return;
+    setNavData(prev => ({ ...prev, speed: Number(latestRow.speed) }));
+    setEngineData(prev => ({
+      ...prev,
+      rpm: Number(latestRow.rpm),
+      fuelConsumption: Number(latestRow.fuelConsumption),
+      exhaustTemp: Number(latestRow.exhaustTemp),
     }));
-    setEngineTrend(initHist);
+  }, [latestRow]);
 
+  // Simulation Loop（姿态/环境/负荷等次要指标保持原有模拟，不纳入本次真实数据范围）
+  useEffect(() => {
     const interval = setInterval(() => {
       const time = Date.now() / 1000;
-      
-      // 1. Navigation Updates
+
+      // 1. Navigation Updates（speed 改为真实数据驱动，heading/depth 保持模拟）
       setNavData(prev => ({
         ...prev,
-        speed: 18.5 + Math.sin(time * 0.5) * 0.5,
         heading: 245 + Math.sin(time * 0.1) * 2,
         depth: 1450 + Math.floor(Math.random() * 10)
       }));
 
-      // 2. Engine Fluctuations
+      // 2. Engine Fluctuations（rpm/fuelConsumption/exhaustTemp 改为真实数据驱动，load 保持模拟）
       setEngineData(prev => ({
-        rpm: 92 + (Math.random() - 0.5) * 1,
+        ...prev,
         load: 85 + (Math.random() - 0.5) * 2,
-        fuelConsumption: 125 + (Math.random() - 0.5) * 5,
-        exhaustTemp: 420 + (Math.random() - 0.5) * 10,
       }));
 
       // 3. Stability (Oscillation)
@@ -83,19 +101,43 @@ export const ShipView: React.FC = () => {
         roll: Math.cos(time * 0.8) * 3.0,
       }));
 
-      // 4. Update Trend
-      setEngineTrend(prev => {
-          const newItem = {
-              time: prev[prev.length-1].time + 1,
-              rpm: 92 + (Math.random() - 0.5) * 2,
-              load: 85 + (Math.random() - 0.5) * 3
-          };
-          return [...prev.slice(1), newItem];
-      });
-
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // 2026-07-14 新增：真实动力系统趋势——直接取上传数据的完整时间序列（替换原来随机推进的假历史）。
+  const engineRealTrend = unifiedData.length > 0
+    ? unifiedData.map((row) => ({
+        time: new Date(row.time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        rpm: Number(row.rpm),
+        fuelConsumption: Number(row.fuelConsumption),
+        exhaustTemp: Number(row.exhaustTemp),
+      }))
+    : [{ time: '--', rpm: engineData.rpm, fuelConsumption: engineData.fuelConsumption, exhaustTemp: engineData.exhaustTemp }];
+
+  // 燃油效率散点：转速 vs 油耗，反映主机运行经济性（转速升高但油耗异常偏高 = 效率下降）
+  const fuelEfficiencyPoints = engineRealTrend.map((d) => ({ rpm: d.rpm, fuel: d.fuelConsumption }));
+
+  const engineConclusion =
+    engineData.exhaustTemp > 480 || engineData.fuelConsumption > 150
+      ? `排烟温度 ${engineData.exhaustTemp.toFixed(0)}°C / 油耗 ${engineData.fuelConsumption.toFixed(0)}kg/h 已偏高，建议检查喷油器雾化状态及增压器效率，排查燃烧不完全风险。`
+      : `主机排烟温度 ${engineData.exhaustTemp.toFixed(0)}°C、油耗 ${engineData.fuelConsumption.toFixed(0)}kg/h，均在正常经济航速范围内，运行经济性良好。`;
+
+  const handleExportReport = () => {
+    downloadScenarioReport({
+      scenarioId: SCENARIO_ID,
+      title: '船舶主机智能运维报告',
+      dataPointCount: unifiedData.length,
+      metrics: [
+        { label: '航速', value: navData.speed.toFixed(1), unit: 'kn' },
+        { label: '主机转速', value: engineData.rpm.toFixed(1), unit: 'RPM' },
+        { label: '燃油消耗', value: engineData.fuelConsumption.toFixed(0), unit: 'kg/h' },
+        { label: '排烟温度', value: engineData.exhaustTemp.toFixed(0), unit: '°C' },
+        { label: '主机负荷', value: engineData.load.toFixed(0), unit: '%' },
+      ],
+      conclusion: engineConclusion,
+    });
+  };
 
   const radarData = [
     { subject: 'Propulsion', A: 95, fullMark: 100 },
@@ -135,6 +177,20 @@ export const ShipView: React.FC = () => {
             <div className="flex flex-col items-end border-l border-cyan-900/40 pl-6">
                 <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">Engine Load</div>
                 <div className="text-2xl font-mono font-bold text-green-400">{engineData.load.toFixed(0)} <span className="text-sm text-slate-500">%</span></div>
+            </div>
+            <div className="flex flex-col gap-2 border-l border-cyan-900/40 pl-6 justify-center">
+                <button
+                  onClick={() => setUploadModalOpen(true)}
+                  className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded flex items-center gap-2 transition-colors"
+                >
+                  <Upload size={14} /> 数据入库
+                </button>
+                <button
+                  onClick={handleClear}
+                  className="text-xs px-3 py-1.5 bg-red-900/80 hover:bg-red-800 text-red-200 rounded flex items-center gap-2 transition-colors"
+                >
+                  <Trash2 size={14} /> 一键清空
+                </button>
             </div>
         </div>
       </div>
@@ -239,11 +295,11 @@ export const ShipView: React.FC = () => {
             </div>
            </div>
 
-           {/* Propulsion Trend */}
-           <SciFiCard title="动力系统趋势" subtitle="RPM & LOAD" className="h-[250px] border-cyan-900/50" noPadding>
+           {/* Propulsion Trend（真实数据） */}
+           <SciFiCard title="动力系统趋势（真实数据）" subtitle="RPM & EXHAUST TEMP" className="h-[250px] border-cyan-900/50" noPadding>
               <div className="w-full h-full p-4">
                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={engineTrend}>
+                    <AreaChart data={engineRealTrend}>
                        <defs>
                           <linearGradient id="colorRpm" x1="0" y1="0" x2="0" y2="1">
                              <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3}/>
@@ -251,13 +307,41 @@ export const ShipView: React.FC = () => {
                           </linearGradient>
                        </defs>
                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                       <XAxis dataKey="time" stroke="#64748b" tick={{fontSize: 10}} hide />
-                       <YAxis stroke="#64748b" tick={{fontSize: 10}} domain={[60, 100]} />
+                       <XAxis dataKey="time" stroke="#64748b" tick={{fontSize: 9}} />
+                       <YAxis yAxisId="rpm" stroke="#0ea5e9" tick={{fontSize: 9}} width={30} />
+                       <YAxis yAxisId="temp" orientation="right" stroke="#f59e0b" tick={{fontSize: 9}} width={30} />
                        <Tooltip contentStyle={{backgroundColor: '#0f172a', borderColor: '#0ea5e9', color: '#fff'}} />
-                       <Area type="monotone" dataKey="rpm" stroke="#0ea5e9" strokeWidth={2} fill="url(#colorRpm)" />
-                       <Line type="monotone" dataKey="load" stroke="#f59e0b" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                       <Area yAxisId="rpm" type="monotone" dataKey="rpm" name="转速(RPM)" stroke="#0ea5e9" strokeWidth={2} fill="url(#colorRpm)" />
+                       <Line yAxisId="temp" type="monotone" dataKey="exhaustTemp" name="排烟温度(°C)" stroke="#f59e0b" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                     </AreaChart>
                  </ResponsiveContainer>
+              </div>
+           </SciFiCard>
+
+           {/* Fuel Efficiency Scatter（真实数据） */}
+           <SciFiCard title="燃油效率分析（转速 vs 油耗）" subtitle="FUEL EFFICIENCY" className="h-[200px] border-cyan-900/50">
+              <div className="flex h-full gap-3">
+                <div className="flex-1 h-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis type="number" dataKey="rpm" name="转速" unit="RPM" stroke="#64748b" tick={{ fontSize: 9 }} domain={['auto', 'auto']} />
+                      <YAxis type="number" dataKey="fuel" name="油耗" unit="kg/h" stroke="#64748b" tick={{ fontSize: 9 }} domain={['auto', 'auto']} />
+                      <ZAxis range={[60, 60]} />
+                      <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: '#0f172a', borderColor: '#0ea5e9', color: '#fff' }} />
+                      <Scatter data={fuelEfficiencyPoints} fill="#22d3ee" fillOpacity={0.7} />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="w-36 flex flex-col justify-between gap-2">
+                  <p className="text-[10px] text-slate-400 leading-relaxed">{engineConclusion}</p>
+                  <button
+                    onClick={handleExportReport}
+                    className="w-full py-2 bg-cyan-700/40 hover:bg-cyan-700/60 border border-cyan-500/50 rounded text-[10px] text-cyan-100 transition-colors flex items-center justify-center gap-1"
+                  >
+                    <FileDown size={12} /> 导出运维报告
+                  </button>
+                </div>
               </div>
            </SciFiCard>
 
@@ -341,6 +425,14 @@ export const ShipView: React.FC = () => {
         </div>
 
       </div>
+
+      <ScenarioDataUploadModal
+        scenarioId={SCENARIO_ID}
+        open={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        onUploaded={refetch}
+        metricsHint="speed(kn) / rpm(RPM) / fuelConsumption(kg/h) / exhaustTemp(°C)"
+      />
     </div>
   );
 };

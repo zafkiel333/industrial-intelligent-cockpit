@@ -16,7 +16,9 @@ import {
   ArrowDown,
   Layers,
   Box,
-  Target
+  Target,
+  Upload,
+  Trash2
 } from 'lucide-react';
 import { ThreeScene } from '../../../components/vibration-monitoring/ConeCrusherVibration/ThreeScene';
 // 2026-07-13 新增：模型库跳转链接（场景库测试方案 8.4）
@@ -24,37 +26,76 @@ import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
 // MODEL_LIB_LINK[vibe-ConeCrusherVibration]: 2026-07-13 新增，占位模型库地址；
 // 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
 const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/vibe-ConeCrusherVibration';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+// 2026-07-13 新增：场景库测试方案 Phase 4.10 —— 真实后端数据流转（重大修改）。
+import { useScenarioRealData } from '@/src/scenarioLib/useScenarioRealData';
+import { ScenarioDataUploadModal } from '@/src/scenarioLib/ScenarioDataUploadModal';
+const SCENARIO_ID = 'vibe-ConeCrusherVibration';
+// 2026-07-14 新增：真实多指标趋势图 + 数据驱动诊断 + 现场报告导出（场景库测试方案 Phase 4 修正）。
+import { downloadScenarioReport } from '@/src/scenarioLib/scenarioFieldReport';
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
   LineChart,
   Line
 } from 'recharts';
 
-const mockData = Array.from({ length: 20 }, (_, i) => ({
-  time: `${i}:00`,
-  vibration: Math.random() * 8 + 4,
-  pressure: Math.random() * 2 + 10,
-  current: Math.random() * 50 + 150,
-}));
-
 const ConeCrusherVibration: React.FC = () => {
-  const [status, setStatus] = useState('normal');
+  // 2026-07-13 重塑：vibration/oilPressure/motorCurrent/crushingForce 改为真实数据；
+  // load（运行负荷）为操作状态量，保持原有模拟；status 判断改为基于真实 vibration 阈值。
+  const { unifiedData, refetch, clearData } = useScenarioRealData(SCENARIO_ID);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [load, setLoad] = useState(75);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setLoad(prev => Math.min(100, Math.max(0, prev + (Math.random() - 0.5) * 10)));
-      if (Math.random() > 0.95) setStatus('warning');
-      else setStatus('normal');
     }, 5000);
     return () => clearInterval(timer);
   }, []);
+
+  const latest = unifiedData.length > 0 ? unifiedData[unifiedData.length - 1] : null;
+  const vibration = latest ? Number(latest.vibration) : 8.42;
+  const oilPressure = latest ? Number(latest.oilPressure) : 12.5;
+  const motorCurrent = latest ? Number(latest.motorCurrent) : 185.4;
+  const crushingForce = latest ? Number(latest.crushingForce) : 1245;
+  const status: 'normal' | 'warning' = vibration > 10 ? 'warning' : 'normal';
+
+  // 2026-07-14 新增：真实多指标趋势——直接取上传数据的完整时间序列（替换原来纯随机的 mockData）。
+  const vibrationTrend = unifiedData.length > 0
+    ? unifiedData.map((row) => ({
+        time: new Date(row.time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        vibration: Number(row.vibration),
+        oilPressure: Number(row.oilPressure),
+      }))
+    : [{ time: '--', vibration, oilPressure }];
+
+  const handleClear = async () => {
+    if (!window.confirm('确定要清空所有上传的数据文件吗？操作不可逆。')) return;
+    const res = await clearData();
+    if (!res.success) alert(res.message || '清空失败');
+  };
+
+  const handleExportReport = () => {
+    downloadScenarioReport({
+      scenarioId: SCENARIO_ID,
+      title: '圆锥破碎机振动监测报告',
+      dataPointCount: unifiedData.length,
+      metrics: [
+        { label: '偏心轴振动', value: vibration.toFixed(2), unit: 'mm/s' },
+        { label: '润滑油压', value: oilPressure.toFixed(1), unit: 'MPa' },
+        { label: '驱动电机电流', value: motorCurrent.toFixed(1), unit: 'A' },
+        { label: '破碎力', value: crushingForce.toLocaleString(), unit: 'kN' },
+        { label: '系统状态', value: status === 'warning' ? '警告' : '正常' },
+      ],
+      conclusion: status === 'warning'
+        ? `偏心轴振动 ${vibration.toFixed(2)}mm/s 已超过 10mm/s 报警阈值，建议检查偏心套磨损及润滑油压是否正常，排查过铁风险。`
+        : `偏心轴振动 ${vibration.toFixed(2)}mm/s、润滑油压 ${oilPressure.toFixed(1)}MPa，均在正常范围内，破碎机运行状态平稳。`,
+    });
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#020617] text-slate-200 font-[Rajdhani] overflow-hidden">
@@ -85,7 +126,22 @@ const ConeCrusherVibration: React.FC = () => {
           <div className="h-10 w-px bg-slate-800" />
           <div className="text-right">
             <div className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Crushing Force</div>
-            <div className="text-sm font-mono font-bold text-emerald-400">1,245 kN</div>
+            <div className="text-sm font-mono font-bold text-emerald-400">{crushingForce.toLocaleString()} kN</div>
+          </div>
+          <div className="h-10 w-px bg-slate-800" />
+          <div className="flex gap-2">
+            <button
+              onClick={() => setUploadModalOpen(true)}
+              className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded flex items-center gap-2 transition-colors"
+            >
+              <Upload size={14} /> 数据入库
+            </button>
+            <button
+              onClick={handleClear}
+              className="text-xs px-3 py-1.5 bg-red-900/80 hover:bg-red-800 text-red-200 rounded flex items-center gap-2 transition-colors"
+            >
+              <Trash2 size={14} /> 一键清空
+            </button>
           </div>
         </div>
       </div>
@@ -96,9 +152,9 @@ const ConeCrusherVibration: React.FC = () => {
           <SciFiCard title="核心振动指标" subtitle="CORE VIBRATION">
             <div className="grid grid-cols-1 gap-3">
               {[
-                { label: '偏心轴振动', val: '8.42', unit: 'mm/s', icon: Activity, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-                { label: '润滑油压', val: '12.5', unit: 'MPa', icon: Waves, color: 'text-sky-400', bg: 'bg-sky-500/10' },
-                { label: '电机功率', val: '450', unit: 'kW', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
+                { label: '偏心轴振动', val: vibration.toFixed(2), unit: 'mm/s', icon: Activity, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+                { label: '润滑油压', val: oilPressure.toFixed(1), unit: 'MPa', icon: Waves, color: 'text-sky-400', bg: 'bg-sky-500/10' },
+                { label: '驱动电机电流', val: motorCurrent.toFixed(1), unit: 'A', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
               ].map((m, i) => (
                 <motion.div 
                   key={i}
@@ -152,7 +208,7 @@ const ConeCrusherVibration: React.FC = () => {
             highlight
           >
             <div className="absolute inset-0 z-0">
-              <ThreeScene />
+              <ThreeScene vibration={vibration} status={status} />
             <div className="absolute top-4 right-4 z-20">
               <ModelLibraryLink url={MODEL_LIB_URL} />
             </div>
@@ -168,7 +224,7 @@ const ConeCrusherVibration: React.FC = () => {
                 >
                   <span className="text-[10px] text-orange-400 font-bold tracking-widest uppercase mb-1">Crushing Force</span>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-black text-white tracking-tighter">1,245</span>
+                    <span className="text-4xl font-black text-white tracking-tighter">{crushingForce.toLocaleString()}</span>
                     <span className="text-sm text-slate-400 font-mono">kN</span>
                   </div>
                 </motion.div>
@@ -197,14 +253,18 @@ const ConeCrusherVibration: React.FC = () => {
 
         {/* Right Column: Advanced Analysis */}
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 overflow-y-auto pr-1 custom-scrollbar">
-          <SciFiCard title="振动频谱分析" subtitle="VIBRATION SPECTRUM">
+          <SciFiCard title="振动/油压趋势（真实数据）" subtitle="VIBRATION & PRESSURE TREND">
             <div className="h-32">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockData}>
+                <LineChart data={vibrationTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                   <XAxis dataKey="time" hide />
-                  <YAxis hide />
-                  <Line type="monotone" dataKey="vibration" stroke="#f97316" strokeWidth={2} dot={false} />
+                  <YAxis yAxisId="vib" hide />
+                  <YAxis yAxisId="oil" orientation="right" hide />
+                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff20', fontSize: '10px' }} />
+                  <Legend wrapperStyle={{ fontSize: '9px' }} />
+                  <Line yAxisId="vib" type="monotone" dataKey="vibration" name="振动(mm/s)" stroke="#f97316" strokeWidth={2} dot={false} />
+                  <Line yAxisId="oil" type="monotone" dataKey="oilPressure" name="油压(MPa)" stroke="#38bdf8" strokeWidth={2} dot={false} strokeDasharray="4 4" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -212,24 +272,33 @@ const ConeCrusherVibration: React.FC = () => {
 
           <SciFiCard title="智能诊断与预警" subtitle="AI DIAGNOSTICS" className="flex-1">
             <div className="space-y-4">
-              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
-                <div className="text-xs font-bold text-rose-400 mb-1 flex items-center gap-2 uppercase">
-                  <AlertTriangle size={12} />
-                  过铁保护预警
+              {status === 'warning' ? (
+                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                  <div className="text-xs font-bold text-rose-400 mb-1 flex items-center gap-2 uppercase">
+                    <AlertTriangle size={12} />
+                    振动超限预警
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    偏心轴振动 {vibration.toFixed(2)}mm/s 已超过 10mm/s 报警阈值，疑似腔内进入非破碎物或偏心套磨损，请立即检查。
+                  </p>
                 </div>
-                <p className="text-[10px] text-slate-400 leading-relaxed">检测到瞬时破碎力异常峰值，疑似腔内进入非破碎物，请注意观察。</p>
-              </div>
-              
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                <div className="text-xs font-bold text-emerald-400 mb-1 flex items-center gap-2 uppercase">
-                  <Shield size={12} />
-                  给料均匀度良好
+              ) : (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                  <div className="text-xs font-bold text-emerald-400 mb-1 flex items-center gap-2 uppercase">
+                    <Shield size={12} />
+                    运行状态良好
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    偏心轴振动 {vibration.toFixed(2)}mm/s，在正常范围内，给料分布均匀，腔内物料填充率正常。
+                  </p>
                 </div>
-                <p className="text-[10px] text-slate-400 leading-relaxed">当前给料分布均匀，腔内物料填充率正常。</p>
-              </div>
+              )}
 
-              <button className="w-full py-3 bg-orange-600/20 border border-orange-500/30 text-orange-400 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-orange-600/40 transition-all flex items-center justify-center gap-2">
-                查看维护记录 <ChevronRight size={14} />
+              <button
+                onClick={handleExportReport}
+                className="w-full py-3 bg-orange-600/20 border border-orange-500/30 text-orange-400 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-orange-600/40 transition-all flex items-center justify-center gap-2"
+              >
+                导出振动监测报告 <ChevronRight size={14} />
               </button>
             </div>
           </SciFiCard>
@@ -243,7 +312,7 @@ const ConeCrusherVibration: React.FC = () => {
                     <div className="text-[10px] text-slate-500 font-mono uppercase tracking-tighter">Status: NORMAL</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs font-bold text-emerald-400">185.4 A</div>
+                    <div className="text-xs font-bold text-emerald-400">{motorCurrent.toFixed(1)} A</div>
                     <div className="text-[10px] text-slate-500 font-mono tracking-tighter">98.2% Load</div>
                   </div>
                 </div>
@@ -252,6 +321,14 @@ const ConeCrusherVibration: React.FC = () => {
           </SciFiCard>
         </div>
       </div>
+
+      <ScenarioDataUploadModal
+        scenarioId={SCENARIO_ID}
+        open={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        onUploaded={refetch}
+        metricsHint="vibration(mm/s) / oilPressure(MPa) / motorCurrent(A) / crushingForce(kN)"
+      />
     </div>
   );
 };

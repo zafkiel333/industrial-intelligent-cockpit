@@ -2,9 +2,20 @@ import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-export const ThreeScene: React.FC = () => {
+// 2026-07-13 新增：场景库测试方案 Phase 4.2 —— 接收真实数据驱动的 props（原来无任何 props）。
+interface ThreeSceneProps {
+  status?: 'normal' | 'warning' | 'danger';
+  intensity?: number; // 0-1，由真实 eventEnergy 归一化而来，驱动微震事件出现频率
+}
+
+export const ThreeScene: React.FC<ThreeSceneProps> = ({ status = 'normal', intensity = 0.2 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const propsRef = useRef({ status, intensity });
+
+  useEffect(() => {
+    propsRef.current = { status, intensity };
+  }, [status, intensity]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -119,9 +130,16 @@ export const ThreeScene: React.FC = () => {
       const frameId = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
 
-      if (Math.random() > 0.98) {
+      // 2026-07-13 新增：事件出现概率随真实 intensity（归一化事件能量）提升；
+      // status 为 danger/warning 时事件材质颜色变化，直观反映真实告警等级。
+      const { status: liveStatus, intensity: liveIntensity } = propsRef.current;
+      const spawnThreshold = 0.995 - Math.min(0.6, liveIntensity) * 0.5;
+      if (Math.random() > spawnThreshold) {
         activeEvents.push(createEvent());
       }
+      const alertColor = liveStatus === 'danger' ? 0xf43f5e : liveStatus === 'warning' ? 0xf59e0b : 0xf43f5e;
+      eventMat.color.setHex(alertColor);
+      eventMat.emissive.setHex(alertColor);
 
       activeEvents = activeEvents.filter(item => {
         const elapsed = Date.now() - item.startTime;

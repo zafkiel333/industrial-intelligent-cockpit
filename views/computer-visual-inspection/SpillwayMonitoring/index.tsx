@@ -6,28 +6,39 @@ import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
 // MODEL_LIB_LINK[cv-spillway-monitoring]: 2026-07-09 新增，占位模型库地址；
 // 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
 const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/cv-spillway-monitoring';
+// 2026-07-13 新增：场景库测试方案 Phase 4.1 —— 真实后端数据流转（重大修改）。
+// 参照 unit1-predictive 模式：Excel 上传 → server.ts 解析 → 前端联动。
+import { useScenarioRealData } from '@/src/scenarioLib/useScenarioRealData';
+import { ScenarioDataUploadModal } from '@/src/scenarioLib/ScenarioDataUploadModal';
+// 2026-07-14 新增：真实数据驱动的历史趋势图 + 结论文案 + 现场报告导出（场景库测试方案 Phase 4 修正）。
+import { downloadScenarioReport } from '@/src/scenarioLib/scenarioFieldReport';
+const SCENARIO_ID = 'cv-spillway-monitoring';
 import { ErosionZone, SpillwayState } from '@/components/computer-visual-inspection/SpillwayMonitoring/three-types';
 import { SciFiCard } from '@/components/SciFiCard';
-import { 
-  Waves, 
-  Activity, 
-  AlertTriangle, 
-  Maximize2, 
+import {
+  Waves,
+  Activity,
+  AlertTriangle,
+  Maximize2,
   BarChart3,
   History,
   Settings,
   Droplets,
   Zap,
   ShieldCheck,
-  ArrowUpRight
+  ArrowUpRight,
+  Upload,
+  Trash2
 } from 'lucide-react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  ComposedChart,
+  Area,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
   Radar,
   RadarChart,
@@ -41,15 +52,6 @@ const MOCK_ZONES: ErosionZone[] = [
   { id: '2', position: [3, 2, 0], depth: 12, area: 0.5, severity: 'low' },
 ];
 
-const FLOW_HISTORY = [
-  { time: '00:00', flow: 450 },
-  { time: '04:00', flow: 520 },
-  { time: '08:00', flow: 890 },
-  { time: '12:00', flow: 1250 },
-  { time: '16:00', flow: 1100 },
-  { time: '20:00', flow: 750 },
-];
-
 const RADAR_DATA = [
   { subject: '冲刷深度', A: 85, fullMark: 100 },
   { subject: '结构强度', A: 70, fullMark: 100 },
@@ -59,11 +61,57 @@ const RADAR_DATA = [
 ];
 
 const SpillwayMonitoringView: React.FC = () => {
-  const [state] = useState<SpillwayState>({
-    flowRate: 1245.5,
-    waterLevel: 15.2,
-    vibrationLevel: 2.4
-  });
+  // 2026-07-13 重塑：真实数据接入，替换原来的静态占位值。
+  const { unifiedData, loading, refetch, clearData } = useScenarioRealData(SCENARIO_ID);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const latest = unifiedData.length > 0 ? unifiedData[unifiedData.length - 1] : null;
+  const state: SpillwayState = {
+    flowRate: latest ? Number(latest.flowRate) : 1245.5,
+    waterLevel: latest ? Number(latest.waterLevel) : 15.2,
+    vibrationLevel: latest ? Number(latest.vibrationLevel) : 2.4,
+  };
+  // 流量归一化驱动 3D 场景流速表现（设计参考流量上限 1500 m³/s，与右侧历史趋势图量级一致）
+  const flowIntensity = Math.max(0, Math.min(1, state.flowRate / 1500));
+
+  // 2026-07-14 新增：真实历史趋势——直接取上传数据的完整时间序列（而非静态 mock 数组）。
+  const flowTrend = unifiedData.length > 0
+    ? unifiedData.map((row) => ({
+        time: new Date(row.time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        flow: Number(row.flowRate),
+        level: Number(row.waterLevel),
+      }))
+    : [{ time: '--', flow: state.flowRate, level: state.waterLevel }];
+
+  // 2026-07-14 新增：真实数据驱动的冲刷风险结论（替换原来与数值无关的固定文案）。
+  const riskLevel: 'critical' | 'warning' | 'normal' =
+    state.flowRate > 1200 || state.vibrationLevel > 4 ? 'critical' : state.flowRate > 900 || state.vibrationLevel > 3 ? 'warning' : 'normal';
+  const conclusionText =
+    riskLevel === 'critical'
+      ? `当前流量 ${state.flowRate}m³/s、结构振动 ${state.vibrationLevel}mm/s，均已进入高冲刷风险区间。建议立即开启辅助溢洪道分担泄流压力，并对消能池底板安排应急巡检。`
+      : riskLevel === 'warning'
+      ? `当前流量 ${state.flowRate}m³/s 处于较高水平，结构振动 ${state.vibrationLevel}mm/s 略有上升。建议加强对北侧冲刷区域的巡检频次，密切关注变化趋势。`
+      : `当前流量 ${state.flowRate}m³/s、结构振动 ${state.vibrationLevel}mm/s，均在安全范围内，溢洪道结构完整性良好。`;
+
+  const handleClear = async () => {
+    if (!window.confirm('确定要清空所有上传的数据文件吗？操作不可逆。')) return;
+    const res = await clearData();
+    if (!res.success) alert(res.message || '清空失败');
+  };
+
+  const handleExportReport = () => {
+    downloadScenarioReport({
+      scenarioId: SCENARIO_ID,
+      title: '溢洪道冲刷与结构完整性巡检报告',
+      dataPointCount: unifiedData.length,
+      metrics: [
+        { label: '实时流量', value: state.flowRate.toFixed(1), unit: 'm³/s' },
+        { label: '上游水位', value: state.waterLevel.toFixed(1), unit: 'm' },
+        { label: '结构振动', value: state.vibrationLevel.toFixed(2), unit: 'mm/s' },
+        { label: '冲刷风险等级', value: riskLevel === 'critical' ? '严重' : riskLevel === 'warning' ? '关注' : '正常' },
+      ],
+      conclusion: conclusionText,
+    });
+  };
 
   return (
     <div className="h-full flex flex-col space-y-4 p-4 bg-[#020617] text-slate-200 font-sans overflow-hidden">
@@ -81,6 +129,18 @@ const SpillwayMonitoringView: React.FC = () => {
               </span>
               <div className="w-1 h-1 rounded-full bg-slate-700"></div>
               <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Structural Health AI Active</span>
+              <button
+                onClick={() => setUploadModalOpen(true)}
+                className="text-[10px] px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded flex items-center gap-1 transition-colors"
+              >
+                <Upload size={10} /> 数据入库
+              </button>
+              <button
+                onClick={handleClear}
+                className="text-[10px] px-2 py-1 bg-red-900/80 hover:bg-red-800 text-red-200 rounded flex items-center gap-1 transition-colors"
+              >
+                <Trash2 size={10} /> 一键清空
+              </button>
             </div>
           </div>
         </div>
@@ -154,7 +214,7 @@ const SpillwayMonitoringView: React.FC = () => {
         <div className="col-span-6 relative">
           <SciFiCard title="溢洪道数字孪生系统" className="h-full relative overflow-hidden">
             <div className="absolute inset-0">
-              <ThreeScene erosionZones={MOCK_ZONES} flowIntensity={0.8} />
+              <ThreeScene erosionZones={MOCK_ZONES} flowIntensity={flowIntensity} />
               <div className="absolute bottom-4 right-4 z-20">
                 <ModelLibraryLink url={MODEL_LIB_URL} />
               </div>
@@ -199,10 +259,10 @@ const SpillwayMonitoringView: React.FC = () => {
 
         {/* Right: Flow & Maintenance */}
         <div className="col-span-3 flex flex-col space-y-4">
-          <SciFiCard title="泄洪流量历史趋势">
+          <SciFiCard title="泄洪流量/水位历史趋势（真实数据）">
             <div className="h-40 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={FLOW_HISTORY}>
+                <ComposedChart data={flowTrend}>
                   <defs>
                     <linearGradient id="colorFlow" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -210,25 +270,29 @@ const SpillwayMonitoringView: React.FC = () => {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                  <XAxis dataKey="time" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
-                  <Tooltip 
+                  <XAxis dataKey="time" stroke="#475569" fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="flow" stroke="#3b82f6" fontSize={9} tickLine={false} axisLine={false} width={30} />
+                  <YAxis yAxisId="level" orientation="right" stroke="#22d3ee" fontSize={9} tickLine={false} axisLine={false} width={30} />
+                  <Tooltip
                     contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', fontSize: '10px' }}
                   />
-                  <Area type="monotone" dataKey="flow" stroke="#3b82f6" fillOpacity={1} fill="url(#colorFlow)" strokeWidth={2} />
-                </AreaChart>
+                  <Area yAxisId="flow" type="monotone" dataKey="flow" name="流量(m³/s)" stroke="#3b82f6" fillOpacity={1} fill="url(#colorFlow)" strokeWidth={2} />
+                  <Line yAxisId="level" type="monotone" dataKey="level" name="水位(m)" stroke="#22d3ee" strokeWidth={2} dot={false} />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </SciFiCard>
 
           <SciFiCard title="智能预警与决策" className="flex-1">
             <div className="space-y-4">
-              <div className="flex items-start gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                <AlertTriangle className="text-yellow-500 mt-0.5" size={18} />
+              <div className={`flex items-start gap-3 p-3 rounded-lg border ${riskLevel === 'critical' ? 'bg-red-500/10 border-red-500/30' : riskLevel === 'warning' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-emerald-500/10 border-emerald-500/20'}`}>
+                <AlertTriangle className={riskLevel === 'critical' ? 'text-red-500 mt-0.5' : riskLevel === 'warning' ? 'text-yellow-500 mt-0.5' : 'text-emerald-500 mt-0.5'} size={18} />
                 <div>
-                  <div className="text-xs font-bold text-yellow-400">高流速冲刷预警</div>
+                  <div className={`text-xs font-bold ${riskLevel === 'critical' ? 'text-red-400' : riskLevel === 'warning' ? 'text-yellow-400' : 'text-emerald-400'}`}>
+                    {riskLevel === 'critical' ? '高冲刷风险预警' : riskLevel === 'warning' ? '冲刷风险关注' : '结构状态正常'}
+                  </div>
                   <div className="text-[10px] text-slate-400 mt-1 leading-relaxed">
-                    当前流速已超过 12m/s，消能池底板受力接近临界值。建议开启 2# 辅助溢洪道以分担压力。
+                    {conclusionText}
                   </div>
                 </div>
               </div>
@@ -253,7 +317,10 @@ const SpillwayMonitoringView: React.FC = () => {
                 </div>
               </div>
 
-              <button className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded shadow-lg shadow-blue-900/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+              <button
+                onClick={handleExportReport}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded shadow-lg shadow-blue-900/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest"
+              >
                 <Settings size={14} />
                 生成详细巡检报告
               </button>
@@ -261,6 +328,14 @@ const SpillwayMonitoringView: React.FC = () => {
           </SciFiCard>
         </div>
       </div>
+
+      <ScenarioDataUploadModal
+        scenarioId={SCENARIO_ID}
+        open={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        onUploaded={refetch}
+        metricsHint="flowRate(m³/s) / waterLevel(m) / vibrationLevel(mm/s)"
+      />
     </div>
   );
 };

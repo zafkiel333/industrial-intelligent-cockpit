@@ -6,16 +6,27 @@ import { ModelLibraryLink } from '../src/scenarioLib/ModelLibraryLink';
 // MODEL_LIB_LINK[eq-12]: 2026-07-13 新增，占位模型库地址；
 // 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
 const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/eq-12';
-import { 
+// 2026-07-13 新增：场景库测试方案 Phase 4.8 —— 真实后端数据流转（重大修改）。
+import { useScenarioRealData } from '../src/scenarioLib/useScenarioRealData';
+import { ScenarioDataUploadModal } from '../src/scenarioLib/ScenarioDataUploadModal';
+const SCENARIO_ID = 'eq-12';
+// 2026-07-14 新增：真实深度-时间运行轨迹 + 真实钢丝绳不平衡系数 + 现场报告导出（场景库测试方案 Phase 4 修正）。
+import { downloadScenarioReport } from '../src/scenarioLib/scenarioFieldReport';
+import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   BarChart, Bar, LineChart, Line, ReferenceLine
 } from 'recharts';
-import { 
-  ArrowDown, ArrowUp, Lock, Gauge, Settings, 
-  AlertTriangle, Hammer, Ruler, ChevronsDown
+import {
+  ArrowDown, ArrowUp, Lock, Gauge, Settings,
+  AlertTriangle, Hammer, Ruler, ChevronsDown, Upload, Trash2, FileDown
 } from 'lucide-react';
 
 export const MineHoistView: React.FC = () => {
+  // 2026-07-13 重塑：depth/velocity/payload/brakePressure/ropeTensions 改为真实数据；
+  // mode/drumSpeed/direction 属于派生/操作状态量，保持原有派生逻辑（drumSpeed=velocity*4.5，direction 由 velocity 符号派生）。
+  const { unifiedData, refetch, clearData } = useScenarioRealData(SCENARIO_ID);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+
   // --- STATE ---
   const [hoistStatus, setHoistStatus] = useState({
     depth: 450, // meters
@@ -35,9 +46,34 @@ export const MineHoistView: React.FC = () => {
       { id: 'R4', val: 121 },
   ]);
 
-  // Simulate Hoist Cycle
+  const handleClear = async () => {
+    if (!window.confirm('确定要清空所有上传的数据文件吗？操作不可逆。')) return;
+    const res = await clearData();
+    if (!res.success) alert(res.message || '清空失败');
+  };
+
+  // 真实数据同步：depth/velocity/payload/brakePressure/ropeTensions
   useEffect(() => {
-    // Generate S-Curve for velocity chart visualization
+    if (unifiedData.length === 0) return;
+    const latest = unifiedData[unifiedData.length - 1];
+    const velocity = Number(latest.velocity);
+    setHoistStatus(prev => ({
+      ...prev,
+      depth: Number(latest.depth),
+      velocity,
+      payload: Number(latest.payload),
+      brakePressure: Number(latest.brakePressure),
+      drumSpeed: velocity * 4.5,
+      direction: Math.abs(velocity) < 0.5 ? 'STOP' : (velocity > 0 ? 'DOWN' : 'UP'),
+    }));
+    setRopeTensions((['R1', 'R2', 'R3', 'R4'] as const).map((id) => ({
+      id,
+      val: Number(latest[`ropeTension${id}`]),
+    })));
+  }, [unifiedData]);
+
+  // Generate S-Curve for velocity chart visualization（保持原有展示，不接入真实数据）
+  useEffect(() => {
     const curve = [];
     for(let i=0; i<=60; i++) {
         let v = 0;
@@ -47,38 +83,41 @@ export const MineHoistView: React.FC = () => {
         curve.push({ time: i, vel: Math.max(0, v) });
     }
     setVelocityCurve(curve);
-
-    const interval = setInterval(() => {
-      const time = Date.now() / 3000;
-      
-      // 1. Dynamics
-      setHoistStatus(prev => {
-          const cyclePos = Math.sin(time); // -1 to 1
-          const newDepth = 400 + cyclePos * 350; // 50m to 750m
-          const newDir = cyclePos > prev.depth ? 'DOWN' : 'UP'; // Simplified logic
-          const newVel = Math.abs(Math.cos(time)) * 12; // Speed varies with position change
-
-          return {
-              ...prev,
-              depth: newDepth,
-              velocity: newVel,
-              direction: Math.abs(newVel) < 0.5 ? 'STOP' : (Math.cos(time) > 0 ? 'DOWN' : 'UP'),
-              payload: 24.5 + (Math.random() - 0.5) * 0.2,
-              drumSpeed: newVel * 4.5,
-              brakePressure: 14.5 + (Math.random() - 0.5) * 0.1
-          };
-      });
-
-      // 2. Rope Tensions
-      setRopeTensions(prev => prev.map(r => ({
-          ...r,
-          val: 120 + (Math.random() - 0.5) * 5
-      })));
-
-    }, 100);
-
-    return () => clearInterval(interval);
   }, []);
+
+  // 2026-07-14 新增：真实"深度-时间"运行轨迹——直接取上传数据的实际时间序列，
+  // 展示提升机真实的下放/提升行程曲线（替换原来固定形状的 S 型曲线静态展示）。
+  const depthTrace = unifiedData.length > 0
+    ? unifiedData.map((row) => ({
+        time: new Date(row.time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        depth: Number(row.depth),
+        velocity: Number(row.velocity),
+      }))
+    : [{ time: '--', depth: hoistStatus.depth, velocity: hoistStatus.velocity }];
+
+  // 2026-07-14 新增：真实钢丝绳不平衡系数（替换原来固定的 "1.2% (Limit: 5%)" 静态展示）。
+  const ropeVals = ropeTensions.map((r) => r.val);
+  const ropeAvg = ropeVals.reduce((a, b) => a + b, 0) / ropeVals.length;
+  const ropeImbalancePct = ropeAvg > 0 ? ((Math.max(...ropeVals) - Math.min(...ropeVals)) / ropeAvg) * 100 : 0;
+
+  const handleExportReport = () => {
+    downloadScenarioReport({
+      scenarioId: SCENARIO_ID,
+      title: '矿山提升机运行状态报告',
+      dataPointCount: unifiedData.length,
+      metrics: [
+        { label: '当前深度', value: hoistStatus.depth.toFixed(1), unit: 'm' },
+        { label: '当前速度', value: hoistStatus.velocity.toFixed(1), unit: 'm/s' },
+        { label: '载荷', value: hoistStatus.payload.toFixed(2), unit: 't' },
+        { label: '制动压力', value: hoistStatus.brakePressure.toFixed(2), unit: 'MPa' },
+        ...ropeTensions.map((r) => ({ label: `钢丝绳 ${r.id} 张力`, value: r.val.toFixed(1), unit: 'kN' })),
+        { label: '钢丝绳不平衡系数', value: ropeImbalancePct.toFixed(1), unit: '%' },
+      ],
+      conclusion: ropeImbalancePct > 5
+        ? `钢丝绳张力不平衡系数已达 ${ropeImbalancePct.toFixed(1)}%，超过 5% 限值，建议立即停机检查各绳张力调节装置。`
+        : `钢丝绳张力不平衡系数 ${ropeImbalancePct.toFixed(1)}%，制动压力 ${hoistStatus.brakePressure.toFixed(2)}MPa，均在正常范围内，提升系统运行平稳。`,
+    });
+  };
 
   return (
     <div className="flex flex-col h-full gap-5 font-[Rajdhani] text-amber-50 selection:bg-amber-500/30">
@@ -109,6 +148,20 @@ export const MineHoistView: React.FC = () => {
             <div className="flex flex-col items-end border-l border-amber-900/40 pl-6">
                 <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">System Mode</div>
                 <div className="text-2xl font-mono font-bold text-green-500 bg-green-900/20 px-2 rounded border border-green-800/30">{hoistStatus.mode}</div>
+            </div>
+            <div className="flex flex-col gap-2 border-l border-amber-900/40 pl-6 justify-center">
+                <button
+                  onClick={() => setUploadModalOpen(true)}
+                  className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded flex items-center gap-2 transition-colors"
+                >
+                  <Upload size={14} /> 数据入库
+                </button>
+                <button
+                  onClick={handleClear}
+                  className="text-xs px-3 py-1.5 bg-red-900/80 hover:bg-red-800 text-red-200 rounded flex items-center gap-2 transition-colors"
+                >
+                  <Trash2 size={14} /> 一键清空
+                </button>
             </div>
         </div>
       </div>
@@ -228,24 +281,22 @@ export const MineHoistView: React.FC = () => {
             </div>
            </div>
 
-           {/* Velocity Chart (S-Curve) */}
-           <SciFiCard title="提升速度曲线" subtitle="VELOCITY PROFILE" className="h-[250px] border-amber-900/50" noPadding>
+           {/* Depth-Time Trajectory（真实数据） */}
+           <SciFiCard title="运行轨迹（深度-时间，真实数据）" subtitle="DEPTH TRACE" className="h-[250px] border-amber-900/50" noPadding>
               <div className="w-full h-full p-4">
                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={velocityCurve}>
+                    <AreaChart data={depthTrace}>
                        <defs>
-                          <linearGradient id="colorVel" x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient id="colorDepth" x1="0" y1="0" x2="0" y2="1">
                              <stop offset="5%" stopColor="#d97706" stopOpacity={0.3}/>
                              <stop offset="95%" stopColor="#d97706" stopOpacity={0}/>
                           </linearGradient>
                        </defs>
                        <CartesianGrid strokeDasharray="3 3" stroke="#331c0a" vertical={false} />
-                       <XAxis dataKey="time" hide />
-                       <YAxis stroke="#b45309" tick={{fontSize: 10}} domain={[0, 12]} />
+                       <XAxis dataKey="time" stroke="#b45309" tick={{fontSize: 9}} />
+                       <YAxis reversed stroke="#b45309" tick={{fontSize: 9}} label={{ value: 'Depth(m)', angle: -90, position: 'insideLeft', fontSize: 9, fill: '#b45309' }} />
                        <Tooltip contentStyle={{backgroundColor: '#1a0d00', borderColor: '#d97706', color: '#fff'}} />
-                       <Area type="monotone" dataKey="vel" stroke="#d97706" strokeWidth={2} fill="url(#colorVel)" isAnimationActive={false} />
-                       {/* Current Speed Line */}
-                       <ReferenceLine y={hoistStatus.velocity} stroke="#fff" strokeDasharray="3 3" label={{value: 'Current', fill: '#fff', fontSize: 10}} />
+                       <Area type="monotone" dataKey="depth" name="深度(m)" stroke="#d97706" strokeWidth={2} fill="url(#colorDepth)" />
                     </AreaChart>
                  </ResponsiveContainer>
               </div>
@@ -274,8 +325,16 @@ export const MineHoistView: React.FC = () => {
               </div>
               <div className="mt-2 text-center">
                   <div className="text-[10px] text-slate-500 uppercase">Imbalance Coefficient</div>
-                  <div className="text-xl font-mono text-green-400">1.2% <span className="text-xs text-slate-600">(Limit: 5%)</span></div>
+                  <div className={`text-xl font-mono ${ropeImbalancePct > 5 ? 'text-red-400' : 'text-green-400'}`}>
+                    {ropeImbalancePct.toFixed(1)}% <span className="text-xs text-slate-600">(Limit: 5%)</span>
+                  </div>
               </div>
+              <button
+                onClick={handleExportReport}
+                className="mt-3 w-full py-2 bg-amber-700/40 hover:bg-amber-700/60 border border-amber-500/50 rounded text-xs text-amber-100 transition-colors flex items-center justify-center gap-2"
+              >
+                <FileDown size={14} /> 导出提升机运行报告
+              </button>
            </SciFiCard>
 
            {/* Safety Chain */}
@@ -303,6 +362,14 @@ export const MineHoistView: React.FC = () => {
         </div>
 
       </div>
+
+      <ScenarioDataUploadModal
+        scenarioId={SCENARIO_ID}
+        open={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        onUploaded={refetch}
+        metricsHint="depth(m) / velocity(m/s) / payload(t) / brakePressure(MPa) / ropeTensionR1~R4(kN)"
+      />
     </div>
   );
 };

@@ -2,9 +2,20 @@ import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-export const ThreeScene: React.FC = () => {
+// 2026-07-13 新增：场景库测试方案 Phase 4.10 —— 接收真实数据驱动的 props（原来无任何 props）。
+interface ThreeSceneProps {
+  vibration?: number; // mm/s，驱动偏心振动幅度
+  status?: 'normal' | 'warning';
+}
+
+export const ThreeScene: React.FC<ThreeSceneProps> = ({ vibration = 8, status = 'normal' }) => {
+  const propsRef = useRef({ vibration, status });
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+
+  useEffect(() => {
+    propsRef.current = { vibration, status };
+  }, [vibration, status]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -92,11 +103,18 @@ export const ThreeScene: React.FC = () => {
       const frameId = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
 
+      // 2026-07-13 新增：偏心振动幅度随真实 vibration（mm/s）缩放，status 驱动机头材质告警变色。
+      const { vibration: liveVibration, status: liveStatus } = propsRef.current;
+      const vibScale = Math.max(0.4, Math.min(2.5, liveVibration / 8));
+      const alertColor = liveStatus === 'warning' ? 0xef4444 : 0xf59e0b;
+      headMat.color.setHex(alertColor);
+      headMat.emissive.setHex(alertColor);
+
       // Eccentric Rotation
       headGroup.rotation.y += 0.05;
-      headGroup.position.x = Math.sin(time * 5) * 5;
-      headGroup.position.z = Math.cos(time * 5) * 5;
-      headGroup.rotation.z = Math.sin(time * 5) * 0.1;
+      headGroup.position.x = Math.sin(time * 5) * 5 * vibScale;
+      headGroup.position.z = Math.cos(time * 5) * 5 * vibScale;
+      headGroup.rotation.z = Math.sin(time * 5) * 0.1 * vibScale;
 
       // Particles animation
       particles.forEach((p, i) => {
@@ -115,7 +133,7 @@ export const ThreeScene: React.FC = () => {
       });
 
       // Vibration
-      crusherGroup.position.y = Math.sin(time * 80) * 0.3;
+      crusherGroup.position.y = Math.sin(time * 80) * 0.3 * vibScale;
 
       controls.update();
       renderer.render(scene, camera);
