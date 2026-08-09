@@ -1,0 +1,5 @@
+{
+  "name": "industrial-intelligent-cockpit",
+  "description": "A high-fidelity industrial operations dashboard with 3D visualization and real-time data monitoring.",
+  "requestFramePermissions": []
+}

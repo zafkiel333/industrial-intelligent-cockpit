@@ -1,0 +1,225 @@
+import React, { useRef, useEffect } from 'react';
+import * as THREE from 'three';
+// @ts-ignore
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { PenstockAntiCorrosionProps } from './three-types';
+
+export const ThreeScene: React.FC<PenstockAntiCorrosionProps> = ({ corrosionLevel = 0, status = '正常', treatmentProgress = 0 }) => {
+  const mountRef = useRef<HTMLDivElement>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const controlsRef = useRef<OrbitControls | null>(null);
+  const pipeMeshRef = useRef<THREE.Mesh | null>(null);
+  const corrosionMeshRef = useRef<THREE.Mesh | null>(null);
+  const treatmentMeshRef = useRef<THREE.Mesh | null>(null);
+  const animationFrameIdRef = useRef<number | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+
+  const propsRef = useRef({ corrosionLevel, status, treatmentProgress });
+
+  useEffect(() => {
+    propsRef.current = { corrosionLevel, status, treatmentProgress };
+  }, [corrosionLevel, status, treatmentProgress]);
+
+  useEffect(() => {
+    if (!mountRef.current) return;
+
+    // Cleanup
+    if (rendererRef.current) {
+      rendererRef.current.dispose();
+      rendererRef.current = null;
+    }
+    if (sceneRef.current) {
+      sceneRef.current.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          if (object.geometry) object.geometry.dispose();
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach(material => material.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        }
+      });
+      sceneRef.current = null;
+    }
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+      animationFrameIdRef.current = null;
+    }
+    if (resizeObserverRef.current) {
+      resizeObserverRef.current.disconnect();
+      resizeObserverRef.current = null;
+    }
+
+    const scene = new THREE.Scene();
+    sceneRef.current = scene;
+    scene.background = new THREE.Color(0x020617);
+
+    const camera = new THREE.PerspectiveCamera(60, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
+    cameraRef.current = camera;
+    camera.position.set(15, 10, 20);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight, false);
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.setPixelRatio(window.devicePixelRatio);
+    mountRef.current.innerHTML = '';
+    mountRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controlsRef.current = controls;
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0x00ffff, 0.8);
+    dirLight.position.set(10, 20, 10);
+    scene.add(dirLight);
+
+    // Base Pipe
+    const pipeGeo = new THREE.CylinderGeometry(5, 5, 20, 32, 1, true);
+    const pipeMat = new THREE.MeshStandardMaterial({ 
+      color: 0x64748b, 
+      metalness: 0.8,
+      roughness: 0.2,
+      side: THREE.DoubleSide
+    });
+    const pipe = new THREE.Mesh(pipeGeo, pipeMat);
+    pipe.rotation.z = Math.PI / 2;
+    scene.add(pipe);
+    pipeMeshRef.current = pipe;
+
+    // Corrosion Layer
+    const corrosionGeo = new THREE.CylinderGeometry(5.05, 5.05, 20, 32, 1, true);
+    const corrosionMat = new THREE.MeshStandardMaterial({ 
+      color: 0x9a3412, 
+      roughness: 1.0,
+      transparent: true,
+      opacity: 0,
+      side: THREE.DoubleSide
+    });
+    const corrosion = new THREE.Mesh(corrosionGeo, corrosionMat);
+    corrosion.rotation.z = Math.PI / 2;
+    scene.add(corrosion);
+    corrosionMeshRef.current = corrosion;
+
+    // Treatment Layer (New Coating)
+    const treatmentGeo = new THREE.CylinderGeometry(5.1, 5.1, 20, 32, 1, true);
+    const treatmentMat = new THREE.MeshStandardMaterial({ 
+      color: 0x0ea5e9, 
+      metalness: 0.5,
+      roughness: 0.1,
+      transparent: true,
+      opacity: 0,
+      side: THREE.DoubleSide
+    });
+    const treatment = new THREE.Mesh(treatmentGeo, treatmentMat);
+    treatment.rotation.z = Math.PI / 2;
+    // Start treatment from one end
+    treatment.scale.y = 0.01;
+    treatment.position.x = -10;
+    scene.add(treatment);
+    treatmentMeshRef.current = treatment;
+
+    // Grid Helper
+    const gridHelper = new THREE.GridHelper(30, 30, 0x1e293b, 0x0f172a);
+    gridHelper.position.y = -8;
+    scene.add(gridHelper);
+
+    let time = 0;
+    const animate = () => {
+      if (!rendererRef.current || !sceneRef.current || !cameraRef.current || !controlsRef.current) return;
+      
+      time += 0.05;
+      controlsRef.current.update();
+
+      const currentProps = propsRef.current;
+
+      // Animate corrosion visibility
+      if (corrosionMeshRef.current) {
+        let targetOpacity = currentProps.corrosionLevel / 100;
+        if (currentProps.status === '处理中') {
+          // Reduce corrosion opacity as treatment progresses
+          targetOpacity = targetOpacity * (1 - currentProps.treatmentProgress / 100);
+        }
+        (corrosionMeshRef.current.material as THREE.MeshStandardMaterial).opacity += (targetOpacity - (corrosionMeshRef.current.material as THREE.MeshStandardMaterial).opacity) * 0.1;
+      }
+
+      // Animate treatment progress
+      if (treatmentMeshRef.current) {
+        if (currentProps.status === '处理中' || currentProps.status === '正常') {
+          const targetScale = Math.max(0.01, currentProps.treatmentProgress / 100);
+          treatmentMeshRef.current.scale.y += (targetScale - treatmentMeshRef.current.scale.y) * 0.1;
+          // Adjust position to grow from left to right
+          treatmentMeshRef.current.position.x = -10 + (20 * treatmentMeshRef.current.scale.y) / 2;
+          (treatmentMeshRef.current.material as THREE.MeshStandardMaterial).opacity = 0.8;
+        } else {
+          treatmentMeshRef.current.scale.y = 0.01;
+          treatmentMeshRef.current.position.x = -10;
+          (treatmentMeshRef.current.material as THREE.MeshStandardMaterial).opacity = 0;
+        }
+      }
+
+      // Scanner effect during assessment
+      if (currentProps.status === '评估中' && pipeMeshRef.current) {
+        const scanPos = Math.sin(time) * 10;
+        // Simple visual indicator for scanning (could be improved with shaders)
+        pipeMeshRef.current.rotation.x = Math.sin(time * 0.5) * 0.1;
+      } else if (pipeMeshRef.current) {
+        pipeMeshRef.current.rotation.x = 0;
+      }
+
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+      animationFrameIdRef.current = requestAnimationFrame(animate);
+    };
+    animate();
+
+    resizeObserverRef.current = new ResizeObserver(entries => {
+      window.requestAnimationFrame(() => {
+        if (!Array.isArray(entries) || !entries.length) return;
+        for (let entry of entries) {
+          if (entry.target === mountRef.current) {
+            const width = entry.contentRect.width;
+            const height = entry.contentRect.height;
+            if (cameraRef.current && rendererRef.current && width > 0 && height > 0) {
+              cameraRef.current.aspect = width / height;
+              cameraRef.current.updateProjectionMatrix();
+              rendererRef.current.setSize(width, height, false);
+            }
+          }
+        }
+      });
+    });
+
+    if (mountRef.current) {
+      resizeObserverRef.current.observe(mountRef.current);
+    }
+
+    return () => {
+      if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
+      if (resizeObserverRef.current) resizeObserverRef.current.disconnect();
+      if (rendererRef.current) rendererRef.current.dispose();
+      if (sceneRef.current) {
+        sceneRef.current.traverse((object) => {
+          if (object instanceof THREE.Mesh) {
+            if (object.geometry) object.geometry.dispose();
+            if (object.material) {
+              if (Array.isArray(object.material)) object.material.forEach(m => m.dispose());
+              else object.material.dispose();
+            }
+          }
+        });
+      }
+      if (mountRef.current) mountRef.current.innerHTML = '';
+    };
+  }, []);
+
+  return <div ref={mountRef} className="absolute top-10 inset-x-0 bottom-0" />;
+};

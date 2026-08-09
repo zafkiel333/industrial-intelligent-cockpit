@@ -1,0 +1,42 @@
+{
+  "name": "industrial-intelligent-cockpit",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "vite build",
+    "start": "NODE_ENV=production tsx server.ts",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@google/genai": "^1.34.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.0",
+    "docx": "^9.7.1",
+    "express": "^5.2.1",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^0.556.0",
+    "multer": "^2.1.1",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "react-is": "^19.2.4",
+    "recharts": "^3.5.1",
+    "three": "^0.182.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^22.19.17",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "cross-env": "^10.1.0",
+    "d3": "^7.9.0",
+    "tsx": "^4.23.11",
+    "typescript": "~5.8.2",
+    "vite": "^8.0.3"
+  }
+}

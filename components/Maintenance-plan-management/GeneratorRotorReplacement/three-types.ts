@@ -1,0 +1,1 @@
+export interface GeneratorRotorReplacementProps {\n  rotorPosition?: number;\n  status?: string;\n  maintenanceProgress?: number;\n}\n

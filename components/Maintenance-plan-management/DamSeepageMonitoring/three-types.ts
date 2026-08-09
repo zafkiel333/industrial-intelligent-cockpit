@@ -1,0 +1,1 @@
+export interface DamSeepageMonitoringProps {\n  status?: string;\n  maintenanceProgress?: number;\n}\n

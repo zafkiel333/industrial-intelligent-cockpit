@@ -1,0 +1,1 @@
+export interface HydraulicHoistMaintenanceProps {\n  pressure?: number;\n  status?: string;\n  maintenanceProgress?: number;\n}\n

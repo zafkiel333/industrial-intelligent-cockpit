@@ -1,0 +1,1 @@
+export interface GovernorSystemCalibrationProps {\n  guideVaneOpening?: number;\n  status?: string;\n  calibrationStep?: number;\n}\n
