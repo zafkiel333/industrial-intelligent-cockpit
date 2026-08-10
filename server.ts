@@ -13,7 +13,15 @@ import {
   recordDiagnosticSnapshot,
   runDiagnosis,
 } from "./src/remoteModelShowcase/diagnosticEngine";
+// 2026-08-10 新增：接入跨项目通道状态采集与安全关系快照生成器；
+import {
+  getConnectionSnapshot,
+  recordConnectionCacheHit,
+  recordConnectionFailure,
+  recordConnectionSuccess,
+} from "./src/remoteModelShowcase/connectionRegistry";
 import type {
+  ModelConnectionChannel,
   ModelShowcaseSceneId,
   RemoteDashboardData,
   RemoteDataMode,
@@ -481,6 +489,12 @@ interface CachedModelBinary {
   cachedAt: number;
 }
 
+// 2026-08-10 新增：将上游请求与具体场景、数据通道关联，供连接关系页面展示真实运行状态；
+interface ConnectionObservation {
+  sceneId: ModelShowcaseSceneId;
+  channel: ModelConnectionChannel;
+}
+
 class UpstreamApiError extends Error {
   status: number;
   code: string;
@@ -499,9 +513,17 @@ const modelMetadataCache = new Map<ModelShowcaseSceneId, { expiresAt: number; as
 const modelBinaryCache = new Map<ModelShowcaseSceneId, CachedModelBinary>();
 const modelDownloadRequests = new Map<ModelShowcaseSceneId, Promise<CachedModelBinary>>();
 
-async function fetchUpstreamJson<T>(pathname: string, init?: RequestInit, timeoutMs = 10_000): Promise<T> {
+// 2026-08-10 调整：在不改变原有 API 转发行为的前提下记录请求成功、延迟和脱敏错误；
+async function fetchUpstreamJson<T>(
+  pathname: string,
+  init?: RequestInit,
+  timeoutMs = 10_000,
+  observation?: ConnectionObservation,
+): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const startedAt = Date.now();
+  let responseStatus: number | null = null;
   try {
     const response = await fetch(`${VISUAL_MODEL_API_BASE_URL}${pathname}`, {
       ...init,
@@ -512,27 +534,49 @@ async function fetchUpstreamJson<T>(pathname: string, init?: RequestInit, timeou
         ...init?.headers,
       },
     });
+    responseStatus = response.status;
     const payload = await response.json() as UpstreamEnvelope<T>;
     if (!response.ok || Number(payload.code) !== 200) {
-      throw new UpstreamApiError(payload.message || `Remote API returned ${response.status}`);
+      // 2026-08-10 修复：HTTP 200 但业务 code 失败时仍向前端返回 502，避免错误正文被当作成功响应；
+      throw new UpstreamApiError(
+        payload.message || `Remote API returned ${response.status}`,
+        response.ok ? 502 : response.status,
+      );
+    }
+    if (observation) {
+      recordConnectionSuccess(observation.sceneId, observation.channel, {
+        latencyMs: Date.now() - startedAt,
+        httpStatus: response.status,
+      });
     }
     return payload.data;
   } catch (error) {
-    if (error instanceof UpstreamApiError) throw error;
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new UpstreamApiError("Remote model API request timed out", 504, "UPSTREAM_TIMEOUT");
+    const normalized = error instanceof UpstreamApiError
+      ? error
+      : error instanceof Error && error.name === "AbortError"
+        ? new UpstreamApiError("Remote model API request timed out", 504, "UPSTREAM_TIMEOUT")
+        : new UpstreamApiError("Remote model API is temporarily unavailable");
+    if (observation) {
+      recordConnectionFailure(observation.sceneId, observation.channel, {
+        latencyMs: Date.now() - startedAt,
+        httpStatus: responseStatus ?? normalized.status,
+        errorCode: normalized.code,
+        errorMessage: normalized.message,
+      });
     }
-    throw new UpstreamApiError("Remote model API is temporarily unavailable");
+    throw normalized;
   } finally {
     clearTimeout(timer);
   }
 }
 
-function getShowcaseScene(sceneId: string) {
-  if (!isModelShowcaseSceneId(sceneId)) {
+// 2026-08-10 调整：兼容 Express 5 路由参数的 string/string[] 类型并统一规范为单个场景 ID；
+function getShowcaseScene(sceneId: string | string[]) {
+  const normalizedSceneId = Array.isArray(sceneId) ? sceneId[0] : sceneId;
+  if (!isModelShowcaseSceneId(normalizedSceneId)) {
     throw new UpstreamApiError("Unknown model showcase scene", 404, "SCENE_NOT_FOUND", false);
   }
-  return { sceneId, config: getModelShowcaseConfig(sceneId)! };
+  return { sceneId: normalizedSceneId, config: getModelShowcaseConfig(normalizedSceneId)! };
 }
 
 function resolveFormat(fileName: string): ResolvedModelAsset["format"] | null {
@@ -556,16 +600,26 @@ function chooseModelFile(files: UpstreamModelFile[]): { file: UpstreamModelFile;
 
 async function resolveModelAsset(sceneId: ModelShowcaseSceneId): Promise<ResolvedModelAsset> {
   const cached = modelMetadataCache.get(sceneId);
-  if (cached && cached.expiresAt > Date.now()) return cached.asset;
+  if (cached && cached.expiresAt > Date.now()) {
+    // 2026-08-10 新增：元数据命中运行期缓存时保留连接成功事实并标记缓存状态；
+    recordConnectionCacheHit(sceneId, "metadata");
+    return cached.asset;
+  }
 
   const config = getModelShowcaseConfig(sceneId)!;
   const metadata = await fetchUpstreamJson<UpstreamModelMetadata>(
     `/api/v1/three-model/models?model_id=${config.modelId}`,
+    undefined,
+    10_000,
+    { sceneId, channel: "metadata" },
   );
   let files = Array.isArray(metadata.model_file) ? metadata.model_file : [];
   if (files.length === 0) {
     const result = await fetchUpstreamJson<{ file_list?: UpstreamModelFile[] }>(
       `/api/v1/three-model/models/files?model_id=${config.modelId}`,
+      undefined,
+      10_000,
+      { sceneId, channel: "metadata" },
     );
     files = Array.isArray(result.file_list) ? result.file_list : [];
   }
@@ -577,7 +631,13 @@ async function resolveModelAsset(sceneId: ModelShowcaseSceneId): Promise<Resolve
 
 async function fetchDashboard(sceneId: ModelShowcaseSceneId): Promise<RemoteDashboardData> {
   const modelId = getModelShowcaseConfig(sceneId)!.modelId;
-  return fetchUpstreamJson<RemoteDashboardData>(`/api/visual-models/${modelId}/dashboard`);
+  // 2026-08-10 调整：Dashboard 请求同步写入跨项目连接通道状态；
+  return fetchUpstreamJson<RemoteDashboardData>(
+    `/api/visual-models/${modelId}/dashboard`,
+    undefined,
+    10_000,
+    { sceneId, channel: "dashboard" },
+  );
 }
 
 function assertModelFile(format: ResolvedModelAsset["format"], buffer: Buffer): void {
@@ -608,12 +668,18 @@ async function downloadModelBinary(
   asset: ResolvedModelAsset,
 ): Promise<CachedModelBinary> {
   const cached = modelBinaryCache.get(sceneId);
-  if (cached) return cached;
+  if (cached) {
+    // 2026-08-10 新增：模型二进制命中内存缓存时向连接关系接口反馈缓存可用；
+    recordConnectionCacheHit(sceneId, "modelBinary", { bytes: cached.buffer.byteLength });
+    return cached;
+  }
   const pending = modelDownloadRequests.get(sceneId);
   if (pending) return pending;
 
   const request = (async () => {
+    const startedAt = Date.now();
     let lastError: unknown;
+    let lastResponseStatus: number | null = null;
     for (let attempt = 1; attempt <= MODEL_DOWNLOAD_ATTEMPTS; attempt += 1) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), MODEL_DOWNLOAD_TIMEOUT_MS);
@@ -622,6 +688,7 @@ async function downloadModelBinary(
           `${VISUAL_MODEL_API_BASE_URL}/api/v1/three-model/models/files?file_url=${encodeURIComponent(asset.file.file_url)}`,
           { signal: controller.signal },
         );
+        lastResponseStatus = response.status;
         if (!response.ok) throw new UpstreamApiError(`Remote model download returned ${response.status}`);
         const contentType = response.headers.get("content-type") || "application/octet-stream";
         const contentLength = Number(response.headers.get("content-length") || 0);
@@ -645,6 +712,13 @@ async function downloadModelBinary(
         assertModelFile(asset.format, buffer);
         const model = { buffer, contentType, fileName: asset.file.file_name, cachedAt: Date.now() };
         modelBinaryCache.set(sceneId, model);
+        // 2026-08-10 新增：仅在模型完整下载并通过格式校验后登记通道成功；
+        recordConnectionSuccess(sceneId, "modelBinary", {
+          latencyMs: Date.now() - startedAt,
+          httpStatus: response.status,
+          cacheState: "miss",
+          bytes: buffer.byteLength,
+        });
         return model;
       } catch (error) {
         lastError = error instanceof Error && error.name === "AbortError"
@@ -660,9 +734,19 @@ async function downloadModelBinary(
         clearTimeout(timer);
       }
     }
-    throw lastError instanceof Error
+    const normalized = lastError instanceof UpstreamApiError
+      ? lastError
+      : lastError instanceof Error
       ? lastError
       : new UpstreamApiError("Remote model download failed", 502, "MODEL_DOWNLOAD_FAILED");
+    // 2026-08-10 新增：模型重试全部失败后登记最终脱敏错误，避免瞬时重试造成虚假离线；
+    recordConnectionFailure(sceneId, "modelBinary", {
+      latencyMs: Date.now() - startedAt,
+      httpStatus: lastResponseStatus ?? (normalized instanceof UpstreamApiError ? normalized.status : 502),
+      errorCode: normalized instanceof UpstreamApiError ? normalized.code : "MODEL_DOWNLOAD_FAILED",
+      errorMessage: normalized.message,
+    });
+    throw normalized;
   })().finally(() => modelDownloadRequests.delete(sceneId));
 
   modelDownloadRequests.set(sceneId, request);
@@ -720,6 +804,15 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
   });
 }));
 
+// 2026-08-10 新增：提供不触发上游请求的只读连接关系快照，供前端展示项目边界与运行状态；
+app.get("/api/model-showcase/:sceneId/connection", showcaseRoute(async (req, res) => {
+  const { sceneId } = getShowcaseScene(req.params.sceneId);
+  res.json(getConnectionSnapshot(sceneId, {
+    upstreamBaseUrl: VISUAL_MODEL_API_BASE_URL,
+    modelCacheState: modelBinaryCache.has(sceneId) ? "hit" : "empty",
+  }));
+}));
+
 app.get("/api/model-showcase/:sceneId/model", showcaseRoute(async (req, res) => {
   const { sceneId } = getShowcaseScene(req.params.sceneId);
   const asset = await resolveModelAsset(sceneId);
@@ -749,13 +842,15 @@ app.post("/api/model-showcase/:sceneId/scenario/:type", showcaseRoute(async (req
   const dashboard = await fetchUpstreamJson<RemoteDashboardData>(
     `/api/visual-models/${config.modelId}/scenario/${type}`,
     { method: "POST", body: "{}" },
+    10_000,
+    { sceneId, channel: "scenario" },
   );
   recordDiagnosticSnapshot(sceneId, dashboard, type);
   res.json(dashboard);
 }));
 
 app.post("/api/model-showcase/:sceneId/data-sync", showcaseRoute(async (req, res) => {
-  const { config } = getShowcaseScene(req.params.sceneId);
+  const { sceneId, config } = getShowcaseScene(req.params.sceneId);
   const scenario = req.body?.scenario as RemoteScenarioType;
   const rawValues = req.body?.actual_values;
   if (!(["normal", "high_load", "fault"] as string[]).includes(scenario) || !rawValues || typeof rawValues !== "object") {
@@ -773,16 +868,32 @@ app.post("/api/model-showcase/:sceneId/data-sync", showcaseRoute(async (req, res
   const result = await fetchUpstreamJson<unknown>(
     `/api/visual-models/${config.modelId}/data-sync`,
     { method: "POST", body: JSON.stringify({ scenario, actual_values: actualValues }) },
+    10_000,
+    { sceneId, channel: "dataSync" },
   );
   res.json(result);
 }));
 
 app.post("/api/model-showcase/:sceneId/diagnosis", showcaseRoute(async (req, res) => {
   const { sceneId } = getShowcaseScene(req.params.sceneId);
+  const startedAt = Date.now();
   const result = runDiagnosis(sceneId);
   if (!result) {
-    throw new UpstreamApiError("Telemetry history is not ready", 409, "DIAGNOSIS_NOT_READY", true);
+    const error = new UpstreamApiError("Telemetry history is not ready", 409, "DIAGNOSIS_NOT_READY", true);
+    // 2026-08-10 新增：诊断数据窗口未就绪时记录本地派生通道状态；
+    recordConnectionFailure(sceneId, "diagnosis", {
+      latencyMs: Date.now() - startedAt,
+      httpStatus: error.status,
+      errorCode: error.code,
+      errorMessage: error.message,
+    });
+    throw error;
   }
+  // 2026-08-10 新增：诊断结论生成成功后登记本地派生通道可用；
+  recordConnectionSuccess(sceneId, "diagnosis", {
+    latencyMs: Date.now() - startedAt,
+    httpStatus: 200,
+  });
   res.json(result);
 }));
 
@@ -816,7 +927,8 @@ if (process.env.NODE_ENV !== "production") {
   process.stdin.setEncoding('utf8');
   process.stdin.on('data', (key) => {
     const str = key.toString().trim().toLowerCase();
-    if (str === 'q' || key === '\u0003') { // q or ctrl-c
+    // 2026-08-10 调整：使用已规范化字符串判断 Ctrl+C，兼容 Node 输入回调的 Buffer 类型；
+    if (str === 'q' || key.toString() === '\u0003') { // q or ctrl-c
       console.log('Quitting server...');
       process.exit(0);
     }

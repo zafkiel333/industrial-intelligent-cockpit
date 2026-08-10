@@ -9,6 +9,60 @@ export type RemoteScenarioType = 'normal' | 'high_load' | 'fault';
 export type RemoteDataMode = 'dashboard' | RemoteScenarioType;
 export type RiskDirection = 'high' | 'low' | 'both';
 
+// 2026-08-10 新增：定义跨项目连接状态、通道观测和数据来源关系；
+export type ModelConnectionStatus = 'connected' | 'cached' | 'degraded' | 'offline' | 'unknown';
+export type ModelConnectionChannel = 'metadata' | 'modelBinary' | 'dashboard' | 'scenario' | 'dataSync' | 'diagnosis';
+export type ModelConnectionOwner = 'upstream' | 'local-derived';
+export type ModelConnectionCacheState = 'hit' | 'miss' | 'empty';
+
+export interface ModelConnectionChannelState {
+  channel: ModelConnectionChannel;
+  label: string;
+  owner: ModelConnectionOwner;
+  status: ModelConnectionStatus;
+  localRoute: string;
+  lastAttemptAt: string | null;
+  lastSuccessAt: string | null;
+  latencyMs: number | null;
+  httpStatus: number | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  cacheState?: ModelConnectionCacheState;
+  bytes?: number;
+}
+
+export interface ModelConnectionProjectDescriptor {
+  id: string;
+  name: string;
+  role: string;
+  service?: string;
+  baseUrl?: string;
+  modelName?: string;
+  detailUrl?: string;
+}
+
+export interface ModelShowcaseConnectionSnapshot {
+  sceneId: ModelShowcaseSceneId;
+  modelId: number;
+  overallStatus: ModelConnectionStatus;
+  generatedAt: string;
+  sourceProject: ModelConnectionProjectDescriptor;
+  connector: {
+    type: 'BFF';
+    name: string;
+    transport: 'HTTP REST';
+    role: string;
+    modelCache: ModelConnectionCacheState;
+    security: string[];
+  };
+  targetProject: ModelConnectionProjectDescriptor;
+  channels: ModelConnectionChannelState[];
+  provenance: {
+    upstream: string[];
+    localDerived: string[];
+  };
+}
+
 export interface RemoteBindableField {
   field: string;
   label: string;

@@ -1,11 +1,12 @@
 // 2026-08-09 新增：组合外部模型、实时参数、趋势、分析预测和资源信息页面；
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Activity,
   AlertCircle,
   CheckCircle2,
   CloudCog,
   Database,
+  ExternalLink,
   FileBox,
   FileDown,
   Gauge,
@@ -28,10 +29,14 @@ import {
 } from 'recharts';
 import { SciFiCard } from '../../../components/SciFiCard';
 import { AssessmentPanel } from '../../../components/remote-model-showcase/AssessmentPanel';
+// 2026-08-10 新增：接入跨项目连接拓扑与通道详情抽屉；
+import { ConnectionDetailDrawer } from '../../../components/remote-model-showcase/ConnectionDetailDrawer';
+import { ProjectConnectionMap } from '../../../components/remote-model-showcase/ProjectConnectionMap';
 import { RemoteMetricCard } from '../../../components/remote-model-showcase/RemoteMetricCard';
 import { RemoteModelViewer } from '../../../components/remote-model-showcase/RemoteModelViewer';
 import { getModelShowcaseConfig } from '../../../src/remoteModelShowcase/modelCatalog';
 import { downloadScenarioReport } from '../../../src/scenarioLib/scenarioFieldReport';
+import { useModelShowcaseConnection } from '../../../src/remoteModelShowcase/useModelShowcaseConnection';
 import { useRemoteModelTelemetry } from '../../../src/remoteModelShowcase/useRemoteModelTelemetry';
 import type { ModelShowcaseSceneId, RemoteDataMode } from '../../../src/remoteModelShowcase/types';
 
@@ -61,6 +66,9 @@ const riskLabels = {
 export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps> = ({ sceneId }) => {
   const config = getModelShowcaseConfig(sceneId)!;
   const telemetry = useRemoteModelTelemetry(sceneId);
+  // 2026-08-10 新增：连接快照与业务遥测独立请求，任一链路失败都不会清空另一方已有数据；
+  const connection = useModelShowcaseConnection(sceneId);
+  const [connectionDetailsOpen, setConnectionDetailsOpen] = useState(false);
   const {
     bootstrap,
     dashboard,
@@ -82,6 +90,12 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
     [history],
   );
   const online = !error && dashboard?.twin_status.status?.toUpperCase() === 'ONLINE';
+
+  // 2026-08-10 新增：用户手动刷新时同步更新业务数据和轻量连接快照；
+  const handleRefreshAll = () => {
+    telemetry.refresh();
+    void connection.refresh();
+  };
 
   // 2026-08-09 新增：复用通用导出能力生成当前设备评估与故障预测 Markdown 报告；
   const handleDownloadReport = () => {
@@ -144,9 +158,15 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
           <WifiOff className="mx-auto text-rose-400" size={34} />
           <h2 className="mt-4 text-lg font-semibold">外部模型服务暂不可用</h2>
           <p className="mt-2 text-xs leading-6 text-slate-500">{error || '初始化数据不完整，请检查本地后端与远端 API。'}</p>
-          <button type="button" onClick={() => window.location.reload()} className="mt-5 border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-xs text-cyan-200 hover:bg-cyan-500/20">
-            重新建立连接
-          </button>
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            <button type="button" onClick={() => window.location.reload()} className="border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-xs text-cyan-200 hover:bg-cyan-500/20">
+              重新建立连接
+            </button>
+            {/* 2026-08-10 新增：即使本地链路异常也允许人工打开外部项目来源模型页排查； */}
+            <a href={config.sourceDetailUrl} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 border border-slate-600 bg-slate-900/70 px-4 py-2 text-xs text-slate-300 hover:border-cyan-500/50 hover:text-cyan-200">
+              查看资源详情<ExternalLink size={13} />
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -166,6 +186,10 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
                 <span className={`rounded border px-2 py-0.5 tracking-normal ${online ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-rose-500/30 bg-rose-500/10 text-rose-300'}`}>
                   {online ? 'API ONLINE' : 'API STALE'}
                 </span>
+                {/* 2026-08-10 新增：在页面标题区明确标注来源项目及本地连接层； */}
+                {/* 2026-08-10 调整：将工程化来源标签改为资源来源与接入服务业务标签； */}
+                <span className="rounded border border-cyan-500/25 bg-cyan-500/5 px-2 py-0.5 tracking-normal text-cyan-300">资源来源：ICES-Union 3d2.0</span>
+                <span className="rounded border border-amber-500/25 bg-amber-500/5 px-2 py-0.5 tracking-normal text-amber-300">接入服务：模型数据安全接入</span>
               </div>
               <h1 className="text-xl font-bold tracking-wide text-slate-100 lg:text-2xl">{config.title}</h1>
               <p className="mt-1 max-w-4xl text-xs leading-5 text-slate-500">{config.description}</p>
@@ -182,7 +206,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
                   {option.label}
                 </button>
               ))}
-              <button type="button" disabled={refreshing} onClick={telemetry.refresh} className="border border-slate-700 bg-slate-900/70 p-2 text-slate-400 hover:border-cyan-600 hover:text-cyan-300 disabled:opacity-50" title="立即刷新">
+              <button type="button" disabled={refreshing || connection.refreshing} onClick={handleRefreshAll} className="border border-slate-700 bg-slate-900/70 p-2 text-slate-400 hover:border-cyan-600 hover:text-cyan-300 disabled:opacity-50" title="立即刷新">
                 <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
               </button>
             </div>
@@ -209,6 +233,26 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
             </div>
           )}
         </header>
+
+        {/* 2026-08-10 新增：用三段式拓扑呈现来源项目、后端代理和当前驾驶舱之间的连接； */}
+        <ProjectConnectionMap
+          snapshot={connection.snapshot}
+          modelId={config.modelId}
+          modelName={config.expectedRemoteName}
+          detailUrl={config.sourceDetailUrl}
+          loading={connection.loading}
+          error={connection.error}
+          onOpenDetails={() => setConnectionDetailsOpen(true)}
+        />
+        <ConnectionDetailDrawer
+          open={connectionDetailsOpen}
+          snapshot={connection.snapshot}
+          detailUrl={config.sourceDetailUrl}
+          refreshing={connection.refreshing}
+          lastCheckedAt={connection.lastCheckedAt}
+          onClose={() => setConnectionDetailsOpen(false)}
+          onRefresh={connection.refresh}
+        />
 
         {/* 2026-08-09 修复：固定模型与参数卡边界，超量数据仅在组件内部滚动； */}
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(420px,0.9fr)]">

@@ -1,6 +1,6 @@
 # 外部可视化模型 API 接入与调整说明（实施版）
 
-> 状态：已实施并完成接口联调（2026-08-09）。
+> 状态：已实施并完成接口联调；2026-08-10 增加设备数字孪生资源协同状态与模型资源详情入口。
 > 对应计划：[`开发计划.md`](./开发计划.md)。
 > 用途：说明远端 API、本地代理、前端数据流和后续可调整位置。
 
@@ -13,18 +13,18 @@
 唯一业务数据源 API Base:       http://8.146.211.204:3100/three-model-api
 ```
 
-四个详情页只用于需求阶段人工识别模型 ID。项目不会访问详情页、解析 HTML 或从 DOM 抓取数据。模型信息、模型文件、运行数据、工况和一致性校验全部来自 `/three-model-api/api/...`。
+四个详情页最初用于需求阶段人工识别模型 ID，现作为页面“查看资源详情”按钮的人工追溯入口。用户点击后由浏览器在新标签页打开；本项目业务代码不会请求详情页、解析 HTML 或从 DOM 抓取数据。模型信息、模型文件、运行数据、工况和一致性校验仍全部来自 `/three-model-api/api/...`。
 
 上游 API 无需 JWT。虽然文档说明 CORS 已放行，本项目仍计划通过自身后端代理，原因是：统一错误处理、避免 HTTPS 混合内容、保护模型文件 key、支持缓存和避免形成不受控的跨域依赖。
 
 ## 2. 场景与模型映射
 
-| 本地场景 ID | 远端模型 ID | 实际模型 | 模型文件 | 文件大小 |
-|---|---:|---|---|---:|
-| `sim-visual-hydro-turbine` | 2326 | 水轮机总成 | `水轮机总成.fbx` | 7,661,788 B |
-| `sim-visual-wastewater-pump` | 2328 | 污水泵 KCM100HD | `污水泵KCM100HD.fbx` | 13,082,652 B |
-| `sim-visual-bridge-crane` | 2316 | 桥式起重机 | `crane_08.fbx` | 3,777,248 B |
-| `sim-visual-haul-truck` | 2310 | **拖车牵引车** | `拖车牵引车.fbx` | 6,175,120 B |
+| 本地场景 ID | 远端模型 ID | 实际模型 | 模型文件 | 文件大小 | 人工来源入口 |
+|---|---:|---|---|---:|---|
+| `sim-visual-hydro-turbine` | 2326 | 水轮机总成 | `水轮机总成.fbx` | 7,661,788 B | `/three-model/detail?id=2326` |
+| `sim-visual-wastewater-pump` | 2328 | 污水泵 KCM100HD | `污水泵KCM100HD.fbx` | 13,082,652 B | `/three-model/detail?id=2328` |
+| `sim-visual-bridge-crane` | 2316 | 桥式起重机 | `crane_08.fbx` | 3,777,248 B | `/three-model/detail?id=2316` |
+| `sim-visual-haul-truck` | 2310 | **拖车牵引车** | `拖车牵引车.fbx` | 6,175,120 B | `/three-model/detail?id=2310` |
 
 > 2026-08-09 已确认：接受模型 2310 继续承载“矿卡”页面。页面设备信息仍如实显示远端模型名称“拖车牵引车”。调整时只需修改模型目录配置和页面文案，不应在多个组件里散落硬编码模型 ID。
 
@@ -116,12 +116,13 @@ Content-Type: application/json
 浏览器 → 本项目 /api/model-showcase/* → 上游 /three-model-api/api/*
 ```
 
-这条调用链中不存在 `/three-model/detail`。
+业务调用链中不存在 `/three-model/detail`；该地址只存在于场景白名单的 `sourceDetailUrl`，由“查看资源详情”链接人工打开。
 
 ```http
 GET  /api/model-showcase/:sceneId/bootstrap
 GET  /api/model-showcase/:sceneId/model
 GET  /api/model-showcase/:sceneId/dashboard
+GET  /api/model-showcase/:sceneId/connection
 POST /api/model-showcase/:sceneId/scenario/:type
 POST /api/model-showcase/:sceneId/data-sync
 POST /api/model-showcase/:sceneId/diagnosis
@@ -200,7 +201,27 @@ Content-Type: application/json
 
 前端只渲染结论、风险、概率、预测窗口、建议、置信度和时间，不渲染诊断模型、算法、特征权重或推理过程。
 
-### 4.4 错误响应
+### 4.4 `connection`（设备资源协同状态只读快照）
+
+```http
+GET /api/model-showcase/sim-visual-hydro-turbine/connection
+Accept: application/json
+```
+
+该接口只读取服务进程内已经由现有业务请求采集的状态，不主动访问上游，也不会触发模型下载。前端每 10 秒读取一次；页面隐藏时暂停轮询，重新进入页面时先展示应用运行期保留的上一次快照。
+
+主要返回：
+
+- `sourceProject`：模型资源平台、模型名称和固定资源详情入口；
+- `connector`：模型数据安全接入服务、资源就绪状态和安全措施；
+- `targetProject`：工业智能驾驶舱业务应用；
+- `channels`：设备模型信息、三维模型、实时运行数据、典型工况、数据校验和健康评估的独立状态；
+- `provenance`：资源平台提供内容与驾驶舱分析生成成果的边界；
+- `overallStatus`：`connected`、`cached`、`degraded`、`offline` 或 `unknown`。
+
+状态只在服务运行期间保留，后端重启后从 `unknown` 重新积累。返回值不包含上游 `file_url`、对象 key、堆栈或服务器路径。
+
+### 4.5 错误响应
 
 已统一为以下结构：
 
@@ -225,7 +246,7 @@ Content-Type: application/json
 - `MODEL_DOWNLOAD_TIMEOUT`；
 - `DIAGNOSIS_NOT_READY` / `SHOWCASE_ERROR`。
 
-### 4.5 环境变量与默认配置
+### 4.6 环境变量与默认配置
 
 ```dotenv
 VISUAL_MODEL_API_BASE_URL=http://8.146.211.204:3100/three-model-api
@@ -423,7 +444,11 @@ interface DiagnosticPattern {
 |---|---|
 | 上游服务器地址 | 启动进程环境变量 `VISUAL_MODEL_API_BASE_URL`；未设置时使用 `server.ts` 默认值 |
 | 模型 ID/页面标题/菜单 ID | `src/remoteModelShowcase/modelCatalog.ts` + `constants.tsx` |
+| “查看资源详情”跳转地址 | `modelCatalog.ts` 各场景的 `sourceDetailUrl`；必须使用固定可信 URL，不接收页面输入 |
 | 刷新周期/趋势长度 | `useRemoteModelTelemetry.ts` |
+| 资源协同状态轮询周期 | `useModelShowcaseConnection.ts` 的 `CONNECTION_POLL_INTERVAL_MS` |
+| 资源协同状态聚合、服务名称和脱敏规则 | `connectionRegistry.ts` |
+| 资源协同卡和状态抽屉样式 | `ProjectConnectionMap.tsx`、`ConnectionDetailDrawer.tsx` |
 | 正常范围显示 | 默认使用上游字段；必要时在模型目录配置覆盖 |
 | 诊断特征/健康度分级 | 后端 `diagnosticEngine.ts` |
 | 故障模式/概率/预测窗口/建议文案 | `modelCatalog.ts` 的设备诊断配置 |
@@ -453,6 +478,9 @@ curl -o hydro-turbine.fbx http://localhost:3000/api/model-showcase/sim-visual-hy
 # 生成诊断结论
 curl -X POST http://localhost:3000/api/model-showcase/sim-visual-hydro-turbine/diagnosis \
   -H "Content-Type: application/json" -d "{}"
+
+# 查看本项目已采集的设备资源协同状态（不会额外请求上游）
+curl http://localhost:3000/api/model-showcase/sim-visual-hydro-turbine/connection
 ```
 
 Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等请求。
@@ -469,6 +497,8 @@ Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等�
 6. 前端不得在每次 Dashboard 轮询时重新请求模型文件；
 7. 如果上游中文出现乱码，应检查上游响应头 charset；本项目代理统一以 UTF-8 JSON 返回；
 8. 诊断输出由本项目模拟智能诊断服务构造，用于仿真展示，不等同于生产设备的真实预测模型结论。
+9. “查看资源详情”使用 HTTP 外部地址并打开新标签页，只用于人工追溯；详情页失效不会影响 API、缓存、3D 或诊断功能。
+10. `/connection` 状态是当前 Node.js 服务进程的运行观测，服务重启后不会保留历史状态。
 
 ---
 
@@ -481,10 +511,16 @@ Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等�
 | `src/remoteModelShowcase/modelCatalog.ts` | 四页面 ID、远端模型 ID、字段权重、故障知识和展示配置 |
 | `src/remoteModelShowcase/diagnosticEngine.ts` | 最近 60 个快照、健康度、故障概率、预测窗口和建议输出 |
 | `src/remoteModelShowcase/useRemoteModelTelemetry.ts` | 四场景运行期缓存、5 秒轮询、进页刷新、时序累计、失联保持和一致性校验 |
+| `src/remoteModelShowcase/connectionRegistry.ts` | 六类资源服务的运行期状态、总体状态聚合、资源就绪标记和错误脱敏 |
+| `src/remoteModelShowcase/useModelShowcaseConnection.ts` | 资源协同状态运行期保留、10 秒轮询、失联保留和手动刷新 |
 | `components/remote-model-showcase/RemoteModelViewer.tsx` | 模型二进制校验/缓存、FBX/GLB/GLTF 解析、自动重试、居中缩放、资源释放和参数联动 |
 | `components/remote-model-showcase/RemoteMetricCard.tsx` | 实时参数、范围和数据来源状态 |
 | `components/remote-model-showcase/AssessmentPanel.tsx` | 只展示诊断结论、故障概率、预测窗口和建议 |
-| `views/simulation/remote-model/RemoteModelSimulationView.tsx` | 四页面共用布局、趋势图、同步状态和资源信息 |
+| `components/remote-model-showcase/ProjectConnectionMap.tsx` | 模型资源平台 → 安全接入服务 → 业务应用端三节点资源协同卡和资源详情按钮 |
+| `components/remote-model-showcase/ConnectionStatusBadge.tsx` | 五种资源同步状态的统一业务文案和样式 |
+| `components/remote-model-showcase/ConnectionDetailDrawer.tsx` | 资源服务状态、最近可用时间、异常和资源入口抽屉 |
+| `components/remote-model-showcase/DataProvenancePanel.tsx` | 资源平台提供内容与驾驶舱分析生成成果边界 |
+| `views/simulation/remote-model/RemoteModelSimulationView.tsx` | 四页面共用布局、趋势图、资源协同、同步状态和资源信息 |
 | `views/simulation/remote-model/index.tsx` | 四个轻量页面包装入口 |
 | `constants.tsx` / `App.tsx` | 仿真分析前四位菜单及页面路由 |
 
@@ -497,3 +533,14 @@ Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等�
 - 水轮机故障工况返回 3 个越限字段，诊断接口输出 `critical`、3 项故障预测，一致性校验返回 100%；
 - `npm run build` 成功；本次新增 TypeScript 文件的独立类型检查通过；
 - 全项目 `tsc --noEmit` 仍被既有 `components/Maintenance-plan-management/*/three-types.ts` 非法字符错误阻断，本次未修改这些历史文件。
+
+## 14. 2026-08-10 设备资源协同联调结果
+
+- 四页面均接入“资源来源：ICES-Union 3d2.0”“接入服务：模型数据安全接入”、三节点资源协同卡和状态抽屉；
+- “查看资源详情”按钮按场景打开模型 2326、2328、2316、2310 的固定详情页，使用 `target="_blank"` 与 `rel="noreferrer noopener"`；
+- 独立 3108 测试实例依次完成四场景 `bootstrap`、`model`、`diagnosis` 和 `connection` 请求；
+- 四个模型 ID、来源详情 URL 全部匹配，模型字节数仍为 7,661,788、13,082,652、3,777,248、6,175,120；
+- 四场景模型通道显示运行期缓存可用，Dashboard 和本地诊断通道显示连接成功；
+- 四个连接快照均未出现 `file_url=` 或 `3d_model/` 对象 key；
+- 本次相关 TypeScript/TSX 定向类型检查通过，`npm.cmd run build` 通过（5,554 个模块）；
+- 全项目类型检查仍仅被既有维护计划 `three-types.ts` 非法字符问题阻断。

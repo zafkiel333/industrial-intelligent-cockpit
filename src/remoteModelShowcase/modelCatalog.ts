@@ -27,6 +27,8 @@ export interface ModelShowcaseConfig {
   description: string;
   expectedRemoteName: string;
   sourceAssetLabel: string;
+  // 2026-08-10 新增：固定来源模型人工追溯地址，不允许前端拼接或接收任意外部 URL；
+  sourceDetailUrl: string;
   domain: 'hydro' | 'pump' | 'crane' | 'vehicle';
   accent: string;
   fields: Record<string, ShowcaseFieldConfig>;
@@ -48,6 +50,7 @@ export const MODEL_SHOWCASE_CATALOG: Record<ModelShowcaseSceneId, ModelShowcaseC
     description: '融合转速、温度、振动、水压、流量与功率数据，呈现水轮机组运行状态和智能诊断结论。',
     expectedRemoteName: '水轮机总成',
     sourceAssetLabel: '远端模型：水轮机总成',
+    sourceDetailUrl: 'http://8.146.211.204:3100/three-model/detail?id=2326',
     domain: 'hydro',
     accent: '#22d3ee',
     fields: {
@@ -79,6 +82,7 @@ export const MODEL_SHOWCASE_CATALOG: Record<ModelShowcaseSceneId, ModelShowcaseC
     description: '围绕压力、流量、功率、温升与振动关系，评估污水泵运行效能并输出潜在故障结论。',
     expectedRemoteName: '污水泵KCM100HD',
     sourceAssetLabel: '远端模型：污水泵 KCM100HD',
+    sourceDetailUrl: 'http://8.146.211.204:3100/three-model/detail?id=2328',
     domain: 'pump',
     accent: '#38bdf8',
     fields: {
@@ -110,6 +114,7 @@ export const MODEL_SHOWCASE_CATALOG: Record<ModelShowcaseSceneId, ModelShowcaseC
     description: '利用载荷、小车位置、运行速度、电机温度与振动数据，评估吊运安全和驱动系统状态。',
     expectedRemoteName: '桥式起重机',
     sourceAssetLabel: '远端模型：桥式起重机',
+    sourceDetailUrl: 'http://8.146.211.204:3100/three-model/detail?id=2316',
     domain: 'crane',
     accent: '#f59e0b',
     fields: {
@@ -140,6 +145,7 @@ export const MODEL_SHOWCASE_CATALOG: Record<ModelShowcaseSceneId, ModelShowcaseC
     description: '以拖车牵引车资源承载矿卡运输场景，融合动力、热状态、振动、液压与燃油数据输出诊断结论。',
     expectedRemoteName: '拖车牵引车',
     sourceAssetLabel: '远端模型：拖车牵引车',
+    sourceDetailUrl: 'http://8.146.211.204:3100/three-model/detail?id=2310',
     domain: 'vehicle',
     accent: '#fb923c',
     fields: {
