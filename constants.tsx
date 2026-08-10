@@ -132,6 +132,11 @@ const DIGITAL_DELIVERY_CHILDREN: MenuItem[] = [
 
 // Simulation Children (NEW)
 export const SIMULATION_CHILDREN: MenuItem[] = [
+    // 2026-08-09 新增：将四个外部模型仿真页面置于“仿真分析”菜单前四位；
+    { id: 'sim-visual-hydro-turbine', label: '水轮机多工况数字孪生仿真' },
+    { id: 'sim-visual-wastewater-pump', label: '污水泵运行效能与故障仿真' },
+    { id: 'sim-visual-bridge-crane', label: '桥式起重机载荷安全数字孪生仿真' },
+    { id: 'sim-visual-haul-truck', label: '矿卡牵引运输状态与故障仿真' },
     // Mining
     { id: 'sim-mine-vent', label: '井下通风与有害气体扩散仿真' },
     { id: 'sim-mine-roof', label: '采掘工作面顶板稳定性仿真' },

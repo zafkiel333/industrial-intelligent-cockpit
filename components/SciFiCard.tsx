@@ -20,8 +20,9 @@ export const SciFiCard: React.FC<SciFiCardProps> = ({
   const borderClass = highlight ? 'border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'border-slate-800/60 shadow-lg';
   const accentLineOpacity = highlight ? 'opacity-100' : 'opacity-0 group-hover:opacity-100';
 
+  // 2026-08-09 修复：允许卡片及内容在 Grid/Flex 中正确收缩，避免异常或长数据持续撑大页面；
   return (
-    <div className={`relative flex flex-col bg-[#0b1221]/80 backdrop-blur-sm border ${borderClass} ${className}`}>
+    <div className={`relative flex min-w-0 flex-col bg-[#0b1221]/80 backdrop-blur-sm border ${borderClass} ${className}`}>
       {/* Top Accent Line */}
       <div className={`absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-cyan-500/50 to-transparent ${accentLineOpacity} transition-opacity`}></div>
       
@@ -44,7 +45,7 @@ export const SciFiCard: React.FC<SciFiCardProps> = ({
       )}
 
       {/* Content */}
-      <div className={`flex-1 ${noPadding ? '' : 'p-4'}`}>
+      <div className={`min-h-0 min-w-0 flex-1 ${noPadding ? '' : 'p-4'}`}>
         {children}
       </div>
     </div>

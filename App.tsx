@@ -122,6 +122,13 @@ import { ChannelMonitorDeliveryView } from './views/digital-delivery/ChannelMoni
 import { NavSafetyDeliveryView } from './views/digital-delivery/NavSafetyDeliveryView';
 
 // Simulation Views
+// 2026-08-09 新增：注册四个外部模型数字孪生仿真页面组件；
+import {
+  HydroTurbineDigitalTwinView,
+  WastewaterPumpDigitalTwinView,
+  BridgeCraneDigitalTwinView,
+  HaulTruckDigitalTwinView,
+} from './views/simulation/remote-model';
 import { MineVentilationSimView } from './views/simulation/MineVentilationSimView';
 import { MineRoofStabilitySimView } from './views/simulation/MineRoofStabilitySimView';
 import { MineBlastSimView } from './views/simulation/MineBlastSimView';
@@ -1129,6 +1136,11 @@ export const App = () => {
     if (activeTabId === 'dd-nav-safety') return <NavSafetyDeliveryView />;
 
     // Simulation
+    // 2026-08-09 新增：为四个外部模型场景配置独立页面路由；
+    if (activeTabId === 'sim-visual-hydro-turbine') return <HydroTurbineDigitalTwinView />;
+    if (activeTabId === 'sim-visual-wastewater-pump') return <WastewaterPumpDigitalTwinView />;
+    if (activeTabId === 'sim-visual-bridge-crane') return <BridgeCraneDigitalTwinView />;
+    if (activeTabId === 'sim-visual-haul-truck') return <HaulTruckDigitalTwinView />;
     if (activeTabId === 'sim-mine-vent') return <MineVentilationSimView />;
     if (activeTabId === 'sim-mine-roof') return <MineRoofStabilitySimView />;
     if (activeTabId === 'sim-mine-blast') return <MineBlastSimView />;
