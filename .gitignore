@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# 2026-08-12 新增：服务端运行期模型持久缓存不纳入源码版本管理；
+.runtime-cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

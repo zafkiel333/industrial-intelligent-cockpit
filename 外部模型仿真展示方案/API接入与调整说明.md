@@ -1,6 +1,6 @@
 # 外部可视化模型 API 接入与调整说明（实施版）
 
-> 状态：已实施并完成接口联调；2026-08-10 增加设备数字孪生资源协同状态与模型资源详情入口。
+> 状态：已实施；2026-08-12 增加模型定时更新、最后成功版本持久化、版本状态和手动更新入口。
 > 对应计划：[`开发计划.md`](./开发计划.md)。
 > 用途：说明远端 API、本地代理、前端数据流和后续可调整位置。
 
@@ -126,6 +126,7 @@ GET  /api/model-showcase/:sceneId/connection
 POST /api/model-showcase/:sceneId/scenario/:type
 POST /api/model-showcase/:sceneId/data-sync
 POST /api/model-showcase/:sceneId/diagnosis
+POST /api/model-showcase/:sceneId/model/refresh
 ```
 
 ### 4.1 `bootstrap`
@@ -143,7 +144,9 @@ POST /api/model-showcase/:sceneId/diagnosis
     "fileName": "水轮机总成.fbx",
     "fileSize": 7661788,
     "format": "fbx",
-    "localAssetUrl": "/api/model-showcase/sim-visual-hydro-turbine/model"
+    "localAssetUrl": "/api/model-showcase/sim-visual-hydro-turbine/model",
+    "version": "e75c0b1f3c43b57a",
+    "updatedAt": "2026-08-12T10:00:00.000Z"
   },
   "dashboard": {}
 }
@@ -154,9 +157,11 @@ POST /api/model-showcase/:sceneId/diagnosis
 - 后端读取场景白名单中的模型 ID；
 - 请求上游模型元数据，选择允许格式的文件；
 - 下载后先检查响应类型、文件头和 50 MB 上限，避免把上游 JSON 错误交给 FBXLoader；
-- 首次成功后将模型二进制保留在服务进程内存中，页面切换不重复访问上游存储；
+- 首次成功后将模型二进制保留在内存并持久化到 `.runtime-cache/model-showcase`，服务重启可恢复最后成功版本；
+- 默认每 36 小时重新下载并计算 SHA-256；内容不变只推进检查时间，内容变化才提升版本；
+- 到期更新在后台进行，失败后保留旧模型并退避 6 小时，不会因为 10 秒连接轮询反复下载；
 - 相同场景的并发模型请求合并为一次，并对非超时错误做有限重试；
-- 返回正确的 `Content-Type`、`Content-Length`、`Content-Disposition` 和缓存头；
+- 返回 `ETag`、`Last-Modified`、`X-Model-Version`、`X-Model-Cached-At` 和 `X-Model-Next-Refresh`；响应使用 `no-store`，浏览器由 URL 中的明确版本决定是否获取新 `ArrayBuffer`；
 - 不接受任意 URL 或文件 key。
 
 ### 4.3 `diagnosis`（本项目模拟智能诊断服务）
@@ -201,14 +206,14 @@ Content-Type: application/json
 
 前端只渲染结论、风险、概率、预测窗口、建议、置信度和时间，不渲染诊断模型、算法、特征权重或推理过程。
 
-### 4.4 `connection`（设备资源协同状态只读快照）
+### 4.4 `connection`（设备资源协同状态快照）
 
 ```http
 GET /api/model-showcase/sim-visual-hydro-turbine/connection
 Accept: application/json
 ```
 
-该接口只读取服务进程内已经由现有业务请求采集的状态，不主动访问上游，也不会触发模型下载。前端每 10 秒读取一次；页面隐藏时暂停轮询，重新进入页面时先展示应用运行期保留的上一次快照。
+该接口通常只读取本地状态；仅当持久模型已超过 `nextRefreshAt` 时异步触发一次合并后的后台检查，当前响应不会等待模型下载。前端每 10 秒读取一次；未到期时不会访问上游模型文件，页面隐藏时暂停轮询。
 
 主要返回：
 
@@ -218,10 +223,20 @@ Accept: application/json
 - `channels`：设备模型信息、三维模型、实时运行数据、典型工况、数据校验和健康评估的独立状态；
 - `provenance`：资源平台提供内容与驾驶舱分析生成成果的边界；
 - `overallStatus`：`connected`、`cached`、`degraded`、`offline` 或 `unknown`。
+- `modelRefresh`：活动/候选版本、更新状态、成功更新时间、最近检查、下次检查、失败原因、持久化状态和当前文件描述。
 
-状态只在服务运行期间保留，后端重启后从 `unknown` 重新积累。返回值不包含上游 `file_url`、对象 key、堆栈或服务器路径。
+通道观测状态只在服务运行期间保留；模型活动版本及时间可从持久清单恢复。返回值不包含上游 `file_url`、对象 key、堆栈或服务器路径。
 
-### 4.5 错误响应
+### 4.5 `model/refresh`（手动模型更新）
+
+```http
+POST /api/model-showcase/sim-visual-hydro-turbine/model/refresh
+Accept: application/json
+```
+
+该接口与定时更新复用同一套元数据、体积、格式、SHA-256 和持久化校验。同场景十分钟内只允许主动操作一次；返回 `updated`、`unchanged`、`failed` 或 `rate-limited`，即使更新失败且已有缓存，也继续返回并展示旧模型。
+
+### 4.6 错误响应
 
 已统一为以下结构：
 
@@ -246,10 +261,12 @@ Accept: application/json
 - `MODEL_DOWNLOAD_TIMEOUT`；
 - `DIAGNOSIS_NOT_READY` / `SHOWCASE_ERROR`。
 
-### 4.6 环境变量与默认配置
+### 4.7 环境变量与默认配置
 
 ```dotenv
 VISUAL_MODEL_API_BASE_URL=http://8.146.211.204:3100/three-model-api
+MODEL_BINARY_REFRESH_HOURS=36
+# 可选：MODEL_CACHE_DIRECTORY=/可写的持久目录/model-showcase
 ```
 
 当前集中定义的服务端参数：
@@ -260,9 +277,12 @@ const MODEL_DOWNLOAD_TIMEOUT_MS = 30_000;
 const MODEL_DOWNLOAD_ATTEMPTS = 2;
 const METADATA_CACHE_TTL_MS = 5 * 60_000;
 const MAX_MODEL_BYTES = 50 * 1024 * 1024;
+const MODEL_REFRESH_INTERVAL_HOURS = 36; // 环境变量限制在 24～48
+const MODEL_REFRESH_RETRY_MS = 6 * 60 * 60_000;
+const MODEL_MANUAL_REFRESH_COOLDOWN_MS = 10 * 60_000;
 ```
 
-服务监听端口可通过 `PORT` 调整，默认 `3000`。Dashboard 不做服务端缓存，以保证每次轮询都取得新的上游快照；模型元数据缓存 5 分钟。模型二进制首次成功校验后保留在服务进程内存中，同时返回 1 小时浏览器缓存头；停止服务后该运行期缓存自动释放。
+服务监听端口可通过 `PORT` 调整，默认 `3000`。Dashboard 不做服务端缓存；模型元数据缓存 5 分钟。模型二进制同时保留在内存和持久目录，持久目录必须允许 Node.js 进程写入；未配置时使用项目根目录 `.runtime-cache/model-showcase`。
 
 ---
 
@@ -479,8 +499,11 @@ curl -o hydro-turbine.fbx http://localhost:3000/api/model-showcase/sim-visual-hy
 curl -X POST http://localhost:3000/api/model-showcase/sim-visual-hydro-turbine/diagnosis \
   -H "Content-Type: application/json" -d "{}"
 
-# 查看本项目已采集的设备资源协同状态（不会额外请求上游）
+# 查看资源协同与模型版本状态（仅模型到期时可能异步触发后台检查）
 curl http://localhost:3000/api/model-showcase/sim-visual-hydro-turbine/connection
+
+# 手动检查并更新该场景模型（同场景十分钟限频）
+curl -X POST http://localhost:3000/api/model-showcase/sim-visual-hydro-turbine/model/refresh
 ```
 
 Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等请求。
@@ -498,7 +521,8 @@ Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等�
 7. 如果上游中文出现乱码，应检查上游响应头 charset；本项目代理统一以 UTF-8 JSON 返回；
 8. 诊断输出由本项目模拟智能诊断服务构造，用于仿真展示，不等同于生产设备的真实预测模型结论。
 9. “查看资源详情”使用 HTTP 外部地址并打开新标签页，只用于人工追溯；详情页失效不会影响 API、缓存、3D 或诊断功能。
-10. `/connection` 状态是当前 Node.js 服务进程的运行观测，服务重启后不会保留历史状态。
+10. `/connection` 的通道观测是当前进程状态，但模型版本与时间会从持久清单恢复；模型到期时该接口可异步触发一次后台更新。
+11. 部署时不能只替换 `dist`：本次同时修改了 `server.ts`，并需保证 `.runtime-cache/model-showcase` 或 `MODEL_CACHE_DIRECTORY` 指向的目录可持续写入。
 
 ---
 
@@ -506,14 +530,14 @@ Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等�
 
 | 文件 | 作用 |
 |---|---|
-| `server.ts` | BFF、超时/错误映射、模型格式校验、二进制运行期缓存、白名单校验和本地接口 |
+| `server.ts` | BFF、模型格式/哈希校验、36 小时更新、持久缓存、旧版本兜底、手动更新和白名单校验 |
 | `src/remoteModelShowcase/types.ts` | 前后端共用数据结构 |
 | `src/remoteModelShowcase/modelCatalog.ts` | 四页面 ID、远端模型 ID、字段权重、故障知识和展示配置 |
 | `src/remoteModelShowcase/diagnosticEngine.ts` | 最近 60 个快照、健康度、故障概率、预测窗口和建议输出 |
 | `src/remoteModelShowcase/useRemoteModelTelemetry.ts` | 四场景运行期缓存、5 秒轮询、进页刷新、时序累计、失联保持和一致性校验 |
 | `src/remoteModelShowcase/connectionRegistry.ts` | 六类资源服务的运行期状态、总体状态聚合、资源就绪标记和错误脱敏 |
-| `src/remoteModelShowcase/useModelShowcaseConnection.ts` | 资源协同状态运行期保留、10 秒轮询、失联保留和手动刷新 |
-| `components/remote-model-showcase/RemoteModelViewer.tsx` | 模型二进制校验/缓存、FBX/GLB/GLTF 解析、自动重试、居中缩放、资源释放和参数联动 |
+| `src/remoteModelShowcase/useModelShowcaseConnection.ts` | 资源协同状态保留、10 秒轮询、模型版本同步和手动更新 |
+| `components/remote-model-showcase/RemoteModelViewer.tsx` | 按版本请求、候选模型解析、无损切换、失败保留、居中缩放和资源释放 |
 | `components/remote-model-showcase/RemoteMetricCard.tsx` | 实时参数、范围和数据来源状态 |
 | `components/remote-model-showcase/AssessmentPanel.tsx` | 只展示诊断结论、故障概率、预测窗口和建议 |
 | `components/remote-model-showcase/ProjectConnectionMap.tsx` | 模型资源平台 → 安全接入服务 → 业务应用端三节点资源协同卡和资源详情按钮 |
@@ -544,3 +568,13 @@ Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等�
 - 四个连接快照均未出现 `file_url=` 或 `3d_model/` 对象 key；
 - 本次相关 TypeScript/TSX 定向类型检查通过，`npm.cmd run build` 通过（5,554 个模块）；
 - 全项目类型检查仍仅被既有维护计划 `three-types.ts` 非法字符问题阻断。
+
+## 15. 2026-08-12 模型定时更新实施结果
+
+- 默认每 36 小时检查四个场景模型，支持 `MODEL_BINARY_REFRESH_HOURS=24～48`，失败后按 6 小时退避；
+- 活动模型以内存和磁盘双层保存，持久清单记录 SHA-256 内容版本、更新时间、检查时间和下次检查时间；
+- `/connection` 返回 `modelRefresh`，`POST .../model/refresh` 提供十分钟限频的人工更新；
+- 前端以 `?v=<activeVersion>` 和 `cache: no-store` 获取候选 `ArrayBuffer`，候选完成格式校验、Three.js 解析和网格检查后才替换旧对象；
+- 下载、数据库、存储、格式或解析失败时不释放旧模型，页面以小字显示失败时间、原因和上次成功更新时间；
+- 生产构建和本次相关文件的定向 TypeScript 检查通过；全仓库类型检查仍被既有维护计划 `three-types.ts` 非法字符阻断；
+- 当前环境直接运行 tsx 会遇到 `uv_os_get_passwd returned ENOMEM`；临时兼容启动已确认服务可启动并读取 36 小时配置，但 PowerShell 后台测试外壳未稳定完成接口交互。因此仍需在正常开发机或部署服务器完成真实上游更新、进程重启恢复及浏览器无损切换验收。

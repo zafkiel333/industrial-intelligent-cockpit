@@ -7,6 +7,7 @@ import type {
   ModelConnectionChannelState,
   ModelConnectionOwner,
   ModelConnectionStatus,
+  ModelRefreshStatus,
   ModelShowcaseConnectionSnapshot,
   ModelShowcaseSceneId,
 } from './types';
@@ -23,6 +24,8 @@ interface ConnectionUpdate {
 interface ConnectionSnapshotOptions {
   upstreamBaseUrl: string;
   modelCacheState: ModelConnectionCacheState;
+  // 2026-08-12 新增：连接快照同步返回模型版本与定时更新状态；
+  modelRefresh: ModelRefreshStatus;
 }
 
 const channelDefinitions: Record<ModelConnectionChannel, {
@@ -202,5 +205,6 @@ export function getConnectionSnapshot(
       upstream: ['设备三维模型', '设备基础信息', '实时运行快照', '典型工况数据', '运行数据一致性校验'],
       localDerived: ['安全接入与资源校验', '资源快速复用', '运行趋势整理', '范围参数动态演示', '健康评估与故障预警', '设备分析报告'],
     },
+    modelRefresh: options.modelRefresh,
   };
 }

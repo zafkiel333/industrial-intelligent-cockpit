@@ -1,5 +1,6 @@
 // 2026-08-09 新增：通过本地 BFF 加载并交互展示 FBX/GLB/GLTF 外部模型；
-import React, { useEffect, useRef, useState } from 'react';
+// 2026-08-12 调整：模型按版本获取 ArrayBuffer，并以候选解析成功后再替换旧模型的方式无损更新；
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
@@ -17,21 +18,30 @@ interface RemoteModelViewerProps {
 
 type ModelLoadFailureStage = 'request' | 'parse';
 
-// 2026-08-09 修复：缓存已校验的模型二进制并合并同一资源的并发请求；
+// 2026-08-12 调整：缓存键同时包含本地路由和内容版本，版本变化后绝不复用旧 ArrayBuffer；
 const modelBufferCache = new Map<string, Promise<ArrayBuffer>>();
+
+function modelCacheKey(asset: ModelAssetDescriptor): string {
+  return `${asset.localAssetUrl}::${asset.version}`;
+}
+
+function versionedModelUrl(asset: ModelAssetDescriptor): string {
+  const url = new URL(asset.localAssetUrl, window.location.origin);
+  url.searchParams.set('v', asset.version);
+  return `${url.pathname}${url.search}`;
+}
 
 async function responseError(response: Response): Promise<Error> {
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
     const payload = await response.json().catch(() => ({})) as { error?: { code?: string; message?: string }; message?: string };
     const message = payload.error?.message || payload.message || `模型代理请求失败（${response.status}）`;
-    // 2026-08-12 调整：保留后端模型错误码，便于区分远端资源失败和前端解析失败；
     return new Error(payload.error?.code ? `${message}（${payload.error.code}）` : message);
   }
   return new Error(`模型代理请求失败（${response.status}）`);
 }
 
-// 2026-08-12 新增：将 API 返回的近黑背景提升为中深蓝灰，直接在 Three.js 场景内改善灰模辨识度；
+// 2026-08-12 新增：将 API 返回的近黑背景提升为中深蓝灰，改善灰模辨识度；
 function resolveViewerBackground(configured?: string): THREE.Color {
   const fallback = new THREE.Color('#29485e');
   if (!configured) return fallback;
@@ -69,7 +79,8 @@ async function fetchModelBuffer(
   asset: ModelAssetDescriptor,
   onProgress: (progress: number) => void,
 ): Promise<ArrayBuffer> {
-  const cached = modelBufferCache.get(asset.localAssetUrl);
+  const cacheKey = modelCacheKey(asset);
+  const cached = modelBufferCache.get(cacheKey);
   if (cached) {
     const buffer = await cached;
     onProgress(100);
@@ -77,7 +88,11 @@ async function fetchModelBuffer(
   }
 
   const request = (async () => {
-    const response = await fetch(asset.localAssetUrl, { headers: { Accept: 'application/octet-stream' } });
+    // 2026-08-12 调整：版本化 URL 配合 no-store，避免浏览器在服务端版本变化后返回旧响应；
+    const response = await fetch(versionedModelUrl(asset), {
+      cache: 'no-store',
+      headers: { Accept: 'application/octet-stream' },
+    });
     if (!response.ok) throw await responseError(response);
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('application/json')) throw await responseError(response);
@@ -109,11 +124,11 @@ async function fetchModelBuffer(
     return merged.buffer;
   })();
 
-  modelBufferCache.set(asset.localAssetUrl, request);
+  modelBufferCache.set(cacheKey, request);
   try {
     return await request;
   } catch (error) {
-    modelBufferCache.delete(asset.localAssetUrl);
+    modelBufferCache.delete(cacheKey);
     throw error;
   }
 }
@@ -134,6 +149,13 @@ function disposeObject(root: THREE.Object3D): void {
   });
 }
 
+async function parseModel(asset: ModelAssetDescriptor, buffer: ArrayBuffer): Promise<THREE.Object3D> {
+  if (asset.format === 'fbx') return new FBXLoader().parse(buffer, '');
+  return new Promise<THREE.Object3D>((resolve, reject) => {
+    new GLTFLoader().parse(buffer, '', (gltf) => resolve(gltf.scene), reject);
+  });
+}
+
 export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
   asset,
   fields,
@@ -144,14 +166,24 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const fieldsRef = useRef(fields);
   const rootRef = useRef<THREE.Object3D | null>(null);
+  const activeVersionRef = useRef<string | null>(null);
   const baseXRef = useRef(0);
   const controlsRef = useRef<OrbitControls | null>(null);
+  const installModelRef = useRef<((object: THREE.Object3D) => void) | null>(null);
   const resetViewRef = useRef<() => void>(() => undefined);
+  const loadGenerationRef = useRef(0);
   const [progress, setProgress] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [failureStage, setFailureStage] = useState<ModelLoadFailureStage | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [autoRotate, setAutoRotate] = useState(renderConfig?.auto_rotate !== false);
+  const [hasRenderableModel, setHasRenderableModel] = useState(false);
+  const [updatingModel, setUpdatingModel] = useState(false);
+  const viewerSettingsKey = useMemo(() => JSON.stringify({
+    background: renderConfig?.background_color,
+    position: renderConfig?.camera_default?.position,
+    target: renderConfig?.camera_default?.target,
+  }), [renderConfig?.background_color, renderConfig?.camera_default?.position, renderConfig?.camera_default?.target]);
 
   useEffect(() => {
     fieldsRef.current = fields;
@@ -166,20 +198,17 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
   }, [autoRotate]);
 
   useEffect(() => {
-    if (!loadError) return;
-    // 2026-08-09 修复：模型存储暂时不可用时每 30 秒自动重试，同时保留手动重试入口；
+    if (!loadError || hasRenderableModel) return;
+    // 2026-08-12 调整：仅在没有任何可展示版本时自动重试，更新失败时保留旧模型且不反复下载；
     const timer = window.setTimeout(() => setReloadKey((value) => value + 1), 30_000);
     return () => window.clearTimeout(timer);
-  }, [loadError]);
+  }, [hasRenderableModel, loadError]);
 
+  // 2026-08-12 调整：Three.js 场景生命周期与模型版本解耦，版本更新不再销毁画布和旧模型；
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     let disposed = false;
-
-    setProgress(0);
-    setLoadError(null);
-    setFailureStage(null);
     const scene = new THREE.Scene();
     const viewerBackground = resolveViewerBackground(renderConfig?.background_color);
     scene.background = viewerBackground;
@@ -188,23 +217,17 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
     const width = Math.max(1, container.clientWidth);
     const height = Math.max(1, container.clientHeight);
     const camera = new THREE.PerspectiveCamera(42, width / height, 0.01, 1_000);
-    const configuredPosition = renderConfig?.camera_default?.position;
-    camera.position.set(...(configuredPosition || [5, 3, 8]));
+    camera.position.set(...(renderConfig?.camera_default?.position || [5, 3, 8]));
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     // 2026-08-09 修复：隔离高 DPI 绘图缓冲区与 CSS 布局尺寸，阻断 ResizeObserver 高度反馈循环；
-    // Keep the drawing buffer at device resolution, but decouple the canvas'
-    // intrinsic pixel size from layout. Without the explicit CSS size, a
-    // high-DPI canvas can enlarge its parent, which then triggers another
-    // ResizeObserver resize and causes an unbounded height feedback loop.
     renderer.setSize(width, height, false);
     renderer.domElement.style.position = 'absolute';
     renderer.domElement.style.inset = '0';
     renderer.domElement.style.display = 'block';
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
-    // 2026-08-12 修复：FBX WebGL 画布强制使用正常合成，避免全局 Canvas 混合模式导致画布不显示；
     renderer.domElement.style.mixBlendMode = 'normal';
     renderer.domElement.style.opacity = '1';
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -229,17 +252,16 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
     });
     scene.add(grid);
 
-    const target = new THREE.Vector3(...(renderConfig?.camera_default?.target || [0, 0, 0]));
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
     controls.autoRotate = autoRotate;
     controls.autoRotateSpeed = autoRotateSpeed;
-    controls.target.copy(target);
+    controls.target.set(...(renderConfig?.camera_default?.target || [0, 0, 0]));
     controls.update();
     controlsRef.current = controls;
 
-    const fitModel = (object: THREE.Object3D) => {
+    installModelRef.current = (object: THREE.Object3D) => {
       if (disposed) {
         disposeObject(object);
         return;
@@ -258,11 +280,9 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
       const scale = 4.8 / Math.max(initialSize.x, initialSize.y, initialSize.z, 0.001);
       object.scale.multiplyScalar(scale);
       const box = new THREE.Box3().setFromObject(object);
-      const center = box.getCenter(new THREE.Vector3());
-      object.position.sub(center);
+      object.position.sub(box.getCenter(new THREE.Vector3()));
       baseXRef.current = object.position.x;
-      const fittedBox = new THREE.Box3().setFromObject(object);
-      const size = fittedBox.getSize(new THREE.Vector3());
+      const size = new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3());
       const radius = Math.max(size.length() * 0.52, 2.4);
       const reset = () => {
         camera.position.set(radius * 1.15, radius * 0.72, radius * 1.45);
@@ -276,50 +296,21 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
         child.castShadow = true;
         child.receiveShadow = true;
       });
+      // 2026-08-12 新增：候选对象先完成 GPU 程序编译，再释放旧对象，避免解析成功但首帧失败或出现空白帧；
+      const previous = rootRef.current;
       scene.add(object);
+      try {
+        renderer.compile(scene, camera);
+      } catch (error) {
+        scene.remove(object);
+        throw error;
+      }
       rootRef.current = object;
-      setProgress(100);
-    };
-
-    const onError = (error: unknown, stage: ModelLoadFailureStage) => {
-      console.error('[model-showcase] 3D model load failed:', error);
-      if (!disposed) {
-        setFailureStage(stage);
-        setLoadError(error instanceof Error ? error.message : '3D 模型加载失败，请稍后重试。');
+      if (previous) {
+        scene.remove(previous);
+        disposeObject(previous);
       }
     };
-
-    const loadModel = async () => {
-      let buffer: ArrayBuffer;
-      try {
-        buffer = await fetchModelBuffer(asset, (nextProgress) => {
-          if (!disposed) setProgress(nextProgress);
-        });
-      } catch (error) {
-        onError(error, 'request');
-        return;
-      }
-      if (disposed) return;
-      try {
-        if (asset.format === 'fbx') {
-          fitModel(new FBXLoader().parse(buffer, ''));
-        } else {
-          await new Promise<void>((resolve, reject) => {
-            new GLTFLoader().parse(buffer, '', (gltf) => {
-              try {
-                fitModel(gltf.scene);
-                resolve();
-              } catch (error) {
-                reject(error);
-              }
-            }, reject);
-          });
-        }
-      } catch (error) {
-        onError(error, 'parse');
-      }
-    };
-    void loadModel();
 
     const clock = new THREE.Clock();
     let animationFrame = 0;
@@ -368,23 +359,88 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
 
     return () => {
       disposed = true;
+      loadGenerationRef.current += 1;
+      installModelRef.current = null;
       resizeObserver.disconnect();
       window.cancelAnimationFrame(animationFrame);
       controls.dispose();
       controlsRef.current = null;
       if (rootRef.current) disposeObject(rootRef.current);
       rootRef.current = null;
+      activeVersionRef.current = null;
+      setHasRenderableModel(false);
       grid.geometry.dispose();
       gridMaterials.forEach((material) => material.dispose());
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [accent, asset, autoRotateSpeed, reloadKey, renderConfig]);
+  }, [accent, autoRotateSpeed, viewerSettingsKey]);
+
+  // 2026-08-12 新增：候选版本独立下载和解析，失败不清理当前 rootRef；
+  useEffect(() => {
+    if (activeVersionRef.current === asset.version && rootRef.current) return;
+    const generation = ++loadGenerationRef.current;
+    let candidateObject: THREE.Object3D | null = null;
+    const retainingPrevious = Boolean(rootRef.current);
+    setUpdatingModel(retainingPrevious);
+    setProgress(0);
+    setLoadError(null);
+    setFailureStage(null);
+
+    const fail = (error: unknown, stage: ModelLoadFailureStage) => {
+      console.error('[model-showcase] 3D model load failed:', error);
+      if (loadGenerationRef.current !== generation) return;
+      setFailureStage(stage);
+      setLoadError(error instanceof Error ? error.message : '3D 模型加载失败，请稍后重试。');
+      setUpdatingModel(false);
+    };
+
+    void (async () => {
+      let buffer: ArrayBuffer;
+      try {
+        buffer = await fetchModelBuffer(asset, (nextProgress) => {
+          if (loadGenerationRef.current === generation) setProgress(nextProgress);
+        });
+      } catch (error) {
+        fail(error, 'request');
+        return;
+      }
+      if (loadGenerationRef.current !== generation) return;
+      try {
+        candidateObject = await parseModel(asset, buffer);
+        if (loadGenerationRef.current !== generation || !installModelRef.current) {
+          disposeObject(candidateObject);
+          candidateObject = null;
+          return;
+        }
+        installModelRef.current(candidateObject);
+        candidateObject = null;
+        activeVersionRef.current = asset.version;
+        setHasRenderableModel(true);
+        setUpdatingModel(false);
+        setLoadError(null);
+        setProgress(100);
+        // 2026-08-12 新增：新版本切换成功后释放同一路由的旧 ArrayBuffer 缓存；
+        const activeKey = modelCacheKey(asset);
+        for (const key of modelBufferCache.keys()) {
+          if (key.startsWith(`${asset.localAssetUrl}::`) && key !== activeKey) modelBufferCache.delete(key);
+        }
+      } catch (error) {
+        if (candidateObject) disposeObject(candidateObject);
+        candidateObject = null;
+        fail(error, 'parse');
+      }
+    })();
+
+    return () => {
+      if (loadGenerationRef.current === generation) loadGenerationRef.current += 1;
+      if (candidateObject) disposeObject(candidateObject);
+    };
+  }, [asset.localAssetUrl, asset.version, asset.format, reloadKey, viewerSettingsKey]);
 
   return (
-    // 2026-08-12 调整：为外部模型视窗增加独立样式作用域，隔离全局浅色兼容规则；
     <div className="remote-model-viewer industrial-visual-surface relative h-full min-h-0 max-h-full overflow-hidden bg-[#29485e] [contain:layout_paint]" ref={containerRef}>
-      {progress < 100 && !loadError && (
+      {progress < 100 && !loadError && !hasRenderableModel && (
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#07111f]/90">
           <div className="mb-3 text-xs tracking-[0.28em] text-cyan-300">正在通过 API 加载模型</div>
           <div className="h-1.5 w-48 overflow-hidden rounded bg-slate-800">
@@ -393,27 +449,33 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
           <div className="mt-2 font-mono text-xs text-slate-400">{progress}%</div>
         </div>
       )}
-      {loadError && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#29485e]/95 px-8 text-center text-sm text-rose-300">
+      {updatingModel && !loadError && hasRenderableModel && (
+        <div className="pointer-events-none absolute left-3 bottom-3 z-20 rounded border border-sky-200 bg-sky-50/95 px-2.5 py-1.5 text-[10px] text-sky-800 shadow-sm">
+          正在校验并加载新模型，当前版本继续展示
+        </div>
+      )}
+      {loadError && !hasRenderableModel && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#29485e]/95 px-8 text-center text-sm text-rose-200">
           <span className="font-semibold">{failureStage === 'request' ? '模型资源请求失败' : '模型解析或渲染失败'}</span>
           <span className="mt-2 max-w-lg break-words leading-6">{loadError}</span>
-          <span className="mt-2 max-w-lg text-[10px] leading-5 text-slate-400">
+          <span className="mt-2 max-w-lg text-[10px] leading-5 text-slate-300">
             {failureStage === 'request'
-              ? '前端视窗与 FBX 加载器已就绪，但后端未取得有效模型二进制；失败后每 30 秒自动重试。'
-              : '模型二进制已经取得，但解析或建立网格时发生异常；可重新加载并查看浏览器错误信息。'}
+              ? '当前尚无可用模型，系统将在 30 秒后自动重试；也可立即重新加载。'
+              : '模型二进制已取得，但解析或建立网格时发生异常。'}
           </span>
-          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 border border-cyan-500/35 bg-cyan-500/10 px-4 py-2 text-xs text-cyan-200 hover:bg-cyan-500/20">
+          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 border border-cyan-300/50 bg-cyan-50/10 px-4 py-2 text-xs text-cyan-100 hover:bg-cyan-50/20">
             重新加载模型
           </button>
         </div>
       )}
+      {/* 2026-08-12 新增：候选版本失败时用小字说明并继续显示旧模型； */}
+      {loadError && hasRenderableModel && (
+        <div className="pointer-events-none absolute left-3 bottom-3 z-20 max-w-[70%] rounded border border-amber-300 bg-amber-50/95 px-2.5 py-1.5 text-[10px] leading-4 text-amber-900 shadow-sm">
+          本次模型更新未成功，继续使用上次可用版本：{loadError}
+        </div>
+      )}
       <div className="absolute bottom-3 right-3 z-20 flex gap-2">
-        <button
-          type="button"
-          onClick={() => setAutoRotate((value) => !value)}
-          className="rounded border border-cyan-500/30 bg-slate-950/80 p-2 text-cyan-200 transition hover:border-cyan-400 hover:text-white"
-          title={autoRotate ? '暂停自动旋转' : '开启自动旋转'}
-        >
+        <button type="button" onClick={() => setAutoRotate((value) => !value)} className="rounded border border-cyan-500/30 bg-slate-950/80 p-2 text-cyan-200 transition hover:border-cyan-400 hover:text-white" title={autoRotate ? '暂停自动旋转' : '开启自动旋转'}>
           {autoRotate ? <Pause size={15} /> : <Play size={15} />}
         </button>
         <button type="button" onClick={() => resetViewRef.current()} className="rounded border border-cyan-500/30 bg-slate-950/80 p-2 text-cyan-200 transition hover:border-cyan-400 hover:text-white" title="重置视角">
@@ -423,8 +485,8 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
           <Expand size={15} />
         </button>
       </div>
-      <div className="pointer-events-none absolute left-3 top-3 z-20 rounded border border-white/10 bg-slate-950/65 px-2.5 py-1.5 font-mono text-[10px] text-slate-300">
-        {asset.fileName} · {(asset.fileSize / 1024 / 1024).toFixed(1)} MB
+      <div className="pointer-events-none absolute left-3 top-3 z-20 rounded border border-white/15 bg-slate-950/70 px-2.5 py-1.5 font-mono text-[10px] text-slate-200">
+        {asset.fileName} · {(asset.fileSize / 1024 / 1024).toFixed(1)} MB · v{asset.version.slice(0, 8)}
       </div>
     </div>
   );

@@ -14,6 +14,30 @@ export type ModelConnectionStatus = 'connected' | 'cached' | 'degraded' | 'offli
 export type ModelConnectionChannel = 'metadata' | 'modelBinary' | 'dashboard' | 'scenario' | 'dataSync' | 'diagnosis';
 export type ModelConnectionOwner = 'upstream' | 'local-derived';
 export type ModelConnectionCacheState = 'hit' | 'miss' | 'empty';
+// 2026-08-12 新增：统一定义模型版本、定时检查及失败保留状态，供前后端共同使用；
+export type ModelRefreshState = 'fresh' | 'checking' | 'stale' | 'update-failed' | 'empty';
+
+export interface ModelRefreshStatus {
+  activeVersion: string | null;
+  candidateVersion: string | null;
+  state: ModelRefreshState;
+  updatedAt: string | null;
+  lastCheckedAt: string | null;
+  nextRefreshAt: string | null;
+  lastRefreshError: string | null;
+  persistent: boolean;
+  stale: boolean;
+  fileName: string | null;
+  fileSize: number | null;
+  format: 'fbx' | 'glb' | 'gltf' | null;
+}
+
+export interface ModelRefreshResult {
+  result: 'updated' | 'unchanged' | 'failed' | 'rate-limited';
+  message: string;
+  modelRefresh: ModelRefreshStatus;
+  retryAfterSeconds?: number;
+}
 
 export interface ModelConnectionChannelState {
   channel: ModelConnectionChannel;
@@ -61,6 +85,7 @@ export interface ModelShowcaseConnectionSnapshot {
     upstream: string[];
     localDerived: string[];
   };
+  modelRefresh: ModelRefreshStatus;
 }
 
 export interface RemoteBindableField {
@@ -139,6 +164,9 @@ export interface ModelAssetDescriptor {
   fileSize: number;
   format: 'fbx' | 'glb' | 'gltf';
   localAssetUrl: string;
+  // 2026-08-12 新增：以服务端内容版本驱动浏览器获取新 ArrayBuffer，更新失败时仍保留旧版本；
+  version: string;
+  updatedAt: string | null;
 }
 
 export interface ModelShowcaseBootstrap {

@@ -63,6 +63,15 @@ const riskLabels = {
   critical: '高风险',
 } as const;
 
+// 2026-08-12 新增：将模型更新技术状态转换为页面可读的业务状态；
+const modelRefreshLabels = {
+  fresh: '当前为最新可用版本',
+  checking: '正在检查新版本',
+  stale: '当前版本可用，等待复查',
+  'update-failed': '本次更新失败，使用旧版本',
+  empty: '尚未建立模型缓存',
+} as const;
+
 export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps> = ({ sceneId }) => {
   const config = getModelShowcaseConfig(sceneId)!;
   const telemetry = useRemoteModelTelemetry(sceneId);
@@ -90,6 +99,19 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
     [history],
   );
   const online = !error && dashboard?.twin_status.status?.toUpperCase() === 'ONLINE';
+  const modelRefresh = connection.snapshot?.modelRefresh;
+  // 2026-08-12 新增：连接快照中的活动版本优先于初始化描述，版本变化会驱动视窗获取新的二进制；
+  const displayedModel = useMemo(() => {
+    if (!bootstrap) return null;
+    return {
+      ...bootstrap.model,
+      version: modelRefresh?.activeVersion || bootstrap.model.version,
+      updatedAt: modelRefresh?.updatedAt || bootstrap.model.updatedAt,
+      fileName: modelRefresh?.fileName || bootstrap.model.fileName,
+      fileSize: modelRefresh?.fileSize || bootstrap.model.fileSize,
+      format: modelRefresh?.format || bootstrap.model.format,
+    };
+  }, [bootstrap, modelRefresh]);
 
   // 2026-08-10 新增：用户手动刷新时同步更新业务数据和轻量连接快照；
   const handleRefreshAll = () => {
@@ -212,6 +234,17 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
               <button type="button" disabled={refreshing || connection.refreshing} onClick={handleRefreshAll} className="border border-slate-700 bg-slate-900/70 p-2 text-slate-400 hover:border-cyan-600 hover:text-cyan-300 disabled:opacity-50" title="立即刷新">
                 <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
               </button>
+              {/* 2026-08-12 新增：独立的模型更新按钮仅刷新三维资源，不打断遥测和诊断数据展示； */}
+              <button
+                type="button"
+                disabled={connection.modelRefreshing || modelRefresh?.state === 'checking'}
+                onClick={() => void connection.refreshModel()}
+                className="inline-flex items-center gap-1.5 border border-sky-300 bg-sky-50/80 px-3 py-2 text-[11px] text-sky-800 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-55"
+                title="向模型资源服务核对并获取最新三维模型"
+              >
+                <RefreshCw size={14} className={connection.modelRefreshing || modelRefresh?.state === 'checking' ? 'animate-spin' : ''} />
+                {connection.modelRefreshing ? '正在更新模型' : '更新三维模型'}
+              </button>
             </div>
           </div>
 
@@ -227,6 +260,21 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
             <div className="mt-3 flex items-center gap-2 border border-rose-500/25 bg-rose-500/5 px-3 py-2 text-[11px] text-rose-300">
               <AlertCircle size={13} />
               {error}；当前继续显示运行期缓存中的最后一次成功数据。上次更新时间：{lastSuccessAt ? new Date(lastSuccessAt).toLocaleString('zh-CN', { hour12: false }) : '暂无'}。
+            </div>
+          )}
+          {/* 2026-08-12 新增：更新失败只以小字提示，明确当前仍在使用上次可用模型； */}
+          {(modelRefresh?.lastRefreshError || connection.modelRefreshFeedback?.result === 'failed') && (
+            <div className="mt-3 flex items-center gap-2 border border-amber-300 bg-amber-50/90 px-3 py-2 text-[11px] text-amber-900">
+              <AlertCircle size={13} className="shrink-0" />
+              {modelRefresh?.state === 'stale' ? '模型当前可展示，但持久缓存未完成。' : '本次模型更新未成功，当前继续使用上次可用版本。'}
+              失败时间：{modelRefresh?.lastCheckedAt ? new Date(modelRefresh.lastCheckedAt).toLocaleString('zh-CN', { hour12: false }) : '暂无'}；上次成功更新：{modelRefresh?.updatedAt ? new Date(modelRefresh.updatedAt).toLocaleString('zh-CN', { hour12: false }) : '暂无'}
+              {modelRefresh?.lastRefreshError ? `；原因：${modelRefresh.lastRefreshError}` : ''}
+            </div>
+          )}
+          {connection.modelRefreshFeedback && connection.modelRefreshFeedback.result !== 'failed' && (
+            <div className={`mt-3 flex items-center gap-2 border px-3 py-2 text-[11px] ${connection.modelRefreshFeedback.result === 'rate-limited' ? 'border-amber-300 bg-amber-50/90 text-amber-900' : 'border-emerald-300 bg-emerald-50/90 text-emerald-800'}`}>
+              {connection.modelRefreshFeedback.result === 'rate-limited' ? <AlertCircle size={13} /> : <CheckCircle2 size={13} />}
+              {connection.modelRefreshFeedback.message}
             </div>
           )}
           {hasRangeSimulation && (
@@ -259,9 +307,9 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
 
         {/* 2026-08-09 修复：固定模型与参数卡边界，超量数据仅在组件内部滚动； */}
         <div className="remote-model-showcase-primary-grid grid items-start gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(420px,0.9fr)]">
-          <SciFiCard title="3D 设备数字孪生" subtitle={bootstrap.model.format.toUpperCase()} noPadding highlight className="remote-model-showcase-viewer-card h-[492px] min-h-0 overflow-hidden">
+          <SciFiCard title="3D 设备数字孪生" subtitle={(displayedModel?.format || bootstrap.model.format).toUpperCase()} noPadding highlight className="remote-model-showcase-viewer-card h-[492px] min-h-0 overflow-hidden">
             <RemoteModelViewer
-              asset={bootstrap.model}
+              asset={displayedModel || bootstrap.model}
               fields={dashboard.bindable_fields}
               renderConfig={bootstrap.dashboard.render_config}
               accent={config.accent}
@@ -356,8 +404,13 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
               <dl className="space-y-2.5 text-[11px]">
                 <div className="flex justify-between gap-3"><dt className="text-slate-500">API 设备名称</dt><dd className="text-right text-slate-300">{dashboard.equipment.name}</dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-slate-500">页面设备语义</dt><dd className="text-right text-slate-300">{config.expectedRemoteName}</dd></div>
-                <div className="flex justify-between gap-3"><dt className="text-slate-500">资源文件</dt><dd className="max-w-[210px] truncate text-right text-slate-300" title={bootstrap.model.fileName}>{bootstrap.model.fileName}</dd></div>
-                <div className="flex justify-between gap-3"><dt className="text-slate-500">文件大小</dt><dd className="font-mono text-slate-300">{(bootstrap.model.fileSize / 1024 / 1024).toFixed(2)} MB</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-slate-500">资源文件</dt><dd className="max-w-[210px] truncate text-right text-slate-300" title={(displayedModel || bootstrap.model).fileName}>{(displayedModel || bootstrap.model).fileName}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-slate-500">文件大小</dt><dd className="font-mono text-slate-300">{((displayedModel || bootstrap.model).fileSize / 1024 / 1024).toFixed(2)} MB</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-slate-500">活动版本</dt><dd className="font-mono text-slate-300">{(displayedModel || bootstrap.model).version.slice(0, 8)}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-slate-500">更新状态</dt><dd className="text-right text-slate-300">{modelRefresh ? modelRefreshLabels[modelRefresh.state] : '正在同步状态'}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-slate-500">模型更新时间</dt><dd className="text-right text-slate-300">{modelRefresh?.updatedAt ? new Date(modelRefresh.updatedAt).toLocaleString('zh-CN', { hour12: false }) : '首次加载中'}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-slate-500">上次模型检查</dt><dd className="text-right text-slate-300">{modelRefresh?.lastCheckedAt ? new Date(modelRefresh.lastCheckedAt).toLocaleString('zh-CN', { hour12: false }) : '尚未检查'}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-slate-500">下次自动检查</dt><dd className="text-right text-slate-300">{modelRefresh?.nextRefreshAt ? new Date(modelRefresh.nextRefreshAt).toLocaleString('zh-CN', { hour12: false }) : '模型就绪后计算'}</dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-slate-500">模型面数</dt><dd className="font-mono text-slate-300">{formatNumber(dashboard.model_config?.polygon_count)}</dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-slate-500">材质数量</dt><dd className="font-mono text-slate-300">{dashboard.model_config?.material_count ?? '--'}</dd></div>
               </dl>

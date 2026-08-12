@@ -3,11 +3,13 @@ import { createServer as createViteServer } from "vite";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
+import { createHash } from "crypto";
 import xlsx from "xlsx";
 // 2026-08-09 新增：引入外部模型场景白名单、诊断引擎及共享数据类型；
 import {
   getModelShowcaseConfig,
   isModelShowcaseSceneId,
+  MODEL_SHOWCASE_SCENE_IDS,
 } from "./src/remoteModelShowcase/modelCatalog";
 import {
   recordDiagnosticSnapshot,
@@ -22,6 +24,7 @@ import {
 } from "./src/remoteModelShowcase/connectionRegistry";
 import type {
   ModelConnectionChannel,
+  ModelRefreshStatus,
   ModelShowcaseSceneId,
   RemoteDashboardData,
   RemoteDataMode,
@@ -453,6 +456,22 @@ const MODEL_METADATA_TTL_MS = 5 * 60 * 1000;
 const MAX_MODEL_FILE_BYTES = 50 * 1024 * 1024;
 const MODEL_DOWNLOAD_TIMEOUT_MS = 30_000;
 const MODEL_DOWNLOAD_ATTEMPTS = 2;
+// 2026-08-12 新增：模型默认每 36 小时检查一次，可通过环境变量在 24～48 小时内调整；
+const configuredModelRefreshHours = Number(
+  process.env.MODEL_BINARY_REFRESH_HOURS || process.env.MODEL_REFRESH_INTERVAL_HOURS || 36,
+);
+const MODEL_REFRESH_INTERVAL_HOURS = Number.isFinite(configuredModelRefreshHours)
+  ? Math.min(48, Math.max(24, configuredModelRefreshHours))
+  : 36;
+const MODEL_REFRESH_INTERVAL_MS = MODEL_REFRESH_INTERVAL_HOURS * 60 * 60 * 1000;
+const MODEL_REFRESH_RETRY_MS = 6 * 60 * 60 * 1000;
+const MODEL_REFRESH_SCHEDULER_MS = 30 * 60 * 1000;
+const MODEL_MANUAL_REFRESH_COOLDOWN_MS = 10 * 60 * 1000;
+// 2026-08-12 新增：在服务端磁盘保留最后一次校验成功的模型，进程重启或上游异常时仍可展示；
+const MODEL_CACHE_DIRECTORY = process.env.MODEL_CACHE_DIRECTORY
+  ? path.resolve(process.env.MODEL_CACHE_DIRECTORY)
+  : path.join(process.cwd(), ".runtime-cache", "model-showcase");
+if (!fs.existsSync(MODEL_CACHE_DIRECTORY)) fs.mkdirSync(MODEL_CACHE_DIRECTORY, { recursive: true });
 
 interface UpstreamEnvelope<T> {
   code: number | string;
@@ -473,6 +492,8 @@ interface UpstreamModelMetadata {
   model_name: string;
   model_description?: string;
   industry?: string;
+  update_time?: string;
+  edit_time?: string;
   model_file?: UpstreamModelFile[];
 }
 
@@ -480,13 +501,53 @@ interface ResolvedModelAsset {
   metadata: UpstreamModelMetadata;
   file: UpstreamModelFile;
   format: "fbx" | "glb" | "gltf";
+  fingerprint: string;
 }
 
 interface CachedModelBinary {
   buffer: Buffer;
   contentType: string;
   fileName: string;
+  fileSize: number;
+  format: "fbx" | "glb" | "gltf";
   cachedAt: number;
+  updatedAt: number;
+  lastCheckedAt: number;
+  nextRefreshAt: number;
+  assetFingerprint: string;
+  contentHash: string;
+  version: string;
+  persistent: boolean;
+}
+
+interface PersistedModelManifest {
+  schemaVersion: 1;
+  sceneId: ModelShowcaseSceneId;
+  binaryFile: string;
+  contentType: string;
+  fileName: string;
+  fileSize: number;
+  format: "fbx" | "glb" | "gltf";
+  cachedAt: number;
+  updatedAt: number;
+  lastCheckedAt: number;
+  nextRefreshAt: number;
+  assetFingerprint: string;
+  contentHash: string;
+  version: string;
+}
+
+interface ModelRefreshRuntimeState {
+  state: ModelRefreshStatus["state"];
+  candidateVersion: string | null;
+  lastCheckedAt: number | null;
+  nextRefreshAt: number | null;
+  lastRefreshError: string | null;
+}
+
+interface ModelRefreshOperationResult {
+  result: "updated" | "unchanged" | "failed";
+  message: string;
 }
 
 // 2026-08-10 新增：将上游请求与具体场景、数据通道关联，供连接关系页面展示真实运行状态；
@@ -511,7 +572,10 @@ class UpstreamApiError extends Error {
 
 const modelMetadataCache = new Map<ModelShowcaseSceneId, { expiresAt: number; asset: ResolvedModelAsset }>();
 const modelBinaryCache = new Map<ModelShowcaseSceneId, CachedModelBinary>();
-const modelDownloadRequests = new Map<ModelShowcaseSceneId, Promise<CachedModelBinary>>();
+const modelRefreshRequests = new Map<ModelShowcaseSceneId, Promise<ModelRefreshOperationResult>>();
+const modelPersistenceRequests = new Map<ModelShowcaseSceneId, Promise<void>>();
+const modelRefreshStates = new Map<ModelShowcaseSceneId, ModelRefreshRuntimeState>();
+const modelManualRefreshAttempts = new Map<ModelShowcaseSceneId, number>();
 
 // 2026-08-10 调整：在不改变原有 API 转发行为的前提下记录请求成功、延迟和脱敏错误；
 async function fetchUpstreamJson<T>(
@@ -598,9 +662,21 @@ function chooseModelFile(files: UpstreamModelFile[]): { file: UpstreamModelFile;
   throw new UpstreamApiError("No supported FBX/GLB/GLTF model file was returned", 502, "MODEL_FILE_MISSING", false);
 }
 
-async function resolveModelAsset(sceneId: ModelShowcaseSceneId): Promise<ResolvedModelAsset> {
+function createAssetFingerprint(metadata: UpstreamModelMetadata, file: UpstreamModelFile): string {
+  return createHash("sha256").update(JSON.stringify({
+    modelId: metadata.model_id,
+    fileId: file.file_id ?? null,
+    fileName: file.file_name,
+    fileUrl: file.file_url,
+    fileSize: Number(file.file_size || 0),
+    updatedAt: metadata.update_time || metadata.edit_time || null,
+  })).digest("hex");
+}
+
+// 2026-08-12 调整：定时或手动更新时可绕过五分钟元数据缓存，确保真正向模型 API 核对新资源；
+async function resolveModelAsset(sceneId: ModelShowcaseSceneId, forceRefresh = false): Promise<ResolvedModelAsset> {
   const cached = modelMetadataCache.get(sceneId);
-  if (cached && cached.expiresAt > Date.now()) {
+  if (!forceRefresh && cached && cached.expiresAt > Date.now()) {
     // 2026-08-10 新增：元数据命中运行期缓存时保留连接成功事实并标记缓存状态；
     recordConnectionCacheHit(sceneId, "metadata");
     return cached.asset;
@@ -624,7 +700,11 @@ async function resolveModelAsset(sceneId: ModelShowcaseSceneId): Promise<Resolve
     files = Array.isArray(result.file_list) ? result.file_list : [];
   }
   const selected = chooseModelFile(files);
-  const asset = { metadata, ...selected };
+  const asset = {
+    metadata,
+    ...selected,
+    fingerprint: createAssetFingerprint(metadata, selected.file),
+  };
   modelMetadataCache.set(sceneId, { expiresAt: Date.now() + MODEL_METADATA_TTL_MS, asset });
   return asset;
 }
@@ -663,94 +743,331 @@ function assertModelFile(format: ResolvedModelAsset["format"], buffer: Buffer): 
   }
 }
 
-async function downloadModelBinary(
+function modelManifestPath(sceneId: ModelShowcaseSceneId): string {
+  return path.join(MODEL_CACHE_DIRECTORY, `${sceneId}.json`);
+}
+
+function modelRefreshState(sceneId: ModelShowcaseSceneId): ModelRefreshRuntimeState {
+  const existing = modelRefreshStates.get(sceneId);
+  if (existing) return existing;
+  const created: ModelRefreshRuntimeState = {
+    state: "empty",
+    candidateVersion: null,
+    lastCheckedAt: null,
+    nextRefreshAt: null,
+    lastRefreshError: null,
+  };
+  modelRefreshStates.set(sceneId, created);
+  return created;
+}
+
+function safeRefreshError(error: unknown): string {
+  const message = error instanceof Error ? error.message : "Remote model update failed";
+  return message.replace(/file_url=[^\s&"']+/gi, "file_url=[hidden]").slice(0, 240);
+}
+
+function toIso(value: number | null): string | null {
+  return value ? new Date(value).toISOString() : null;
+}
+
+// 2026-08-12 新增：将当前版本、上次检查、下次检查和失败原因组织成前端可直接展示的状态；
+function getModelRefreshStatus(sceneId: ModelShowcaseSceneId): ModelRefreshStatus {
+  const cached = modelBinaryCache.get(sceneId);
+  const runtime = modelRefreshState(sceneId);
+  const due = cached ? Date.now() >= cached.nextRefreshAt : false;
+  const state = runtime.state === "checking"
+    ? "checking"
+    : runtime.state === "update-failed"
+      ? "update-failed"
+      : runtime.state === "stale"
+        ? "stale"
+      : !cached
+        ? "empty"
+        : due
+          ? "stale"
+          : "fresh";
+  return {
+    activeVersion: cached?.version ?? null,
+    candidateVersion: runtime.candidateVersion,
+    state,
+    updatedAt: toIso(cached?.updatedAt ?? null),
+    lastCheckedAt: toIso(runtime.lastCheckedAt ?? cached?.lastCheckedAt ?? null),
+    nextRefreshAt: toIso(runtime.nextRefreshAt ?? cached?.nextRefreshAt ?? null),
+    lastRefreshError: runtime.lastRefreshError,
+    persistent: cached?.persistent ?? false,
+    stale: state === "stale" || state === "update-failed",
+    fileName: cached?.fileName ?? null,
+    fileSize: cached?.fileSize ?? null,
+    format: cached?.format ?? null,
+  };
+}
+
+// 2026-08-12 新增：懒加载磁盘中的最后成功模型，并校验路径、大小、格式和 SHA-256；
+async function ensurePersistedModelLoaded(sceneId: ModelShowcaseSceneId): Promise<void> {
+  if (modelBinaryCache.has(sceneId)) return;
+  const pending = modelPersistenceRequests.get(sceneId);
+  if (pending) return pending;
+  const request = (async () => {
+    try {
+      const manifest = JSON.parse(
+        await fs.promises.readFile(modelManifestPath(sceneId), "utf8"),
+      ) as PersistedModelManifest;
+      if (manifest.schemaVersion !== 1 || manifest.sceneId !== sceneId || path.basename(manifest.binaryFile) !== manifest.binaryFile) {
+        throw new Error("Model cache manifest is invalid");
+      }
+      const binaryPath = path.join(MODEL_CACHE_DIRECTORY, manifest.binaryFile);
+      const buffer = await fs.promises.readFile(binaryPath);
+      if (buffer.byteLength > MAX_MODEL_FILE_BYTES || buffer.byteLength !== manifest.fileSize) {
+        throw new Error("Persisted model size verification failed");
+      }
+      assertModelFile(manifest.format, buffer);
+      const contentHash = createHash("sha256").update(buffer).digest("hex");
+      if (contentHash !== manifest.contentHash) throw new Error("Persisted model hash verification failed");
+      modelBinaryCache.set(sceneId, {
+        buffer,
+        contentType: manifest.contentType,
+        fileName: manifest.fileName,
+        fileSize: manifest.fileSize,
+        format: manifest.format,
+        cachedAt: manifest.cachedAt,
+        updatedAt: manifest.updatedAt,
+        lastCheckedAt: manifest.lastCheckedAt,
+        nextRefreshAt: manifest.nextRefreshAt,
+        assetFingerprint: manifest.assetFingerprint,
+        contentHash,
+        version: manifest.version,
+        persistent: true,
+      });
+      const runtime = modelRefreshState(sceneId);
+      runtime.state = Date.now() >= manifest.nextRefreshAt ? "stale" : "fresh";
+      runtime.lastCheckedAt = manifest.lastCheckedAt;
+      runtime.nextRefreshAt = manifest.nextRefreshAt;
+      runtime.lastRefreshError = null;
+      recordConnectionCacheHit(sceneId, "modelBinary", { bytes: buffer.byteLength });
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException)?.code;
+      if (code !== "ENOENT") console.warn(`[model-showcase] ignored invalid persisted cache for ${sceneId}:`, error);
+    }
+  })().finally(() => modelPersistenceRequests.delete(sceneId));
+  modelPersistenceRequests.set(sceneId, request);
+  return request;
+}
+
+// 2026-08-12 新增：模型文件和清单先写临时文件再重命名，只有完整版本才会成为重启后的回退版本；
+async function persistModelBinary(sceneId: ModelShowcaseSceneId, model: CachedModelBinary): Promise<void> {
+  const binaryFile = `${sceneId}-${model.version}.${model.format}`;
+  const binaryPath = path.join(MODEL_CACHE_DIRECTORY, binaryFile);
+  try {
+    await fs.promises.access(binaryPath, fs.constants.R_OK);
+  } catch {
+    const temporaryBinaryPath = `${binaryPath}.${process.pid}.${Date.now()}.tmp`;
+    await fs.promises.writeFile(temporaryBinaryPath, model.buffer);
+    await fs.promises.rename(temporaryBinaryPath, binaryPath);
+  }
+  const manifest: PersistedModelManifest = {
+    schemaVersion: 1,
+    sceneId,
+    binaryFile,
+    contentType: model.contentType,
+    fileName: model.fileName,
+    fileSize: model.fileSize,
+    format: model.format,
+    cachedAt: model.cachedAt,
+    updatedAt: model.updatedAt,
+    lastCheckedAt: model.lastCheckedAt,
+    nextRefreshAt: model.nextRefreshAt,
+    assetFingerprint: model.assetFingerprint,
+    contentHash: model.contentHash,
+    version: model.version,
+  };
+  const manifestPath = modelManifestPath(sceneId);
+  const temporaryManifestPath = `${manifestPath}.${process.pid}.${Date.now()}.tmp`;
+  await fs.promises.writeFile(temporaryManifestPath, JSON.stringify(manifest, null, 2), "utf8");
+  await fs.promises.rename(temporaryManifestPath, manifestPath);
+}
+
+async function fetchRemoteModelBinary(asset: ResolvedModelAsset): Promise<{
+  buffer: Buffer;
+  contentType: string;
+  httpStatus: number;
+}> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= MODEL_DOWNLOAD_ATTEMPTS; attempt += 1) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), MODEL_DOWNLOAD_TIMEOUT_MS);
+    try {
+      const response = await fetch(
+        `${VISUAL_MODEL_API_BASE_URL}/api/v1/three-model/models/files?file_url=${encodeURIComponent(asset.file.file_url)}`,
+        { signal: controller.signal },
+      );
+      if (!response.ok) throw new UpstreamApiError(`Remote model download returned ${response.status}`);
+      const contentType = response.headers.get("content-type") || "application/octet-stream";
+      const contentLength = Number(response.headers.get("content-length") || 0);
+      if (contentLength > MAX_MODEL_FILE_BYTES) {
+        throw new UpstreamApiError("Remote model file exceeds the 50 MB safety limit", 413, "MODEL_TOO_LARGE", false);
+      }
+      const buffer = Buffer.from(await response.arrayBuffer());
+      if (buffer.byteLength > MAX_MODEL_FILE_BYTES) {
+        throw new UpstreamApiError("Remote model file exceeds the 50 MB safety limit", 413, "MODEL_TOO_LARGE", false);
+      }
+      if (contentType.includes("application/json") && asset.format !== "gltf") {
+        let upstreamMessage = "Remote storage returned an error instead of model data";
+        try {
+          const payload = JSON.parse(buffer.toString("utf8"));
+          if (typeof payload?.message === "string") upstreamMessage = payload.message;
+        } catch {
+          // Keep the stable fallback message.
+        }
+        throw new UpstreamApiError(upstreamMessage, 502, "MODEL_STORAGE_UNAVAILABLE");
+      }
+      assertModelFile(asset.format, buffer);
+      return { buffer, contentType, httpStatus: response.status };
+    } catch (error) {
+      lastError = error instanceof Error && error.name === "AbortError"
+        ? new UpstreamApiError("Remote model download timed out", 504, "MODEL_DOWNLOAD_TIMEOUT")
+        : error;
+      const retryable = !(lastError instanceof UpstreamApiError) || lastError.retryable;
+      if (attempt < MODEL_DOWNLOAD_ATTEMPTS && retryable) {
+        await new Promise((resolve) => setTimeout(resolve, 750));
+      } else {
+        break;
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastError instanceof Error
+    ? lastError
+    : new UpstreamApiError("Remote model download failed", 502, "MODEL_DOWNLOAD_FAILED");
+}
+
+// 2026-08-12 新增：采用 stale-while-revalidate 更新模型，候选版本校验失败时继续保留当前版本；
+async function refreshModelBinary(
   sceneId: ModelShowcaseSceneId,
-  asset: ResolvedModelAsset,
-): Promise<CachedModelBinary> {
+  reason: "initial" | "scheduled" | "manual",
+): Promise<ModelRefreshOperationResult> {
+  const pending = modelRefreshRequests.get(sceneId);
+  if (pending) return pending;
+  const request = (async (): Promise<ModelRefreshOperationResult> => {
+    await ensurePersistedModelLoaded(sceneId);
+    const previous = modelBinaryCache.get(sceneId);
+    const runtime = modelRefreshState(sceneId);
+    const startedAt = Date.now();
+    runtime.state = "checking";
+    runtime.candidateVersion = null;
+    runtime.lastRefreshError = null;
+    try {
+      const asset = await resolveModelAsset(sceneId, true);
+      runtime.candidateVersion = asset.fingerprint.slice(0, 16);
+      const downloaded = await fetchRemoteModelBinary(asset);
+      const now = Date.now();
+      const contentHash = createHash("sha256").update(downloaded.buffer).digest("hex");
+      const unchanged = previous?.contentHash === contentHash;
+      const model: CachedModelBinary = unchanged && previous
+        ? {
+            ...previous,
+            contentType: downloaded.contentType,
+            fileName: asset.file.file_name,
+            fileSize: downloaded.buffer.byteLength,
+            format: asset.format,
+            lastCheckedAt: now,
+            nextRefreshAt: now + MODEL_REFRESH_INTERVAL_MS,
+            assetFingerprint: asset.fingerprint,
+          }
+        : {
+            buffer: downloaded.buffer,
+            contentType: downloaded.contentType,
+            fileName: asset.file.file_name,
+            fileSize: downloaded.buffer.byteLength,
+            format: asset.format,
+            cachedAt: now,
+            updatedAt: now,
+            lastCheckedAt: now,
+            nextRefreshAt: now + MODEL_REFRESH_INTERVAL_MS,
+            assetFingerprint: asset.fingerprint,
+            contentHash,
+            version: contentHash.slice(0, 16),
+            persistent: false,
+          };
+      let persistenceError: string | null = null;
+      try {
+        await persistModelBinary(sceneId, model);
+        model.persistent = true;
+      } catch (error) {
+        persistenceError = `模型已更新，但持久缓存写入失败：${safeRefreshError(error)}`;
+        console.error(`[model-showcase] persistence failed for ${sceneId}:`, error);
+      }
+      modelBinaryCache.set(sceneId, model);
+      runtime.state = persistenceError ? "stale" : "fresh";
+      runtime.lastCheckedAt = now;
+      runtime.nextRefreshAt = model.nextRefreshAt;
+      runtime.lastRefreshError = persistenceError;
+      recordConnectionSuccess(sceneId, "modelBinary", {
+        latencyMs: Date.now() - startedAt,
+        httpStatus: downloaded.httpStatus,
+        cacheState: "miss",
+        bytes: model.buffer.byteLength,
+      });
+      return {
+        result: unchanged ? "unchanged" : "updated",
+        message: unchanged
+          ? `模型内容未变化，已完成 ${reason === "manual" ? "手动" : "定时"}核验。`
+          : persistenceError || "已获取并切换到最新模型版本。",
+      };
+    } catch (error) {
+      const now = Date.now();
+      const retryAt = now + MODEL_REFRESH_RETRY_MS;
+      const message = safeRefreshError(error);
+      runtime.state = "update-failed";
+      runtime.lastCheckedAt = now;
+      runtime.nextRefreshAt = retryAt;
+      runtime.lastRefreshError = message;
+      if (previous) {
+        // 2026-08-12 修复：失败后的六小时退避同时写回活动缓存，避免十秒连接轮询立即重复下载大文件；
+        previous.lastCheckedAt = now;
+        previous.nextRefreshAt = retryAt;
+        try {
+          await persistModelBinary(sceneId, previous);
+          previous.persistent = true;
+        } catch (persistenceError) {
+          console.error(`[model-showcase] failed to persist retry schedule for ${sceneId}:`, persistenceError);
+        }
+      }
+      recordConnectionFailure(sceneId, "modelBinary", {
+        latencyMs: Date.now() - startedAt,
+        httpStatus: error instanceof UpstreamApiError ? error.status : 502,
+        errorCode: error instanceof UpstreamApiError ? error.code : "MODEL_DOWNLOAD_FAILED",
+        errorMessage: message,
+      });
+      return {
+        result: "failed",
+        message: previous
+          ? `本次模型更新未成功，继续使用上次可用版本：${message}`
+          : `模型获取失败：${message}`,
+      };
+    } finally {
+      runtime.candidateVersion = null;
+    }
+  })().finally(() => modelRefreshRequests.delete(sceneId));
+  modelRefreshRequests.set(sceneId, request);
+  return request;
+}
+
+// 2026-08-12 新增：请求优先返回当前可用模型，到期检查在后台进行，避免等待期间出现空白视窗；
+async function getServableModel(sceneId: ModelShowcaseSceneId): Promise<CachedModelBinary> {
+  await ensurePersistedModelLoaded(sceneId);
   const cached = modelBinaryCache.get(sceneId);
   if (cached) {
-    // 2026-08-10 新增：模型二进制命中内存缓存时向连接关系接口反馈缓存可用；
     recordConnectionCacheHit(sceneId, "modelBinary", { bytes: cached.buffer.byteLength });
+    if (Date.now() >= cached.nextRefreshAt && !modelRefreshRequests.has(sceneId)) {
+      void refreshModelBinary(sceneId, "scheduled");
+    }
     return cached;
   }
-  const pending = modelDownloadRequests.get(sceneId);
-  if (pending) return pending;
-
-  const request = (async () => {
-    const startedAt = Date.now();
-    let lastError: unknown;
-    let lastResponseStatus: number | null = null;
-    for (let attempt = 1; attempt <= MODEL_DOWNLOAD_ATTEMPTS; attempt += 1) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), MODEL_DOWNLOAD_TIMEOUT_MS);
-      try {
-        const response = await fetch(
-          `${VISUAL_MODEL_API_BASE_URL}/api/v1/three-model/models/files?file_url=${encodeURIComponent(asset.file.file_url)}`,
-          { signal: controller.signal },
-        );
-        lastResponseStatus = response.status;
-        if (!response.ok) throw new UpstreamApiError(`Remote model download returned ${response.status}`);
-        const contentType = response.headers.get("content-type") || "application/octet-stream";
-        const contentLength = Number(response.headers.get("content-length") || 0);
-        if (contentLength > MAX_MODEL_FILE_BYTES) {
-          throw new UpstreamApiError("Remote model file exceeds the 50 MB safety limit", 413, "MODEL_TOO_LARGE", false);
-        }
-        const buffer = Buffer.from(await response.arrayBuffer());
-        if (buffer.byteLength > MAX_MODEL_FILE_BYTES) {
-          throw new UpstreamApiError("Remote model file exceeds the 50 MB safety limit", 413, "MODEL_TOO_LARGE", false);
-        }
-        if (contentType.includes("application/json") && asset.format !== "gltf") {
-          let upstreamMessage = "Remote storage returned an error instead of model data";
-          try {
-            const payload = JSON.parse(buffer.toString("utf8"));
-            if (typeof payload?.message === "string") upstreamMessage = payload.message;
-          } catch {
-            // Keep the stable fallback message.
-          }
-          throw new UpstreamApiError(upstreamMessage, 502, "MODEL_STORAGE_UNAVAILABLE");
-        }
-        assertModelFile(asset.format, buffer);
-        const model = { buffer, contentType, fileName: asset.file.file_name, cachedAt: Date.now() };
-        modelBinaryCache.set(sceneId, model);
-        // 2026-08-10 新增：仅在模型完整下载并通过格式校验后登记通道成功；
-        recordConnectionSuccess(sceneId, "modelBinary", {
-          latencyMs: Date.now() - startedAt,
-          httpStatus: response.status,
-          cacheState: "miss",
-          bytes: buffer.byteLength,
-        });
-        return model;
-      } catch (error) {
-        lastError = error instanceof Error && error.name === "AbortError"
-          ? new UpstreamApiError("Remote model download timed out", 504, "MODEL_DOWNLOAD_TIMEOUT")
-          : error;
-        const retryableWithoutTimeout = !(lastError instanceof UpstreamApiError && lastError.code === "MODEL_DOWNLOAD_TIMEOUT");
-        if (attempt < MODEL_DOWNLOAD_ATTEMPTS && retryableWithoutTimeout) {
-          await new Promise((resolve) => setTimeout(resolve, 750));
-        } else if (!retryableWithoutTimeout) {
-          break;
-        }
-      } finally {
-        clearTimeout(timer);
-      }
-    }
-    const normalized = lastError instanceof UpstreamApiError
-      ? lastError
-      : lastError instanceof Error
-      ? lastError
-      : new UpstreamApiError("Remote model download failed", 502, "MODEL_DOWNLOAD_FAILED");
-    // 2026-08-10 新增：模型重试全部失败后登记最终脱敏错误，避免瞬时重试造成虚假离线；
-    recordConnectionFailure(sceneId, "modelBinary", {
-      latencyMs: Date.now() - startedAt,
-      httpStatus: lastResponseStatus ?? (normalized instanceof UpstreamApiError ? normalized.status : 502),
-      errorCode: normalized instanceof UpstreamApiError ? normalized.code : "MODEL_DOWNLOAD_FAILED",
-      errorMessage: normalized.message,
-    });
-    throw normalized;
-  })().finally(() => modelDownloadRequests.delete(sceneId));
-
-  modelDownloadRequests.set(sceneId, request);
-  return request;
+  const result = await refreshModelBinary(sceneId, "initial");
+  const downloaded = modelBinaryCache.get(sceneId);
+  if (downloaded) return downloaded;
+  throw new UpstreamApiError(result.message, 502, "MODEL_DOWNLOAD_FAILED");
 }
 
 function sendShowcaseError(res: express.Response, error: unknown): void {
@@ -785,45 +1102,97 @@ function showcaseRoute(
 
 app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res) => {
   const { sceneId, config } = getShowcaseScene(req.params.sceneId);
-  const [asset, dashboard] = await Promise.all([resolveModelAsset(sceneId), fetchDashboard(sceneId)]);
+  // 2026-08-12 新增：初始化页面前先恢复持久模型状态，避免服务重启后丢失最后可用版本；
+  await ensurePersistedModelLoaded(sceneId);
+  const restoredModel = modelBinaryCache.get(sceneId);
+  const [asset, dashboard] = await Promise.all([
+    resolveModelAsset(sceneId).catch((error) => {
+      // 2026-08-12 新增：模型元数据库异常但已有持久版本时，允许页面继续使用最后成功模型初始化；
+      if (restoredModel) return null;
+      throw error;
+    }),
+    fetchDashboard(sceneId),
+  ]);
+  const modelRefresh = getModelRefreshStatus(sceneId);
+  if (modelRefresh.stale && !modelRefreshRequests.has(sceneId)) void refreshModelBinary(sceneId, "scheduled");
   recordDiagnosticSnapshot(sceneId, dashboard, "dashboard");
   res.json({
     sceneId,
     modelId: config.modelId,
     title: config.title,
     model: {
-      name: asset.metadata.model_name,
-      description: asset.metadata.model_description || config.description,
-      industry: asset.metadata.industry || "工业设备",
-      fileName: asset.file.file_name,
-      fileSize: Number(asset.file.file_size || 0),
-      format: asset.format,
+      name: asset?.metadata.model_name || config.expectedRemoteName,
+      description: asset?.metadata.model_description || config.description,
+      industry: asset?.metadata.industry || "工业设备",
+      fileName: asset?.file.file_name || restoredModel!.fileName,
+      fileSize: asset ? Number(asset.file.file_size || 0) : restoredModel!.fileSize,
+      format: asset?.format || restoredModel!.format,
       localAssetUrl: `/api/model-showcase/${sceneId}/model`,
+      version: modelRefresh.activeVersion || asset!.fingerprint.slice(0, 16),
+      updatedAt: modelRefresh.updatedAt,
     },
     dashboard,
   });
 }));
 
-// 2026-08-10 新增：提供不触发上游请求的只读连接关系快照，供前端展示项目边界与运行状态；
+// 2026-08-12 调整：连接快照同步模型版本；到期时只在后台检查，不阻塞当前模型展示；
 app.get("/api/model-showcase/:sceneId/connection", showcaseRoute(async (req, res) => {
   const { sceneId } = getShowcaseScene(req.params.sceneId);
+  await ensurePersistedModelLoaded(sceneId);
+  const cached = modelBinaryCache.get(sceneId);
+  if (cached && Date.now() >= cached.nextRefreshAt && !modelRefreshRequests.has(sceneId)) {
+    void refreshModelBinary(sceneId, "scheduled");
+  }
   res.json(getConnectionSnapshot(sceneId, {
     upstreamBaseUrl: VISUAL_MODEL_API_BASE_URL,
     modelCacheState: modelBinaryCache.has(sceneId) ? "hit" : "empty",
+    modelRefresh: getModelRefreshStatus(sceneId),
   }));
 }));
 
 app.get("/api/model-showcase/:sceneId/model", showcaseRoute(async (req, res) => {
   const { sceneId } = getShowcaseScene(req.params.sceneId);
-  const asset = await resolveModelAsset(sceneId);
   const wasCached = modelBinaryCache.has(sceneId);
-  const model = await downloadModelBinary(sceneId, asset);
+  const model = await getServableModel(sceneId);
   res.setHeader("Content-Type", model.contentType || "application/octet-stream");
   res.setHeader("Content-Length", String(model.buffer.byteLength));
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(model.fileName)}`);
-  res.setHeader("Cache-Control", "private, max-age=3600");
+  // 2026-08-12 调整：版本参数由前端显式控制，响应本身不允许浏览器复用错误版本的二进制；
+  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("ETag", `"${model.version}"`);
+  res.setHeader("Last-Modified", new Date(model.updatedAt).toUTCString());
   res.setHeader("X-Model-Runtime-Cache", wasCached ? "HIT" : "MISS");
+  res.setHeader("X-Model-Version", model.version);
+  res.setHeader("X-Model-Updated-At", new Date(model.updatedAt).toISOString());
+  res.setHeader("X-Model-Cached-At", new Date(model.cachedAt).toISOString());
+  res.setHeader("X-Model-Next-Refresh", new Date(model.nextRefreshAt).toISOString());
   res.send(model.buffer);
+}));
+
+// 2026-08-12 新增：提供受十分钟场景级限流保护的手动模型更新入口；
+app.post("/api/model-showcase/:sceneId/model/refresh", showcaseRoute(async (req, res) => {
+  const { sceneId } = getShowcaseScene(req.params.sceneId);
+  await ensurePersistedModelLoaded(sceneId);
+  const now = Date.now();
+  const lastAttemptAt = modelManualRefreshAttempts.get(sceneId) || 0;
+  const retryAfterMs = MODEL_MANUAL_REFRESH_COOLDOWN_MS - (now - lastAttemptAt);
+  if (retryAfterMs > 0) {
+    const retryAfterSeconds = Math.ceil(retryAfterMs / 1000);
+    res.setHeader("Retry-After", String(retryAfterSeconds));
+    res.status(429).json({
+      result: "rate-limited",
+      message: `手动更新操作过于频繁，请在 ${Math.ceil(retryAfterSeconds / 60)} 分钟后重试。`,
+      retryAfterSeconds,
+      modelRefresh: getModelRefreshStatus(sceneId),
+    });
+    return;
+  }
+  modelManualRefreshAttempts.set(sceneId, now);
+  const result = await refreshModelBinary(sceneId, "manual");
+  res.status(result.result === "failed" && !modelBinaryCache.has(sceneId) ? 502 : 200).json({
+    ...result,
+    modelRefresh: getModelRefreshStatus(sceneId),
+  });
 }));
 
 app.get("/api/model-showcase/:sceneId/dashboard", showcaseRoute(async (req, res) => {
@@ -897,6 +1266,17 @@ app.post("/api/model-showcase/:sceneId/diagnosis", showcaseRoute(async (req, res
   res.json(result);
 }));
 
+// 2026-08-12 新增：服务启动后每 30 分钟扫描已使用场景，仅对到期模型发起后台更新；
+async function sweepDueModelRefreshes(): Promise<void> {
+  await Promise.all(MODEL_SHOWCASE_SCENE_IDS.map(async (sceneId) => {
+    await ensurePersistedModelLoaded(sceneId);
+    const cached = modelBinaryCache.get(sceneId);
+    if (cached && Date.now() >= cached.nextRefreshAt && !modelRefreshRequests.has(sceneId)) {
+      void refreshModelBinary(sceneId, "scheduled");
+    }
+  }));
+}
+
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -914,8 +1294,12 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Model refresh interval: ${MODEL_REFRESH_INTERVAL_HOURS} hours`);
     console.log(`Press 'q' followed by 'Enter' in the terminal to exit the development server.`);
   });
+  void sweepDueModelRefreshes();
+  const modelRefreshTimer = setInterval(() => void sweepDueModelRefreshes(), MODEL_REFRESH_SCHEDULER_MS);
+  modelRefreshTimer.unref();
 }
 
 // Handle 'q' input to exit
