@@ -2455,43 +2455,46 @@ export const App = () => {
   return (
     // 2026-07-09 新增：ScenarioTelemetryProvider 包裹全局，供 ScenarioMetaBar 统一管理场景耗时/日志数据
     <ScenarioTelemetryProvider>
-    <div className="flex h-screen w-screen bg-[#020617] text-slate-200 overflow-hidden font-[Rajdhani]">
+    {/* 2026-08-12 调整：将已确认的浅蓝灰分层主题扩展到全部导航栏目和业务页面； */}
+    <div className="platform-shell flex h-screen w-screen overflow-hidden bg-[#F4F7FA] text-slate-800 font-[Rajdhani]">
 
       {/* Sidebar Navigation */}
       <Sidebar activeId={activeTabId} onSelect={setActiveTabId} />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-slate-900/40 via-[#020617] to-[#020617]">
+      {/* 2026-08-12 调整：主内容外壳在全部页面使用统一浅色背景和顶部栏层级； */}
+      <main className="platform-main platform-main-smart-ops flex-1 flex flex-col h-full overflow-hidden relative">
         
         {/* Top Header Bar - Simplified to blend in */}
-        <header className="h-14 flex items-center justify-between px-6 border-b border-white/5 bg-[#020617]/50 backdrop-blur-sm z-20">
+        <header className="platform-header h-14 flex items-center justify-between px-6 border-b backdrop-blur-sm z-20">
           <div className="flex items-center gap-4">
              {/* Logo or Brand Area */}
              <div className="flex items-center gap-2">
-               <div className="w-8 h-8 bg-cyan-600 rounded-sm flex items-center justify-center font-bold text-white">IT</div>
+               <div className="platform-brand-mark w-8 h-8 rounded flex items-center justify-center font-bold text-white">IT</div>
                <div className="leading-tight">
-                 <div className="text-sm font-bold tracking-wider text-slate-100">INDUST TECH</div>
-                 <div className="text-[10px] text-slate-500 tracking-widest uppercase">Intelligent O&M Platform</div>
+                 <div className="text-sm font-bold tracking-wider text-slate-800">INDUST TECH</div>
+                 <div className="text-[10px] text-slate-500 tracking-widest uppercase">Intelligent O&amp;M Platform</div>
                </div>
              </div>
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-slate-400 font-mono text-sm">
-              <Clock size={14} className="text-cyan-600" />
+            <div className="flex items-center gap-2 text-slate-600 font-mono text-sm">
+              <Clock size={14} className="text-[#0068B7]" />
               <span>{currentTime}</span>
             </div>
-            <div className="h-8 w-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:border-cyan-500 transition-colors cursor-pointer">
+            <div className="platform-icon-button h-8 w-8 rounded-full border flex items-center justify-center transition-colors cursor-pointer">
                <Bell size={14} />
             </div>
-            <div className="h-8 w-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:border-cyan-500 transition-colors cursor-pointer">
+            <div className="platform-icon-button h-8 w-8 rounded-full border flex items-center justify-center transition-colors cursor-pointer">
                <Settings size={14} />
             </div>
           </div>
         </header>
 
         {/* Dynamic Content Container */}
-        <div className="flex-1 p-6 overflow-y-auto relative scroll-smooth">
+        {/* 2026-08-12 调整：全量页面启用统一浅色语义映射，保留业务状态色和深色可视化区域； */}
+        <div className="platform-content smart-ops-theme flex-1 p-6 overflow-y-auto relative scroll-smooth">
            <div className="h-full max-w-[1920px] mx-auto">
              {/* 2026-07-09 新增：场景信息条，挂载在页面内容区、renderContent() 之前，随内容区一起滚动 */}
              <ScenarioMetaBar scenarioId={activeTabId} />

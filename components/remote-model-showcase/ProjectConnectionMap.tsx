@@ -34,7 +34,8 @@ export const ProjectConnectionMap: React.FC<ProjectConnectionMapProps> = ({
   const status = snapshot?.overallStatus ?? 'unknown';
   const cacheLabel = snapshot?.connector.modelCache === 'hit' ? '已就绪' : '等待首次加载';
   return (
-    <section className="mb-4 border border-cyan-500/20 bg-[#07111f]/90 p-3 shadow-[0_0_24px_rgba(8,145,178,0.06)]">
+    // 2026-08-12 调整：资源协同关系区使用独立浅蓝信息层，突出跨项目数据链路；
+    <section className="remote-model-connection-map mb-4 border border-cyan-500/20 bg-[#07111f]/90 p-3 shadow-[0_0_24px_rgba(8,145,178,0.06)]">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-2.5">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-slate-200">
@@ -51,7 +52,8 @@ export const ProjectConnectionMap: React.FC<ProjectConnectionMapProps> = ({
       </div>
 
       <div className="grid items-stretch gap-2 xl:grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)_28px_minmax(0,1fr)]">
-        <div className="border border-cyan-500/25 bg-cyan-950/10 p-3">
+        {/* 2026-08-12 调整：三类资源协同节点分别使用浅蓝、浅暖黄和浅紫底色； */}
+        <div className="remote-model-connection-node remote-model-connection-node-source border border-cyan-500/25 bg-cyan-950/10 p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 gap-2.5">
               <Server size={18} className="mt-0.5 shrink-0 text-cyan-400" />
@@ -69,7 +71,7 @@ export const ProjectConnectionMap: React.FC<ProjectConnectionMapProps> = ({
 
         <ArrowNode />
 
-        <div className="border border-amber-500/20 bg-amber-950/10 p-3">
+        <div className="remote-model-connection-node remote-model-connection-node-connector border border-amber-500/20 bg-amber-950/10 p-3">
           <div className="flex gap-2.5">
             <Cable size={18} className="mt-0.5 shrink-0 text-amber-300" />
             <div>
@@ -84,7 +86,7 @@ export const ProjectConnectionMap: React.FC<ProjectConnectionMapProps> = ({
 
         <ArrowNode />
 
-        <div className="border border-violet-500/20 bg-violet-950/10 p-3">
+        <div className="remote-model-connection-node remote-model-connection-node-target border border-violet-500/20 bg-violet-950/10 p-3">
           <div className="flex gap-2.5">
             <MonitorUp size={18} className="mt-0.5 shrink-0 text-violet-300" />
             <div>

@@ -15,16 +15,34 @@ interface RemoteModelViewerProps {
   autoRotateSpeed: number;
 }
 
+type ModelLoadFailureStage = 'request' | 'parse';
+
 // 2026-08-09 修复：缓存已校验的模型二进制并合并同一资源的并发请求；
 const modelBufferCache = new Map<string, Promise<ArrayBuffer>>();
 
 async function responseError(response: Response): Promise<Error> {
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
-    const payload = await response.json().catch(() => ({})) as { error?: { message?: string }; message?: string };
-    return new Error(payload.error?.message || payload.message || `模型代理请求失败（${response.status}）`);
+    const payload = await response.json().catch(() => ({})) as { error?: { code?: string; message?: string }; message?: string };
+    const message = payload.error?.message || payload.message || `模型代理请求失败（${response.status}）`;
+    // 2026-08-12 调整：保留后端模型错误码，便于区分远端资源失败和前端解析失败；
+    return new Error(payload.error?.code ? `${message}（${payload.error.code}）` : message);
   }
   return new Error(`模型代理请求失败（${response.status}）`);
+}
+
+// 2026-08-12 新增：将 API 返回的近黑背景提升为中深蓝灰，直接在 Three.js 场景内改善灰模辨识度；
+function resolveViewerBackground(configured?: string): THREE.Color {
+  const fallback = new THREE.Color('#29485e');
+  if (!configured) return fallback;
+  try {
+    const candidate = new THREE.Color(configured);
+    const hsl = { h: 0, s: 0, l: 0 };
+    candidate.getHSL(hsl);
+    return hsl.l < 0.18 ? fallback : candidate;
+  } catch {
+    return fallback;
+  }
 }
 
 function validateModelBuffer(asset: ModelAssetDescriptor, buffer: ArrayBuffer): void {
@@ -131,6 +149,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
   const resetViewRef = useRef<() => void>(() => undefined);
   const [progress, setProgress] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [failureStage, setFailureStage] = useState<ModelLoadFailureStage | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [autoRotate, setAutoRotate] = useState(renderConfig?.auto_rotate !== false);
 
@@ -160,9 +179,11 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
 
     setProgress(0);
     setLoadError(null);
+    setFailureStage(null);
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(renderConfig?.background_color || '#07111f');
-    scene.fog = new THREE.FogExp2(renderConfig?.background_color || '#07111f', 0.045);
+    const viewerBackground = resolveViewerBackground(renderConfig?.background_color);
+    scene.background = viewerBackground;
+    scene.fog = new THREE.FogExp2(viewerBackground, 0.045);
 
     const width = Math.max(1, container.clientWidth);
     const height = Math.max(1, container.clientHeight);
@@ -183,6 +204,9 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
     renderer.domElement.style.display = 'block';
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
+    // 2026-08-12 修复：FBX WebGL 画布强制使用正常合成，避免全局 Canvas 混合模式导致画布不显示；
+    renderer.domElement.style.mixBlendMode = 'normal';
+    renderer.domElement.style.opacity = '1';
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.08;
@@ -257,17 +281,26 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
       setProgress(100);
     };
 
-    const onError = (error: unknown) => {
+    const onError = (error: unknown, stage: ModelLoadFailureStage) => {
       console.error('[model-showcase] 3D model load failed:', error);
-      if (!disposed) setLoadError(error instanceof Error ? error.message : '3D 模型加载失败，请稍后重试。');
+      if (!disposed) {
+        setFailureStage(stage);
+        setLoadError(error instanceof Error ? error.message : '3D 模型加载失败，请稍后重试。');
+      }
     };
 
     const loadModel = async () => {
+      let buffer: ArrayBuffer;
       try {
-        const buffer = await fetchModelBuffer(asset, (nextProgress) => {
+        buffer = await fetchModelBuffer(asset, (nextProgress) => {
           if (!disposed) setProgress(nextProgress);
         });
-        if (disposed) return;
+      } catch (error) {
+        onError(error, 'request');
+        return;
+      }
+      if (disposed) return;
+      try {
         if (asset.format === 'fbx') {
           fitModel(new FBXLoader().parse(buffer, ''));
         } else {
@@ -283,7 +316,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
           });
         }
       } catch (error) {
-        onError(error);
+        onError(error, 'parse');
       }
     };
     void loadModel();
@@ -349,7 +382,8 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
   }, [accent, asset, autoRotateSpeed, reloadKey, renderConfig]);
 
   return (
-    <div className="relative h-full min-h-0 max-h-full overflow-hidden bg-[#07111f] [contain:layout_paint]" ref={containerRef}>
+    // 2026-08-12 调整：为外部模型视窗增加独立样式作用域，隔离全局浅色兼容规则；
+    <div className="remote-model-viewer industrial-visual-surface relative h-full min-h-0 max-h-full overflow-hidden bg-[#29485e] [contain:layout_paint]" ref={containerRef}>
       {progress < 100 && !loadError && (
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#07111f]/90">
           <div className="mb-3 text-xs tracking-[0.28em] text-cyan-300">正在通过 API 加载模型</div>
@@ -360,9 +394,14 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
         </div>
       )}
       {loadError && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#07111f]/90 px-8 text-center text-sm text-rose-300">
-          <span className="max-w-lg break-words leading-6">模型文件暂未显示：{loadError}</span>
-          <span className="mt-2 max-w-lg text-[10px] leading-5 text-slate-500">视窗与 FBX 加载器已就绪；成功取得并校验模型二进制后会自动解析显示，失败后每 30 秒自动重试。</span>
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#29485e]/95 px-8 text-center text-sm text-rose-300">
+          <span className="font-semibold">{failureStage === 'request' ? '模型资源请求失败' : '模型解析或渲染失败'}</span>
+          <span className="mt-2 max-w-lg break-words leading-6">{loadError}</span>
+          <span className="mt-2 max-w-lg text-[10px] leading-5 text-slate-400">
+            {failureStage === 'request'
+              ? '前端视窗与 FBX 加载器已就绪，但后端未取得有效模型二进制；失败后每 30 秒自动重试。'
+              : '模型二进制已经取得，但解析或建立网格时发生异常；可重新加载并查看浏览器错误信息。'}
+          </span>
           <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 border border-cyan-500/35 bg-cyan-500/10 px-4 py-2 text-xs text-cyan-200 hover:bg-cyan-500/20">
             重新加载模型
           </button>

@@ -51,46 +51,47 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect }) => {
               onSelect(item.id);
             }
           }}
-          className={`w-full text-left px-6 py-3 text-sm transition-all duration-300 relative group flex items-center justify-between
+          // 2026-08-11 调整：侧栏菜单使用企业蓝选中态与浅色悬停态；
+          className={`platform-nav-item w-full text-left px-6 py-3 text-sm transition-all duration-300 relative group flex items-center justify-between
             ${isActive || (hasChildren && isChildActive && !isExpanded)
-              ? 'text-cyan-300 bg-cyan-950/30' 
-              : 'text-slate-400 hover:text-cyan-200 hover:bg-slate-800/50'}
+              ? 'platform-nav-item-active'
+              : 'platform-nav-item-idle'}
           `}
           style={{ paddingLeft: `${1.5 + depth * 1}rem` }}
         >
           {isActive && (
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#0068B7]"></div>
           )}
           
           <div className="flex items-center gap-2">
-            {depth > 0 && <div className="w-1 h-1 rounded-full bg-slate-600"></div>}
+            {depth > 0 && <div className="w-1 h-1 rounded-full bg-slate-400"></div>}
             <span>{item.label}</span>
           </div>
 
           <div className="flex items-center">
             {/* Child Count Badge */}
             {hasChildren && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded mr-2 border transition-colors font-mono
+              <span className={`platform-nav-count text-[10px] px-1.5 py-0.5 rounded mr-2 border transition-colors font-mono
                 ${isActive || isChildActive 
-                  ? 'bg-cyan-900/40 text-cyan-400 border-cyan-700/30' 
-                  : 'bg-slate-800 text-slate-500 border-slate-700 group-hover:border-slate-600 group-hover:text-slate-400'}
+                  ? 'platform-nav-count-active'
+                  : 'platform-nav-count-idle'}
               `}>
                 {item.children!.length}
               </span>
             )}
 
-            {isActive && <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse mr-2"></div>}
+            {isActive && <div className="h-1.5 w-1.5 rounded-full bg-[#0068B7] animate-pulse mr-2"></div>}
             {hasChildren && (
               isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
             )}
           </div>
           
           {/* Hover line */}
-          <div className={`absolute bottom-0 left-6 right-6 h-[1px] bg-cyan-800/30 group-hover:bg-cyan-600/50 transition-colors ${isActive ? 'bg-cyan-500/50' : ''}`}></div>
+          <div className={`platform-nav-divider absolute bottom-0 left-6 right-6 h-px transition-colors ${isActive ? 'platform-nav-divider-active' : ''}`}></div>
         </button>
 
         {hasChildren && isExpanded && (
-          <div className="bg-slate-950/30 border-t border-b border-cyan-900/10">
+          <div className="platform-nav-children border-t border-b">
             {item.children!.map(child => renderMenuItem(child, depth + 1))}
           </div>
         )}
@@ -99,16 +100,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect }) => {
   };
 
   return (
-    <div className="w-64 flex-shrink-0 bg-slate-900/90 border-r border-cyan-900/30 overflow-y-auto h-full backdrop-blur-md flex flex-col z-30">
-      <div className="p-6 border-b border-cyan-900/50 bg-slate-950 sticky top-0 z-10">
-        <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center gap-2">
-          <Hexagon className="text-cyan-400 animate-pulse" size={24} />
+    // 2026-08-11 调整：通用侧栏整体切换为浅色企业管理平台样式；
+    <div className="platform-sidebar w-64 flex-shrink-0 border-r overflow-y-auto h-full backdrop-blur-md flex flex-col z-30">
+      <div className="platform-sidebar-brand p-6 border-b sticky top-0 z-10">
+        <h1 className="text-2xl font-bold text-[#0068B7] flex items-center gap-2">
+          <Hexagon className="text-[#0068B7]" size={24} />
           工业智脑
         </h1>
         <div className="flex justify-between items-center mt-1">
-          <p className="text-xs text-cyan-600 tracking-[0.2em] uppercase">Industrial Mind</p>
+          <p className="text-xs text-slate-500 tracking-[0.2em] uppercase">Industrial Mind</p>
           {/* ADDED: Total count badge */}
-          <span className="text-[10px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-800/50" title="总页面数">
+          <span className="text-[10px] bg-[#EAF4FB] text-[#0068B7] px-2 py-0.5 rounded border border-[#B9D9EE]" title="总页面数">
             总计: {totalCount}
           </span>
         </div>
@@ -118,8 +120,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect }) => {
         {MENU_ITEMS.map(item => renderMenuItem(item))}
       </nav>
       
-      <div className="p-4 text-xs text-slate-600 border-t border-cyan-900/30 text-center">
-        SYSTEM STATUS: ONLINE
+      <div className="platform-sidebar-footer p-4 text-xs text-slate-500 border-t text-center">
+        <span className="text-emerald-600">●</span> SYSTEM STATUS: ONLINE
         <br />
         VER: 2.5.0-ALPHA
       </div>

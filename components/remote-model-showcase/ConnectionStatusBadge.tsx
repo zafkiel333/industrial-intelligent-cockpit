@@ -24,7 +24,8 @@ interface ConnectionStatusBadgeProps {
 export const ConnectionStatusBadge: React.FC<ConnectionStatusBadgeProps> = ({ status, compact = false }) => {
   const item = statusStyles[status];
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded border ${compact ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-[10px]'} ${item.className}`}>
+    // 2026-08-12 调整：状态标签增加独立作用域，避免等待状态保留深灰底色；
+    <span className={`remote-model-status-badge remote-model-status-${status} inline-flex items-center gap-1.5 rounded border ${compact ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-[10px]'} ${item.className}`}>
       <item.Icon size={compact ? 10 : 12} />
       {item.label}
     </span>

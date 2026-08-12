@@ -1,0 +1,1821 @@
+/* 2026-08-12 调整：平台通用浅蓝灰主题由第一栏扩展到全部业务页面； */
+:root {
+  --platform-brand: #0068b7;
+  --platform-brand-hover: #005a9e;
+  --platform-brand-active: #004b85;
+  /* 2026-08-12 调整：增加多级浅蓝灰表面，减少导航、标题栏和边界区域的大面积纯白； */
+  --platform-brand-soft: #e2eff7;
+  --platform-page: #e8eff4;
+  --platform-surface: #f8fafc;
+  --platform-surface-muted: #eef3f6;
+  --platform-chrome: #e7f0f5;
+  --platform-chrome-strong: #dbe9f1;
+  --platform-panel-tint: #edf5f9;
+  --platform-border: #c7d4de;
+  --platform-border-strong: #aabcc9;
+  --platform-text: #1f2937;
+  --platform-text-secondary: #667085;
+  --platform-text-muted: #7b8798;
+  --platform-visual: #29485e;
+  --platform-visual-border: #7893a6;
+  --platform-visual-accent: #63d4ef;
+  --platform-success: #15803d;
+  --platform-warning: #b45309;
+  --platform-danger: #dc2626;
+  --platform-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
+}
+
+/* 2026-08-11 调整：统一页面基础背景、文字和滚动条颜色； */
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--platform-page);
+  color: var(--platform-text);
+}
+
+::-webkit-scrollbar-track {
+  background: #edf2f7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #91b8d2;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--platform-brand);
+}
+
+::selection {
+  color: #ffffff;
+  background: var(--platform-brand);
+}
+
+/* 2026-08-11 调整：应用主区域与顶部栏使用统一企业管理平台外观； */
+.platform-shell {
+  background: var(--platform-page);
+}
+
+.platform-main-smart-ops {
+  background:
+    radial-gradient(circle at 88% 2%, rgba(0, 104, 183, 0.1), transparent 30%),
+    var(--platform-page);
+}
+
+.platform-main-dark {
+  background: radial-gradient(circle at top right, rgba(30, 41, 59, 0.4), #020617 58%);
+}
+
+.platform-header {
+  color: var(--platform-text);
+  /* 2026-08-12 调整：顶部栏使用浅蓝灰而非纯白，并强化下边界； */
+  background: rgba(231, 240, 245, 0.97);
+  border-color: var(--platform-border);
+  box-shadow: inset 0 -2px 0 rgba(0, 104, 183, 0.06), 0 2px 12px rgba(31, 55, 72, 0.06);
+}
+
+.platform-brand-mark {
+  background: linear-gradient(145deg, var(--platform-brand), var(--platform-brand-active));
+  box-shadow: 0 4px 12px rgba(0, 104, 183, 0.2);
+}
+
+.platform-icon-button {
+  color: var(--platform-text-secondary);
+  background: #f4f8fa;
+  border-color: var(--platform-border-strong);
+}
+
+.platform-icon-button:hover {
+  color: var(--platform-brand);
+  background: var(--platform-brand-soft);
+  border-color: #8bc2e5;
+}
+
+/* 2026-08-11 调整：通用侧栏使用白色表面、企业蓝选中态和低干扰分隔线； */
+.platform-sidebar {
+  color: var(--platform-text-secondary);
+  /* 2026-08-12 调整：侧栏主体使用浅蓝灰，和内容卡片形成清晰层级； */
+  background: rgba(237, 244, 247, 0.98);
+  border-color: var(--platform-border);
+  box-shadow: 4px 0 18px rgba(31, 55, 72, 0.08);
+}
+
+.platform-sidebar-brand {
+  background: var(--platform-chrome-strong);
+  border-color: var(--platform-border);
+}
+
+.platform-nav-item {
+  border: 0;
+}
+
+.platform-nav-item-idle {
+  color: #5f6b7a;
+  background: transparent;
+}
+
+.platform-nav-item-idle:hover {
+  color: var(--platform-brand);
+  background: #dfeaf1;
+}
+
+.platform-nav-item-active {
+  color: var(--platform-brand-active);
+  background: #d3e6f1;
+  font-weight: 600;
+}
+
+.platform-nav-count-idle {
+  color: #7b8798;
+  background: #e3ebf0;
+  border-color: var(--platform-border);
+}
+
+.platform-nav-count-active {
+  color: var(--platform-brand);
+  background: #f5f9fb;
+  border-color: #a8d1ea;
+}
+
+.platform-nav-divider {
+  background: #d4e0e7;
+}
+
+.platform-nav-item:hover .platform-nav-divider,
+.platform-nav-divider-active {
+  background: #b9d9ee;
+}
+
+.platform-nav-children {
+  background: #e4edf2;
+  border-color: #cedce5;
+}
+
+.platform-sidebar-footer {
+  background: #e1ebf1;
+  border-color: var(--platform-border);
+}
+
+/* 2026-08-11 调整：通用卡片建立白色表面、统一边框与企业蓝标题强调； */
+.platform-card {
+  color: var(--platform-text);
+  /* 2026-08-12 调整：卡片主体改为极浅蓝灰，白色仅保留给输入和关键交互区域； */
+  background: rgba(248, 250, 252, 0.98) !important;
+  border-color: var(--platform-border) !important;
+  border-radius: 8px;
+}
+
+.platform-card-default {
+  box-shadow: var(--platform-shadow);
+}
+
+.platform-card-highlight {
+  border-color: #8bc2e5 !important;
+  box-shadow: 0 8px 24px rgba(0, 104, 183, 0.12);
+}
+
+.platform-card-accent {
+  background: linear-gradient(to bottom, var(--platform-brand), transparent);
+}
+
+.platform-card-header {
+  /* 2026-08-12 调整：通用卡片标题栏使用更明确的浅蓝灰边界色； */
+  background: var(--platform-chrome);
+  border-color: var(--platform-border);
+  border-radius: 8px 8px 0 0;
+}
+
+.platform-card-title {
+  color: var(--platform-text);
+}
+
+.platform-card-subtitle {
+  color: var(--platform-brand);
+  background: var(--platform-brand-soft);
+  border-color: #b9d9ee;
+}
+
+.platform-model-link {
+  color: var(--platform-brand);
+  background: var(--platform-brand-soft);
+  border-color: #b9d9ee;
+}
+
+.platform-model-link:hover {
+  color: #ffffff;
+  background: var(--platform-brand);
+  border-color: var(--platform-brand);
+}
+
+/* 2026-08-12 调整：全部页面现有深色工具类统一映射为浅色语义色； */
+.smart-ops-theme {
+  color: var(--platform-text);
+}
+
+.smart-ops-theme .text-white,
+.smart-ops-theme .text-slate-100,
+.smart-ops-theme .text-slate-200,
+.smart-ops-theme .text-slate-300 {
+  color: var(--platform-text) !important;
+}
+
+.smart-ops-theme .text-slate-400,
+.smart-ops-theme .text-slate-500 {
+  color: var(--platform-text-secondary) !important;
+}
+
+.smart-ops-theme .text-slate-600,
+.smart-ops-theme .text-slate-700 {
+  color: var(--platform-text-muted) !important;
+}
+
+/* 2026-08-11 优化：装饰色采用品牌蓝、青绿、紫色和适量暖色，避免页面单调或大面积偏色； */
+.smart-ops-theme .text-amber-50,
+.smart-ops-theme .text-amber-100,
+.smart-ops-theme .text-amber-200,
+.smart-ops-theme .text-amber-300,
+.smart-ops-theme .text-amber-400,
+.smart-ops-theme .text-amber-500,
+.smart-ops-theme .text-amber-600,
+.smart-ops-theme .text-orange-50,
+.smart-ops-theme .text-orange-200,
+.smart-ops-theme .text-orange-300,
+.smart-ops-theme .text-orange-400,
+.smart-ops-theme .text-orange-500,
+.smart-ops-theme .text-yellow-400,
+.smart-ops-theme .text-yellow-500,
+.smart-ops-theme .text-yellow-600 {
+  color: var(--platform-warning) !important;
+}
+
+.smart-ops-theme .text-stone-50,
+.smart-ops-theme .text-stone-100,
+.smart-ops-theme .text-stone-200,
+.smart-ops-theme .text-stone-300 {
+  color: var(--platform-text) !important;
+}
+
+.smart-ops-theme .text-stone-400,
+.smart-ops-theme .text-stone-500,
+.smart-ops-theme .text-stone-600,
+.smart-ops-theme .text-stone-700,
+.smart-ops-theme .text-stone-800 {
+  color: var(--platform-text-secondary) !important;
+}
+
+.smart-ops-theme .text-cyan-50,
+.smart-ops-theme .text-cyan-100,
+.smart-ops-theme .text-cyan-200,
+.smart-ops-theme .text-cyan-300,
+.smart-ops-theme .text-cyan-400,
+.smart-ops-theme .text-cyan-500,
+.smart-ops-theme .text-cyan-600,
+.smart-ops-theme .text-cyan-700,
+.smart-ops-theme .text-blue-50,
+.smart-ops-theme .text-blue-100,
+.smart-ops-theme .text-blue-200,
+.smart-ops-theme .text-blue-300,
+.smart-ops-theme .text-blue-400,
+.smart-ops-theme .text-sky-50,
+.smart-ops-theme .text-sky-100,
+.smart-ops-theme .text-sky-200,
+.smart-ops-theme .text-sky-300,
+.smart-ops-theme .text-sky-400,
+.smart-ops-theme .text-blue-500 {
+  color: var(--platform-brand) !important;
+}
+
+.smart-ops-theme .text-green-50,
+.smart-ops-theme .text-green-100,
+.smart-ops-theme .text-green-200,
+.smart-ops-theme .text-green-300,
+.smart-ops-theme .text-green-400,
+.smart-ops-theme .text-green-500,
+.smart-ops-theme .text-emerald-50,
+.smart-ops-theme .text-emerald-100,
+.smart-ops-theme .text-emerald-200,
+.smart-ops-theme .text-emerald-200\/80,
+.smart-ops-theme .text-emerald-300,
+.smart-ops-theme .text-emerald-400,
+.smart-ops-theme .text-emerald-500 {
+  color: var(--platform-success) !important;
+}
+
+.smart-ops-theme .text-red-50,
+.smart-ops-theme .text-red-100,
+.smart-ops-theme .text-red-200,
+.smart-ops-theme .text-red-200\/80,
+.smart-ops-theme .text-red-300,
+.smart-ops-theme .text-red-400,
+.smart-ops-theme .text-red-500,
+.smart-ops-theme .text-rose-100,
+.smart-ops-theme .text-rose-200,
+.smart-ops-theme .text-rose-300,
+.smart-ops-theme .text-rose-400,
+.smart-ops-theme .text-rose-500 {
+  color: var(--platform-danger) !important;
+}
+
+.smart-ops-theme .text-violet-50,
+.smart-ops-theme .text-violet-100,
+.smart-ops-theme .text-violet-200,
+.smart-ops-theme .text-violet-300,
+.smart-ops-theme .text-violet-400,
+.smart-ops-theme .text-purple-50,
+.smart-ops-theme .text-purple-100,
+.smart-ops-theme .text-purple-200,
+.smart-ops-theme .text-purple-300,
+.smart-ops-theme .text-purple-400,
+.smart-ops-theme .text-purple-500 {
+  color: #6750a4 !important;
+}
+
+.smart-ops-theme .bg-slate-950,
+.smart-ops-theme .bg-slate-950\/30,
+.smart-ops-theme .bg-slate-950\/50,
+.smart-ops-theme .bg-slate-950\/60,
+.smart-ops-theme .bg-slate-950\/80,
+.smart-ops-theme .bg-slate-950\/90,
+.smart-ops-theme .bg-slate-900,
+.smart-ops-theme .bg-slate-900\/30,
+.smart-ops-theme .bg-slate-900\/40,
+.smart-ops-theme .bg-slate-900\/50,
+.smart-ops-theme .bg-slate-900\/60,
+.smart-ops-theme .bg-slate-900\/70,
+.smart-ops-theme .bg-slate-900\/80,
+.smart-ops-theme .bg-slate-900\/90,
+.smart-ops-theme [class~="bg-[#0b1221]"],
+.smart-ops-theme [class~="bg-[#0b1221]/80"],
+.smart-ops-theme [class~="bg-[#020617]"],
+.smart-ops-theme [class~="bg-[#020617]/50"] {
+  background-color: var(--platform-surface) !important;
+}
+
+.smart-ops-theme .bg-slate-800,
+.smart-ops-theme .bg-slate-800\/30,
+.smart-ops-theme .bg-slate-800\/40,
+.smart-ops-theme .bg-slate-800\/50,
+.smart-ops-theme .bg-slate-800\/60,
+.smart-ops-theme .bg-slate-800\/80,
+.smart-ops-theme .bg-white,
+.smart-ops-theme .bg-white\/5,
+.smart-ops-theme .bg-white\/80,
+.smart-ops-theme .bg-white\/90,
+.smart-ops-theme .bg-black,
+.smart-ops-theme .bg-black\/10,
+.smart-ops-theme .bg-black\/20,
+.smart-ops-theme .bg-black\/30,
+.smart-ops-theme .bg-black\/40,
+.smart-ops-theme .bg-black\/50,
+.smart-ops-theme .bg-black\/60,
+.smart-ops-theme .bg-black\/70,
+.smart-ops-theme .bg-black\/80,
+.smart-ops-theme .bg-black\/90 {
+  background-color: var(--platform-surface-muted) !important;
+}
+
+.smart-ops-theme .bg-slate-700,
+.smart-ops-theme .bg-slate-700\/20,
+.smart-ops-theme .bg-slate-700\/30,
+.smart-ops-theme .bg-slate-700\/40,
+.smart-ops-theme .bg-slate-700\/50 {
+  background-color: #e4eaf0 !important;
+}
+
+/* 2026-08-12 新增：补齐其余栏目中常见的 Gray、Zinc、Neutral 深色容器映射； */
+.smart-ops-theme .bg-gray-900,
+.smart-ops-theme .bg-gray-900\/50,
+.smart-ops-theme .bg-zinc-950,
+.smart-ops-theme .bg-zinc-900,
+.smart-ops-theme .bg-zinc-900\/50,
+.smart-ops-theme .bg-zinc-900\/80,
+.smart-ops-theme .bg-neutral-950,
+.smart-ops-theme .bg-neutral-900,
+.smart-ops-theme .bg-neutral-900\/50,
+.smart-ops-theme .bg-neutral-900\/80 {
+  background-color: var(--platform-surface) !important;
+}
+
+.smart-ops-theme .bg-gray-800,
+.smart-ops-theme .bg-zinc-800,
+.smart-ops-theme .bg-zinc-800\/40,
+.smart-ops-theme .bg-zinc-800\/50,
+.smart-ops-theme .bg-zinc-700,
+.smart-ops-theme .bg-neutral-800,
+.smart-ops-theme .bg-neutral-800\/40,
+.smart-ops-theme .bg-neutral-800\/50,
+.smart-ops-theme .bg-neutral-700 {
+  background-color: var(--platform-surface-muted) !important;
+}
+
+/* 2026-08-12 新增：将其余页面大量使用的自定义近黑底色归并为统一浅色表面； */
+.smart-ops-theme [class*="bg-[#01"],
+.smart-ops-theme [class*="bg-[#02"],
+.smart-ops-theme [class*="bg-[#03"],
+.smart-ops-theme [class*="bg-[#04"],
+.smart-ops-theme [class*="bg-[#05"],
+.smart-ops-theme [class*="bg-[#06"],
+.smart-ops-theme [class*="bg-[#07"],
+.smart-ops-theme [class*="bg-[#08"],
+.smart-ops-theme [class*="bg-[#09"],
+.smart-ops-theme [class*="bg-[#0a"],
+.smart-ops-theme [class*="bg-[#0b"],
+.smart-ops-theme [class*="bg-[#0c"],
+.smart-ops-theme [class*="bg-[#0d"],
+.smart-ops-theme [class*="bg-[#0e"],
+.smart-ops-theme [class*="bg-[#0f"],
+.smart-ops-theme [class*="bg-[#1"],
+.smart-ops-theme [class*="bg-[#2"],
+.smart-ops-theme [class~="bg-[#000000]"] {
+  background-color: var(--platform-surface) !important;
+}
+
+.smart-ops-theme .text-gray-200,
+.smart-ops-theme .text-gray-300,
+.smart-ops-theme .text-zinc-200,
+.smart-ops-theme .text-zinc-300,
+.smart-ops-theme .text-neutral-200,
+.smart-ops-theme .text-neutral-300 {
+  color: var(--platform-text) !important;
+}
+
+.smart-ops-theme .text-gray-400,
+.smart-ops-theme .text-zinc-400,
+.smart-ops-theme .text-zinc-500,
+.smart-ops-theme .text-neutral-400,
+.smart-ops-theme .text-neutral-500 {
+  color: var(--platform-text-secondary) !important;
+}
+
+.smart-ops-theme .bg-stone-900,
+.smart-ops-theme .bg-stone-900\/50,
+.smart-ops-theme .bg-stone-800,
+.smart-ops-theme .bg-stone-800\/30,
+.smart-ops-theme .bg-stone-800\/50 {
+  background-color: var(--platform-surface-muted) !important;
+}
+
+.smart-ops-theme .bg-cyan-950,
+.smart-ops-theme .bg-cyan-950\/30,
+.smart-ops-theme .bg-cyan-950\/50,
+.smart-ops-theme .bg-cyan-950\/60,
+.smart-ops-theme .bg-cyan-900\/20,
+.smart-ops-theme .bg-cyan-900\/30,
+.smart-ops-theme .bg-cyan-900\/40,
+.smart-ops-theme .bg-blue-900\/20,
+.smart-ops-theme .bg-blue-900\/30,
+.smart-ops-theme .bg-blue-900\/40,
+.smart-ops-theme .bg-blue-900\/50 {
+  background-color: var(--platform-brand-soft) !important;
+}
+
+/* 2026-08-11 优化：暖色仅作为指标和警示强调，不再承担大面积页面背景； */
+.smart-ops-theme .bg-amber-500,
+.smart-ops-theme .bg-amber-600,
+.smart-ops-theme .bg-yellow-500,
+.smart-ops-theme .bg-yellow-600,
+.smart-ops-theme .bg-orange-500,
+.smart-ops-theme .bg-orange-600 {
+  background-color: #d97706 !important;
+}
+
+.smart-ops-theme .bg-amber-900\/20,
+.smart-ops-theme .bg-amber-900\/30,
+.smart-ops-theme .bg-amber-900\/40,
+.smart-ops-theme .bg-yellow-900\/20,
+.smart-ops-theme .bg-yellow-900\/30,
+.smart-ops-theme .bg-orange-900\/20,
+.smart-ops-theme .bg-orange-900\/30,
+.smart-ops-theme .bg-orange-950\/20,
+.smart-ops-theme .bg-orange-950\/30 {
+  background-color: #fff6e8 !important;
+}
+
+.smart-ops-theme .bg-amber-700\/40,
+.smart-ops-theme .bg-amber-700\/60 {
+  color: #ffffff !important;
+  background-color: #c66a05 !important;
+}
+
+/* 2026-08-11 修复：浅色状态块使用深色文字和低饱和背景，保证文字对比度； */
+.smart-ops-theme .bg-green-900\/10,
+.smart-ops-theme .bg-green-900\/20,
+.smart-ops-theme .bg-green-900\/30,
+.smart-ops-theme .bg-emerald-900\/10,
+.smart-ops-theme .bg-emerald-900\/20,
+.smart-ops-theme .bg-emerald-900\/30 {
+  background-color: #eaf7ef !important;
+}
+
+.smart-ops-theme .bg-red-900\/10,
+.smart-ops-theme .bg-red-900\/20,
+.smart-ops-theme .bg-red-900\/30,
+.smart-ops-theme .bg-red-950\/30 {
+  background-color: #fdf0f1 !important;
+}
+
+.smart-ops-theme .bg-violet-900\/20,
+.smart-ops-theme .bg-violet-900\/30,
+.smart-ops-theme .bg-purple-900\/20,
+.smart-ops-theme .bg-purple-900\/30 {
+  background-color: #f2eef9 !important;
+}
+
+/* 2026-08-12 调整：按实际类名令牌补齐深色容器映射，覆盖带任意透明度后缀的零散页面组件； */
+.smart-ops-theme :is(
+  [class^="bg-slate-9"], [class*=" bg-slate-9"],
+  [class^="bg-gray-9"], [class*=" bg-gray-9"],
+  [class^="bg-zinc-9"], [class*=" bg-zinc-9"],
+  [class^="bg-neutral-9"], [class*=" bg-neutral-9"],
+  [class^="bg-stone-9"], [class*=" bg-stone-9"]
+) {
+  background-color: var(--platform-surface) !important;
+}
+
+.smart-ops-theme :is(
+  [class^="bg-slate-7"], [class*=" bg-slate-7"],
+  [class^="bg-slate-8"], [class*=" bg-slate-8"],
+  [class^="bg-gray-7"], [class*=" bg-gray-7"],
+  [class^="bg-gray-8"], [class*=" bg-gray-8"],
+  [class^="bg-zinc-7"], [class*=" bg-zinc-7"],
+  [class^="bg-zinc-8"], [class*=" bg-zinc-8"],
+  [class^="bg-neutral-7"], [class*=" bg-neutral-7"],
+  [class^="bg-neutral-8"], [class*=" bg-neutral-8"],
+  [class^="bg-stone-7"], [class*=" bg-stone-7"],
+  [class^="bg-stone-8"], [class*=" bg-stone-8"]
+) {
+  background-color: var(--platform-surface-muted) !important;
+}
+
+/* 2026-08-12 调整：将深色业务状态块转换为低饱和浅色语义面板，保留蓝、绿、红、橙、紫的业务辨识度； */
+.smart-ops-theme :is(
+  [class^="bg-cyan-8"], [class*=" bg-cyan-8"],
+  [class^="bg-cyan-9"], [class*=" bg-cyan-9"],
+  [class^="bg-sky-8"], [class*=" bg-sky-8"],
+  [class^="bg-sky-9"], [class*=" bg-sky-9"],
+  [class^="bg-blue-8"], [class*=" bg-blue-8"],
+  [class^="bg-blue-9"], [class*=" bg-blue-9"]
+) {
+  background-color: #e4f1f8 !important;
+}
+
+.smart-ops-theme :is(
+  [class^="bg-indigo-8"], [class*=" bg-indigo-8"],
+  [class^="bg-indigo-9"], [class*=" bg-indigo-9"]
+) {
+  background-color: #edf0fa !important;
+}
+
+.smart-ops-theme :is(
+  [class^="bg-green-8"], [class*=" bg-green-8"],
+  [class^="bg-green-9"], [class*=" bg-green-9"],
+  [class^="bg-emerald-8"], [class*=" bg-emerald-8"],
+  [class^="bg-emerald-9"], [class*=" bg-emerald-9"],
+  [class^="bg-teal-8"], [class*=" bg-teal-8"],
+  [class^="bg-teal-9"], [class*=" bg-teal-9"]
+) {
+  background-color: #e8f5ed !important;
+}
+
+.smart-ops-theme :is(
+  [class^="bg-red-8"], [class*=" bg-red-8"],
+  [class^="bg-red-9"], [class*=" bg-red-9"],
+  [class^="bg-rose-8"], [class*=" bg-rose-8"],
+  [class^="bg-rose-9"], [class*=" bg-rose-9"]
+) {
+  background-color: #fbecef !important;
+}
+
+.smart-ops-theme :is(
+  [class^="bg-amber-8"], [class*=" bg-amber-8"],
+  [class^="bg-amber-9"], [class*=" bg-amber-9"],
+  [class^="bg-orange-8"], [class*=" bg-orange-8"],
+  [class^="bg-orange-9"], [class*=" bg-orange-9"],
+  [class^="bg-yellow-8"], [class*=" bg-yellow-8"],
+  [class^="bg-yellow-9"], [class*=" bg-yellow-9"]
+) {
+  background-color: #fff5e6 !important;
+}
+
+.smart-ops-theme :is(
+  [class^="bg-violet-8"], [class*=" bg-violet-8"],
+  [class^="bg-violet-9"], [class*=" bg-violet-9"],
+  [class^="bg-purple-8"], [class*=" bg-purple-8"],
+  [class^="bg-purple-9"], [class*=" bg-purple-9"],
+  [class^="bg-fuchsia-8"], [class*=" bg-fuchsia-8"],
+  [class^="bg-fuchsia-9"], [class*=" bg-fuchsia-9"]
+) {
+  background-color: #f2eef9 !important;
+}
+
+/* 2026-08-12 调整：半透明白色高光在浅色主题下改为蓝灰分层，避免卡片边界消失； */
+.smart-ops-theme :is(
+  [class^="bg-white/10"], [class*=" bg-white/10"],
+  [class^="bg-white/20"], [class*=" bg-white/20"],
+  [class^="bg-white/30"], [class*=" bg-white/30"],
+  [class^="bg-white/50"], [class*=" bg-white/50"]
+) {
+  background-color: rgba(226, 237, 243, 0.86) !important;
+}
+
+/* 2026-08-12 调整：补齐接近纯黑的自定义 Tailwind 背景，排除品牌蓝与高亮荧光色； */
+.smart-ops-theme :is(
+  [class^="bg-[#000"], [class*=" bg-[#000"],
+  [class^="bg-[#001"], [class*=" bg-[#001"],
+  [class^="bg-[#002"], [class*=" bg-[#002"],
+  [class^="bg-[#003"], [class*=" bg-[#003"],
+  [class^="bg-[#004"], [class*=" bg-[#004"],
+  [class^="bg-[#005"], [class*=" bg-[#005"]
+) {
+  background-color: var(--platform-surface) !important;
+}
+
+/* 2026-08-12 修复：恢复被近黑十六进制兼容规则误包含的天空蓝和成功绿实色； */
+.smart-ops-theme [class~="bg-[#0ea5e9]"] {
+  background-color: var(--platform-brand) !important;
+}
+
+.smart-ops-theme [class~="bg-[#10b981]"] {
+  background-color: var(--platform-success) !important;
+}
+
+/* 2026-08-12 调整：逐页检查后将荧光绿文字与边框收敛为浅色主题可读的成功色； */
+.smart-ops-theme [class~="text-[#00ff9d]"] {
+  color: var(--platform-success) !important;
+}
+
+.smart-ops-theme :is(
+  [class~="border-[#00ff9d]"],
+  [class~="border-[#00ff9d]/30"],
+  [class~="border-[#00ff9d]/50"]
+) {
+  border-color: #74bd91 !important;
+}
+
+.smart-ops-theme .border-slate-600,
+.smart-ops-theme .border-slate-700,
+.smart-ops-theme .border-slate-700\/30,
+.smart-ops-theme .border-slate-700\/50,
+.smart-ops-theme .border-slate-800,
+.smart-ops-theme .border-slate-800\/30,
+.smart-ops-theme .border-slate-800\/40,
+.smart-ops-theme .border-slate-800\/50,
+.smart-ops-theme .border-slate-800\/60,
+.smart-ops-theme .border-white\/5,
+.smart-ops-theme .border-white\/10,
+.smart-ops-theme .border-white\/20 {
+  border-color: var(--platform-border) !important;
+}
+
+/* 2026-08-12 调整：补齐各页面带透明度的深色边框令牌，消除浅色卡片上的黑色分割线； */
+.smart-ops-theme :is(
+  [class^="border-slate-6"], [class*=" border-slate-6"],
+  [class^="border-slate-7"], [class*=" border-slate-7"],
+  [class^="border-slate-8"], [class*=" border-slate-8"],
+  [class^="border-slate-9"], [class*=" border-slate-9"],
+  [class^="border-gray-6"], [class*=" border-gray-6"],
+  [class^="border-gray-7"], [class*=" border-gray-7"],
+  [class^="border-gray-8"], [class*=" border-gray-8"],
+  [class^="border-gray-9"], [class*=" border-gray-9"],
+  [class^="border-zinc-6"], [class*=" border-zinc-6"],
+  [class^="border-zinc-7"], [class*=" border-zinc-7"],
+  [class^="border-zinc-8"], [class*=" border-zinc-8"],
+  [class^="border-zinc-9"], [class*=" border-zinc-9"],
+  [class^="border-neutral-6"], [class*=" border-neutral-6"],
+  [class^="border-neutral-7"], [class*=" border-neutral-7"],
+  [class^="border-neutral-8"], [class*=" border-neutral-8"],
+  [class^="border-neutral-9"], [class*=" border-neutral-9"],
+  [class^="border-stone-6"], [class*=" border-stone-6"],
+  [class^="border-stone-7"], [class*=" border-stone-7"],
+  [class^="border-stone-8"], [class*=" border-stone-8"],
+  [class^="border-stone-9"], [class*=" border-stone-9"]
+) {
+  border-color: var(--platform-border) !important;
+}
+
+/* 2026-08-12 调整：逐页补齐自定义近黑边框，避免浅色卡片继续显示黑色描边； */
+.smart-ops-theme :is(
+  [class~="border-[#0b1221]"],
+  [class~="border-[#02040a]"],
+  [class~="border-[#004466]"],
+  [class~="border-[#030407]"],
+  [class~="border-[#020617]"],
+  [class~="border-[#1e293b]"],
+  [class~="border-[#0a0510]"],
+  [class~="border-[#02050b]"],
+  [class~="border-[#020b05]"]
+) {
+  border-color: var(--platform-border) !important;
+}
+
+/* 2026-08-12 调整：统一列表分隔线的深色透明度变体； */
+.smart-ops-theme :is(
+  [class^="divide-slate-8"], [class*=" divide-slate-8"],
+  [class^="divide-slate-9"], [class*=" divide-slate-9"]
+) > * + * {
+  border-color: var(--platform-border) !important;
+}
+
+/* 2026-08-12 新增：统一其余栏目中性边框，避免浅色背景仍残留深黑分隔线； */
+.smart-ops-theme .border-gray-700,
+.smart-ops-theme .border-gray-800,
+.smart-ops-theme .border-zinc-600,
+.smart-ops-theme .border-zinc-700,
+.smart-ops-theme .border-zinc-800,
+.smart-ops-theme .border-neutral-600,
+.smart-ops-theme .border-neutral-700,
+.smart-ops-theme .border-neutral-800 {
+  border-color: var(--platform-border) !important;
+}
+
+/* 2026-08-12 新增：深色渐变页头和分区背景切换为浅蓝灰渐变，保留原有布局与层级； */
+.smart-ops-theme [class*="bg-gradient-"][class*="from-slate-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-gray-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-zinc-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-neutral-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-stone-"] {
+  background-image: linear-gradient(135deg, var(--platform-chrome-strong), var(--platform-surface-muted)) !important;
+}
+
+.smart-ops-theme [class*="bg-gradient-"][class*="from-cyan-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-blue-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-sky-"] {
+  background-image: linear-gradient(135deg, #d8e9f3, var(--platform-brand-soft)) !important;
+}
+
+/* 2026-08-12 调整：逐页补齐自定义十六进制深色渐变，解决普通页面根背景和局部标题块仍为深色的问题； */
+.smart-ops-theme :is(
+  [class*="bg-gradient-"][class*="from-[#0"],
+  [class*="bg-gradient-"][class*="from-[#1"],
+  [class*="bg-gradient-"][class*="from-[#2"]
+) {
+  background-image: linear-gradient(135deg, var(--platform-chrome-strong), var(--platform-surface-muted)) !important;
+}
+
+/* 2026-08-12 调整：普通页面的自定义径向暗角统一为浅蓝灰柔光，避免容器底色已变浅但暗角仍覆盖其上； */
+.smart-ops-theme [class*="bg-[radial-gradient"] {
+  background-image: radial-gradient(circle at center, rgba(0, 104, 183, 0.1), rgba(232, 239, 244, 0.22) 54%, rgba(248, 250, 252, 0.7) 100%) !important;
+}
+
+/* 2026-08-12 调整：其余业务色渐变统一为柔和浅色标题带，避免局部仍呈深色块； */
+.smart-ops-theme [class*="bg-gradient-"][class*="from-indigo-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-violet-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-purple-"] {
+  background-image: linear-gradient(135deg, #e8ebf7, #f2eef9) !important;
+}
+
+.smart-ops-theme [class*="bg-gradient-"][class*="from-green-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-emerald-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-teal-"] {
+  background-image: linear-gradient(135deg, #e1f1e7, #f2f8f4) !important;
+}
+
+.smart-ops-theme [class*="bg-gradient-"][class*="from-red-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-rose-"] {
+  background-image: linear-gradient(135deg, #f8e4e7, #fdf4f5) !important;
+}
+
+.smart-ops-theme [class*="bg-gradient-"][class*="from-amber-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-orange-"],
+.smart-ops-theme [class*="bg-gradient-"][class*="from-yellow-"] {
+  background-image: linear-gradient(135deg, #fcebd1, #fff8ed) !important;
+}
+
+.smart-ops-theme .border-cyan-500,
+.smart-ops-theme .border-cyan-500\/30,
+.smart-ops-theme .border-cyan-500\/50,
+.smart-ops-theme .border-cyan-600,
+.smart-ops-theme .border-cyan-700,
+.smart-ops-theme .border-cyan-700\/30,
+.smart-ops-theme .border-cyan-800,
+.smart-ops-theme .border-cyan-800\/30,
+.smart-ops-theme .border-cyan-800\/40,
+.smart-ops-theme .border-cyan-900\/30,
+.smart-ops-theme .border-cyan-900\/50,
+.smart-ops-theme .border-cyan-900\/60 {
+  border-color: #a8d1ea !important;
+}
+
+.smart-ops-theme .border-amber-500,
+.smart-ops-theme .border-amber-500\/30,
+.smart-ops-theme .border-amber-500\/50,
+.smart-ops-theme .border-amber-600,
+.smart-ops-theme .border-amber-700\/40,
+.smart-ops-theme .border-amber-800\/40,
+.smart-ops-theme .border-amber-900\/30,
+.smart-ops-theme .border-amber-900\/40,
+.smart-ops-theme .border-amber-900\/50,
+.smart-ops-theme .border-orange-500\/30,
+.smart-ops-theme .border-orange-500\/50,
+.smart-ops-theme .border-orange-800\/40,
+.smart-ops-theme .border-orange-900\/40,
+.smart-ops-theme .border-orange-900\/50,
+.smart-ops-theme .border-yellow-500,
+.smart-ops-theme .border-yellow-600,
+.smart-ops-theme .border-stone-600,
+.smart-ops-theme .border-stone-600\/40,
+.smart-ops-theme .border-stone-700,
+.smart-ops-theme .border-stone-700\/40,
+.smart-ops-theme .border-stone-700\/50,
+.smart-ops-theme .border-stone-800 {
+  border-color: var(--platform-border) !important;
+}
+
+.smart-ops-theme .border-green-700,
+.smart-ops-theme .border-green-800\/30,
+.smart-ops-theme .border-green-900\/50,
+.smart-ops-theme .border-emerald-600\/50,
+.smart-ops-theme .border-emerald-700,
+.smart-ops-theme .border-emerald-800\/30,
+.smart-ops-theme .border-emerald-900\/50 {
+  border-color: #afd9be !important;
+}
+
+.smart-ops-theme .border-red-500\/30,
+.smart-ops-theme .border-red-500\/50,
+.smart-ops-theme .border-red-800,
+.smart-ops-theme .border-red-900,
+.smart-ops-theme .border-red-900\/50 {
+  border-color: #efb5bb !important;
+}
+
+/* 2026-08-12 调整：深色语义边框按业务色转为低饱和浅色边界，并覆盖透明度变体； */
+.smart-ops-theme :is(
+  [class^="border-cyan-7"], [class*=" border-cyan-7"],
+  [class^="border-cyan-8"], [class*=" border-cyan-8"],
+  [class^="border-cyan-9"], [class*=" border-cyan-9"],
+  [class^="border-sky-7"], [class*=" border-sky-7"],
+  [class^="border-sky-8"], [class*=" border-sky-8"],
+  [class^="border-sky-9"], [class*=" border-sky-9"],
+  [class^="border-blue-7"], [class*=" border-blue-7"],
+  [class^="border-blue-8"], [class*=" border-blue-8"],
+  [class^="border-blue-9"], [class*=" border-blue-9"]
+) {
+  border-color: #a8d1ea !important;
+}
+
+.smart-ops-theme :is(
+  [class^="border-green-7"], [class*=" border-green-7"],
+  [class^="border-green-8"], [class*=" border-green-8"],
+  [class^="border-green-9"], [class*=" border-green-9"],
+  [class^="border-emerald-7"], [class*=" border-emerald-7"],
+  [class^="border-emerald-8"], [class*=" border-emerald-8"],
+  [class^="border-emerald-9"], [class*=" border-emerald-9"],
+  [class^="border-teal-7"], [class*=" border-teal-7"],
+  [class^="border-teal-8"], [class*=" border-teal-8"],
+  [class^="border-teal-9"], [class*=" border-teal-9"]
+) {
+  border-color: #afd9be !important;
+}
+
+.smart-ops-theme :is(
+  [class^="border-red-7"], [class*=" border-red-7"],
+  [class^="border-red-8"], [class*=" border-red-8"],
+  [class^="border-red-9"], [class*=" border-red-9"],
+  [class^="border-rose-7"], [class*=" border-rose-7"],
+  [class^="border-rose-8"], [class*=" border-rose-8"],
+  [class^="border-rose-9"], [class*=" border-rose-9"]
+) {
+  border-color: #efb5bb !important;
+}
+
+.smart-ops-theme :is(
+  [class^="border-amber-7"], [class*=" border-amber-7"],
+  [class^="border-amber-8"], [class*=" border-amber-8"],
+  [class^="border-amber-9"], [class*=" border-amber-9"],
+  [class^="border-orange-7"], [class*=" border-orange-7"],
+  [class^="border-orange-8"], [class*=" border-orange-8"],
+  [class^="border-orange-9"], [class*=" border-orange-9"],
+  [class^="border-yellow-7"], [class*=" border-yellow-7"],
+  [class^="border-yellow-8"], [class*=" border-yellow-8"],
+  [class^="border-yellow-9"], [class*=" border-yellow-9"]
+) {
+  border-color: #e6c995 !important;
+}
+
+.smart-ops-theme :is(
+  [class^="border-indigo-7"], [class*=" border-indigo-7"],
+  [class^="border-indigo-8"], [class*=" border-indigo-8"],
+  [class^="border-indigo-9"], [class*=" border-indigo-9"],
+  [class^="border-violet-7"], [class*=" border-violet-7"],
+  [class^="border-violet-8"], [class*=" border-violet-8"],
+  [class^="border-violet-9"], [class*=" border-violet-9"],
+  [class^="border-purple-7"], [class*=" border-purple-7"],
+  [class^="border-purple-8"], [class*=" border-purple-8"],
+  [class^="border-purple-9"], [class*=" border-purple-9"]
+) {
+  border-color: #cbbfe2 !important;
+}
+
+/* 2026-08-11 优化：含页面标题的设备页头统一为轻量蓝白信息栏，移除各页面深褐渐变； */
+.smart-ops-theme > div > div.flex.flex-col.h-full > div:first-child:has(h1) {
+  padding: 0.9rem 1.1rem !important;
+  /* 2026-08-12 调整：设备顶部标题区改为双层浅蓝灰渐变，突出页面边界； */
+  background-color: var(--platform-chrome) !important;
+  background-image: linear-gradient(90deg, #d8e9f3, #e8f2f7 52%, #f1f6f8) !important;
+  border: 1px solid var(--platform-border-strong) !important;
+  border-left: 4px solid var(--platform-brand) !important;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(31, 41, 55, 0.05);
+}
+
+.smart-ops-theme > div > div.flex.flex-col.h-full > div:first-child:has(h1) h1 {
+  color: var(--platform-text) !important;
+  font-size: clamp(1.75rem, 2vw, 2.25rem);
+}
+
+.smart-ops-theme > div > div.flex.flex-col.h-full > div:first-child:has(h1) [class*="border-l"] {
+  border-color: var(--platform-border) !important;
+}
+
+.smart-ops-theme [class~="hover:bg-slate-800/50"]:hover,
+.smart-ops-theme [class~="hover:bg-slate-800/80"]:hover,
+.smart-ops-theme [class~="hover:bg-cyan-900"]:hover,
+.smart-ops-theme [class~="hover:bg-cyan-900/40"]:hover {
+  background-color: var(--platform-brand-soft) !important;
+}
+
+.smart-ops-theme [class~="hover:text-white"]:hover,
+.smart-ops-theme [class~="hover:text-cyan-200"]:hover,
+.smart-ops-theme [class~="hover:text-cyan-300"]:hover,
+.smart-ops-theme [class~="hover:text-cyan-400"]:hover {
+  color: var(--platform-brand) !important;
+}
+
+.smart-ops-theme .animate-pulse.text-orange-500,
+.smart-ops-theme .animate-pulse.text-amber-500 {
+  color: var(--platform-warning) !important;
+}
+
+/* 2026-08-11 修复：按钮和有色操作控件继续使用白色前景，避免通用文字映射降低对比度； */
+.smart-ops-theme button.text-white,
+.smart-ops-theme a.text-white,
+.smart-ops-theme [class*="bg-blue-"][class~="text-white"],
+.smart-ops-theme [class*="bg-cyan-"][class~="text-white"],
+.smart-ops-theme [class*="bg-red-"][class~="text-white"],
+.smart-ops-theme [class*="bg-emerald-"][class~="text-white"] {
+  color: #ffffff !important;
+}
+
+.smart-ops-theme button[class*="bg-amber-"][class*="text-amber-"] {
+  color: #ffffff !important;
+}
+
+.smart-ops-theme button.bg-red-900\/80,
+.smart-ops-theme button.bg-red-800 {
+  color: #ffffff !important;
+  background-color: var(--platform-danger) !important;
+  border-color: #b91c1c !important;
+}
+
+.smart-ops-theme button.bg-emerald-700\/30,
+.smart-ops-theme button.bg-emerald-600\/50 {
+  color: #ffffff !important;
+  background-color: var(--platform-success) !important;
+  border-color: #166534 !important;
+}
+
+/* 2026-08-12 调整：深色按钮类在浅色主题中继续使用实色操作态，避免浅底与白字对比不足； */
+.smart-ops-theme button:is(
+  [class^="bg-cyan-8"], [class*=" bg-cyan-8"],
+  [class^="bg-cyan-9"], [class*=" bg-cyan-9"],
+  [class^="bg-sky-8"], [class*=" bg-sky-8"],
+  [class^="bg-sky-9"], [class*=" bg-sky-9"],
+  [class^="bg-blue-8"], [class*=" bg-blue-8"],
+  [class^="bg-blue-9"], [class*=" bg-blue-9"]
+) {
+  color: #ffffff !important;
+  background-color: var(--platform-brand) !important;
+  border-color: #005792 !important;
+}
+
+.smart-ops-theme button:is(
+  [class^="bg-green-8"], [class*=" bg-green-8"],
+  [class^="bg-green-9"], [class*=" bg-green-9"],
+  [class^="bg-emerald-8"], [class*=" bg-emerald-8"],
+  [class^="bg-emerald-9"], [class*=" bg-emerald-9"],
+  [class^="bg-teal-8"], [class*=" bg-teal-8"],
+  [class^="bg-teal-9"], [class*=" bg-teal-9"]
+) {
+  color: #ffffff !important;
+  background-color: var(--platform-success) !important;
+  border-color: #166534 !important;
+}
+
+.smart-ops-theme button:is(
+  [class^="bg-red-8"], [class*=" bg-red-8"],
+  [class^="bg-red-9"], [class*=" bg-red-9"],
+  [class^="bg-rose-8"], [class*=" bg-rose-8"],
+  [class^="bg-rose-9"], [class*=" bg-rose-9"]
+) {
+  color: #ffffff !important;
+  background-color: var(--platform-danger) !important;
+  border-color: #b91c1c !important;
+}
+
+.smart-ops-theme button:is(
+  [class^="bg-amber-8"], [class*=" bg-amber-8"],
+  [class^="bg-amber-9"], [class*=" bg-amber-9"],
+  [class^="bg-orange-8"], [class*=" bg-orange-8"],
+  [class^="bg-orange-9"], [class*=" bg-orange-9"],
+  [class^="bg-yellow-8"], [class*=" bg-yellow-8"],
+  [class^="bg-yellow-9"], [class*=" bg-yellow-9"]
+) {
+  color: #ffffff !important;
+  background-color: #c66a05 !important;
+  border-color: #a95705 !important;
+}
+
+.smart-ops-theme button:is(
+  [class^="bg-indigo-8"], [class*=" bg-indigo-8"],
+  [class^="bg-indigo-9"], [class*=" bg-indigo-9"],
+  [class^="bg-violet-8"], [class*=" bg-violet-8"],
+  [class^="bg-violet-9"], [class*=" bg-violet-9"],
+  [class^="bg-purple-8"], [class*=" bg-purple-8"],
+  [class^="bg-purple-9"], [class*=" bg-purple-9"]
+) {
+  color: #ffffff !important;
+  background-color: #6750a4 !important;
+  border-color: #55418b !important;
+}
+
+.smart-ops-theme button:is(
+  [class^="bg-slate-7"], [class*=" bg-slate-7"],
+  [class^="bg-slate-8"], [class*=" bg-slate-8"],
+  [class^="bg-slate-9"], [class*=" bg-slate-9"],
+  [class^="bg-stone-7"], [class*=" bg-stone-7"],
+  [class^="bg-stone-8"], [class*=" bg-stone-8"],
+  [class^="bg-stone-9"], [class*=" bg-stone-9"]
+) {
+  color: var(--platform-text) !important;
+  background-color: #dce9f0 !important;
+  border-color: var(--platform-border-strong) !important;
+}
+
+.smart-ops-theme button:is(
+  [class^="bg-cyan-8"], [class*=" bg-cyan-8"], [class^="bg-cyan-9"], [class*=" bg-cyan-9"],
+  [class^="bg-sky-8"], [class*=" bg-sky-8"], [class^="bg-sky-9"], [class*=" bg-sky-9"],
+  [class^="bg-blue-8"], [class*=" bg-blue-8"], [class^="bg-blue-9"], [class*=" bg-blue-9"],
+  [class^="bg-green-8"], [class*=" bg-green-8"], [class^="bg-green-9"], [class*=" bg-green-9"],
+  [class^="bg-emerald-8"], [class*=" bg-emerald-8"], [class^="bg-emerald-9"], [class*=" bg-emerald-9"],
+  [class^="bg-teal-8"], [class*=" bg-teal-8"], [class^="bg-teal-9"], [class*=" bg-teal-9"],
+  [class^="bg-red-8"], [class*=" bg-red-8"], [class^="bg-red-9"], [class*=" bg-red-9"],
+  [class^="bg-rose-8"], [class*=" bg-rose-8"], [class^="bg-rose-9"], [class*=" bg-rose-9"],
+  [class^="bg-amber-8"], [class*=" bg-amber-8"], [class^="bg-amber-9"], [class*=" bg-amber-9"],
+  [class^="bg-orange-8"], [class*=" bg-orange-8"], [class^="bg-orange-9"], [class*=" bg-orange-9"],
+  [class^="bg-yellow-8"], [class*=" bg-yellow-8"], [class^="bg-yellow-9"], [class*=" bg-yellow-9"],
+  [class^="bg-indigo-8"], [class*=" bg-indigo-8"], [class^="bg-indigo-9"], [class*=" bg-indigo-9"],
+  [class^="bg-violet-8"], [class*=" bg-violet-8"], [class^="bg-violet-9"], [class*=" bg-violet-9"],
+  [class^="bg-purple-8"], [class*=" bg-purple-8"], [class^="bg-purple-9"], [class*=" bg-purple-9"]
+) > * {
+  color: inherit !important;
+}
+
+/* 2026-08-12 调整：统一深色 hover 令牌，防止浅色页面在鼠标经过时短暂闪回深灰或高饱和色块； */
+.smart-ops-theme :not(button):is(
+  [class*="hover:bg-slate-7"], [class*="hover:bg-slate-8"], [class*="hover:bg-slate-9"],
+  [class*="hover:bg-gray-7"], [class*="hover:bg-gray-8"], [class*="hover:bg-gray-9"],
+  [class*="hover:bg-zinc-7"], [class*="hover:bg-zinc-8"], [class*="hover:bg-zinc-9"],
+  [class*="hover:bg-neutral-7"], [class*="hover:bg-neutral-8"], [class*="hover:bg-neutral-9"],
+  [class*="hover:bg-stone-7"], [class*="hover:bg-stone-8"], [class*="hover:bg-stone-9"]
+):hover {
+  background-color: #dce9f0 !important;
+}
+
+.smart-ops-theme :not(button):is(
+  [class*="hover:bg-cyan-7"], [class*="hover:bg-cyan-8"], [class*="hover:bg-cyan-9"],
+  [class*="hover:bg-sky-7"], [class*="hover:bg-sky-8"], [class*="hover:bg-sky-9"],
+  [class*="hover:bg-blue-7"], [class*="hover:bg-blue-8"], [class*="hover:bg-blue-9"]
+):hover {
+  background-color: #d6eaf5 !important;
+}
+
+.smart-ops-theme :not(button):is(
+  [class*="hover:bg-green-7"], [class*="hover:bg-green-8"], [class*="hover:bg-green-9"],
+  [class*="hover:bg-emerald-7"], [class*="hover:bg-emerald-8"], [class*="hover:bg-emerald-9"],
+  [class*="hover:bg-teal-7"], [class*="hover:bg-teal-8"], [class*="hover:bg-teal-9"]
+):hover {
+  background-color: #dbefe3 !important;
+}
+
+.smart-ops-theme :not(button):is(
+  [class*="hover:bg-red-7"], [class*="hover:bg-red-8"], [class*="hover:bg-red-9"],
+  [class*="hover:bg-rose-7"], [class*="hover:bg-rose-8"], [class*="hover:bg-rose-9"]
+):hover {
+  background-color: #f7dfe3 !important;
+}
+
+.smart-ops-theme :not(button):is(
+  [class*="hover:bg-amber-7"], [class*="hover:bg-amber-8"], [class*="hover:bg-amber-9"],
+  [class*="hover:bg-orange-7"], [class*="hover:bg-orange-8"], [class*="hover:bg-orange-9"],
+  [class*="hover:bg-yellow-7"], [class*="hover:bg-yellow-8"], [class*="hover:bg-yellow-9"]
+):hover {
+  background-color: #fbe9c9 !important;
+}
+
+.smart-ops-theme :not(button):is(
+  [class*="hover:bg-indigo-7"], [class*="hover:bg-indigo-8"], [class*="hover:bg-indigo-9"],
+  [class*="hover:bg-violet-7"], [class*="hover:bg-violet-8"], [class*="hover:bg-violet-9"],
+  [class*="hover:bg-purple-7"], [class*="hover:bg-purple-8"], [class*="hover:bg-purple-9"]
+):hover {
+  background-color: #e7e0f3 !important;
+}
+
+.smart-ops-theme button:is(
+  [class*="hover:bg-slate-7"], [class*="hover:bg-slate-8"], [class*="hover:bg-slate-9"],
+  [class*="hover:bg-gray-7"], [class*="hover:bg-gray-8"], [class*="hover:bg-gray-9"],
+  [class*="hover:bg-zinc-7"], [class*="hover:bg-zinc-8"], [class*="hover:bg-zinc-9"],
+  [class*="hover:bg-neutral-7"], [class*="hover:bg-neutral-8"], [class*="hover:bg-neutral-9"],
+  [class*="hover:bg-stone-7"], [class*="hover:bg-stone-8"], [class*="hover:bg-stone-9"]
+):hover {
+  color: var(--platform-text) !important;
+  background-color: #d4e4ed !important;
+}
+
+.smart-ops-theme button:is(
+  [class*="hover:bg-cyan-7"], [class*="hover:bg-cyan-8"], [class*="hover:bg-cyan-9"],
+  [class*="hover:bg-sky-7"], [class*="hover:bg-sky-8"], [class*="hover:bg-sky-9"],
+  [class*="hover:bg-blue-7"], [class*="hover:bg-blue-8"], [class*="hover:bg-blue-9"]
+):hover {
+  color: #ffffff !important;
+  background-color: #005f9f !important;
+}
+
+.smart-ops-theme button:is(
+  [class*="hover:bg-green-7"], [class*="hover:bg-green-8"], [class*="hover:bg-green-9"],
+  [class*="hover:bg-emerald-7"], [class*="hover:bg-emerald-8"], [class*="hover:bg-emerald-9"],
+  [class*="hover:bg-teal-7"], [class*="hover:bg-teal-8"], [class*="hover:bg-teal-9"]
+):hover {
+  color: #ffffff !important;
+  background-color: #167342 !important;
+}
+
+.smart-ops-theme button:is(
+  [class*="hover:bg-red-7"], [class*="hover:bg-red-8"], [class*="hover:bg-red-9"],
+  [class*="hover:bg-rose-7"], [class*="hover:bg-rose-8"], [class*="hover:bg-rose-9"]
+):hover {
+  color: #ffffff !important;
+  background-color: #b91c1c !important;
+}
+
+.smart-ops-theme button:is(
+  [class*="hover:bg-amber-7"], [class*="hover:bg-amber-8"], [class*="hover:bg-amber-9"],
+  [class*="hover:bg-orange-7"], [class*="hover:bg-orange-8"], [class*="hover:bg-orange-9"],
+  [class*="hover:bg-yellow-7"], [class*="hover:bg-yellow-8"], [class*="hover:bg-yellow-9"]
+):hover {
+  color: #ffffff !important;
+  background-color: #a95705 !important;
+}
+
+.smart-ops-theme button:is(
+  [class*="hover:bg-indigo-7"], [class*="hover:bg-indigo-8"], [class*="hover:bg-indigo-9"],
+  [class*="hover:bg-violet-7"], [class*="hover:bg-violet-8"], [class*="hover:bg-violet-9"],
+  [class*="hover:bg-purple-7"], [class*="hover:bg-purple-8"], [class*="hover:bg-purple-9"]
+):hover {
+  color: #ffffff !important;
+  background-color: #55418b !important;
+}
+
+.smart-ops-theme button[class*="hover:bg-"]:hover > * {
+  color: inherit !important;
+}
+
+/* 2026-08-12 调整：全部页面图表坐标、网格与提示框适配浅色卡片； */
+.smart-ops-theme .recharts-cartesian-grid line,
+.smart-ops-theme .recharts-polar-grid-angle line,
+.smart-ops-theme .recharts-polar-grid-concentric path {
+  stroke: var(--platform-border);
+}
+
+.smart-ops-theme .recharts-cartesian-axis-tick-value,
+.smart-ops-theme .recharts-polar-angle-axis-tick-value,
+.smart-ops-theme .recharts-polar-radius-axis-tick-value,
+.smart-ops-theme .recharts-legend-item-text {
+  fill: var(--platform-text-secondary) !important;
+  color: var(--platform-text-secondary) !important;
+}
+
+.smart-ops-theme .recharts-default-tooltip {
+  color: var(--platform-text) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid var(--platform-border) !important;
+  border-radius: 6px;
+  box-shadow: var(--platform-shadow);
+}
+
+/* 2026-08-11 优化：暖色图表使用统一低饱和橙色，与品牌蓝形成受控的辅助色搭配； */
+.smart-ops-theme .recharts-wrapper [stroke="#d97706"],
+.smart-ops-theme .recharts-wrapper [stroke="#f59e0b"],
+.smart-ops-theme .recharts-wrapper [stroke="#f97316"],
+.smart-ops-theme .recharts-wrapper [stroke="#eab308"] {
+  stroke: #c66a05 !important;
+}
+
+.smart-ops-theme .recharts-wrapper [fill="#d97706"],
+.smart-ops-theme .recharts-wrapper [fill="#f59e0b"],
+.smart-ops-theme .recharts-wrapper [fill="#f97316"],
+.smart-ops-theme .recharts-wrapper [fill="#eab308"] {
+  fill: #d97706 !important;
+}
+
+.smart-ops-theme .recharts-wrapper stop[stop-color="#d97706"],
+.smart-ops-theme .recharts-wrapper stop[stop-color="#f59e0b"],
+.smart-ops-theme .recharts-wrapper stop[stop-color="#f97316"],
+.smart-ops-theme .recharts-wrapper stop[stop-color="#eab308"] {
+  stop-color: #d97706 !important;
+}
+
+/* 2026-08-12 调整：表格、输入框及弹窗在全部页面统一使用浅色表面； */
+.smart-ops-theme input:not([type="range"]),
+.smart-ops-theme select,
+.smart-ops-theme textarea {
+  color: var(--platform-text) !important;
+  background-color: #ffffff !important;
+  border-color: var(--platform-border) !important;
+}
+
+.smart-ops-theme input:focus,
+.smart-ops-theme select:focus,
+.smart-ops-theme textarea:focus {
+  border-color: var(--platform-brand) !important;
+  box-shadow: 0 0 0 3px rgba(0, 104, 183, 0.1);
+}
+
+.smart-ops-theme table thead {
+  color: var(--platform-text-secondary);
+  /* 2026-08-12 调整：表格标题行使用浅蓝灰，区分数据正文； */
+  background: var(--platform-chrome);
+}
+
+.smart-ops-theme table tbody tr:hover {
+  background: #e2eef5;
+}
+
+/* 2026-08-12 调整：场景信息条使用独立浅蓝表面，避免与普通内容卡片混为一体； */
+.platform-meta-bar {
+  background: var(--platform-panel-tint) !important;
+  border-color: var(--platform-border-strong) !important;
+  box-shadow: 0 6px 18px rgba(31, 55, 72, 0.07);
+}
+
+/* 2026-08-11 优化：3D 视窗改为中深蓝灰渐变和弱网格，兼顾彩色模型与灰模辨识度； */
+.industrial-visual-surface,
+.smart-ops-theme :has(> .industrial-visual-surface),
+/* 2026-08-12 新增：自动识别其余页面直接挂载 Canvas 的 3D 容器并使用统一蓝灰底板； */
+.smart-ops-theme :where(div, section):has(> canvas),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) {
+  color: #e2e8f0 !important;
+  background-color: var(--platform-visual) !important;
+  background-image:
+    linear-gradient(rgba(215, 236, 247, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(215, 236, 247, 0.055) 1px, transparent 1px),
+    radial-gradient(circle at 50% 32%, #42667c 0%, #315268 42%, #29485e 70%, #243f53 100%) !important;
+  background-size: 32px 32px, 32px 32px, 100% 100% !important;
+  border-color: var(--platform-visual-border) !important;
+  box-shadow: inset 0 0 50px rgba(12, 31, 45, 0.22), 0 8px 24px rgba(31, 55, 72, 0.12);
+}
+
+.industrial-visual-surface canvas {
+  filter: saturate(1.04) contrast(1.04) brightness(1.06);
+}
+
+/* 2026-08-12 调整：Canvas 使用正常合成；蓝灰背景由容器或 Three.js 场景提供，避免 WebGL 合成异常； */
+.smart-ops-theme :where(div, section):has(> canvas) {
+  isolation: isolate;
+}
+
+.smart-ops-theme :where(div, section):has(> canvas) > canvas {
+  filter: saturate(1.04) contrast(1.03) brightness(1.06);
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+/* 2026-08-12 修复：外部 FBX/GLTF 视窗覆盖通用 Canvas 规则，保证不透明 WebGL 画布稳定显示； */
+.remote-model-viewer,
+.smart-ops-theme .remote-model-viewer {
+  background-color: #29485e !important;
+  background-image:
+    linear-gradient(rgba(215, 236, 247, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(215, 236, 247, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 50% 32%, #42667c 0%, #315268 48%, #29485e 100%) !important;
+  background-size: 32px 32px, 32px 32px, 100% 100% !important;
+}
+
+.remote-model-viewer > canvas,
+.smart-ops-theme .remote-model-viewer > canvas {
+  filter: saturate(1.03) contrast(1.02) brightness(1.04) !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+/* 2026-08-12 新增：仿真分析前四个外部模型页面采用更清晰的浅蓝灰业务分区； */
+.remote-model-showcase-state {
+  color: var(--platform-text) !important;
+  background: linear-gradient(145deg, var(--platform-chrome), var(--platform-page)) !important;
+  border: 1px solid var(--platform-border);
+  border-radius: 8px;
+}
+
+.remote-model-showcase-page {
+  color: var(--platform-text) !important;
+  background: transparent !important;
+}
+
+.remote-model-showcase-layout {
+  background-color: transparent !important;
+  background-image:
+    radial-gradient(circle at 8% 0%, rgba(0, 104, 183, 0.1), transparent 26%),
+    linear-gradient(180deg, rgba(239, 246, 249, 0.78), rgba(232, 239, 244, 0.34)) !important;
+}
+
+.remote-model-showcase-header {
+  background-color: var(--platform-chrome) !important;
+  background-image: linear-gradient(100deg, #d7e8f2, #e8f2f7 55%, #f3f7f9) !important;
+  border-color: var(--platform-border-strong) !important;
+  border-left: 4px solid var(--platform-brand) !important;
+  border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(31, 55, 72, 0.08) !important;
+}
+
+.remote-model-connection-map {
+  background: var(--platform-panel-tint) !important;
+  border-color: #aec8d8 !important;
+  border-left: 4px solid #4a9bc9 !important;
+  border-radius: 8px;
+  box-shadow: 0 7px 18px rgba(31, 55, 72, 0.06) !important;
+}
+
+.remote-model-showcase-viewer-card {
+  border-color: #91afc1 !important;
+  box-shadow: 0 10px 26px rgba(31, 55, 72, 0.12) !important;
+}
+
+.remote-model-showcase-viewer-card .platform-card-header {
+  background: #d8e8f1 !important;
+  border-color: #adc5d4 !important;
+}
+
+.remote-model-showcase-telemetry-card,
+.remote-model-showcase-chart-card,
+.remote-model-showcase-diagnosis-card {
+  background: #f6f9fb !important;
+  border-color: #bccdd8 !important;
+}
+
+.remote-model-showcase-telemetry-card .platform-card-header,
+.remote-model-showcase-chart-card .platform-card-header,
+.remote-model-showcase-diagnosis-card .platform-card-header {
+  background: #e4eef4 !important;
+}
+
+.remote-model-metric-card {
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(31, 55, 72, 0.04);
+}
+
+.remote-model-metric-card-normal {
+  background: #edf5f8 !important;
+  border-color: #bfd2dd !important;
+}
+
+.remote-model-metric-card-normal:hover {
+  background: #e3f0f6 !important;
+  border-color: #88b8d3 !important;
+}
+
+.remote-model-metric-card-alert {
+  background: #fdf1f2 !important;
+  border-color: #e8b4ba !important;
+}
+
+/* 2026-08-12 新增：清除前四页非 3D 内容区遗留的深灰透明文字底板； */
+.remote-model-assessment-panel .bg-slate-950\/25,
+.remote-model-assessment-panel .bg-slate-950\/35,
+.remote-model-connection-drawer .bg-slate-950\/35,
+.remote-model-connection-drawer .bg-slate-950\/40 {
+  background: #edf4f7 !important;
+  border-color: #bfd0da !important;
+  border-radius: 6px;
+}
+
+.remote-model-assessment-panel .bg-cyan-950\/10 {
+  background: #e5f1f7 !important;
+  border-color: #b8d2e1 !important;
+  border-radius: 6px;
+}
+
+.remote-model-assessment-panel .bg-slate-950 {
+  background: #f7fafb !important;
+  border-color: #9ec6dd !important;
+}
+
+/* 2026-08-12 新增：资源协同三节点按业务角色使用轻量语义色，不再叠加深灰透明背景； */
+.remote-model-connection-node {
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(31, 55, 72, 0.04);
+}
+
+.remote-model-connection-node-source {
+  background: #e6f2f8 !important;
+  border-color: #acd0e3 !important;
+}
+
+.remote-model-connection-node-connector {
+  background: #fff6e8 !important;
+  border-color: #e6c995 !important;
+}
+
+.remote-model-connection-node-target {
+  background: #f2eef9 !important;
+  border-color: #cbbfe2 !important;
+}
+
+/* 2026-08-12 新增：连接详情抽屉使用浅色内容面板，遮罩仍保持半透明深色； */
+.remote-model-connection-drawer {
+  color: var(--platform-text) !important;
+  background: #f5f8fa !important;
+  border-color: #9fbccc !important;
+  box-shadow: -18px 0 44px rgba(31, 55, 72, 0.2) !important;
+}
+
+.remote-model-connection-drawer > header {
+  background: var(--platform-chrome) !important;
+  border-color: var(--platform-border) !important;
+}
+
+.remote-model-provenance-panel > div:first-child {
+  background: #e7f3f8 !important;
+  border-color: #acd0e3 !important;
+  border-radius: 6px;
+}
+
+.remote-model-provenance-panel > div:last-child {
+  background: #f2eef9 !important;
+  border-color: #cbbfe2 !important;
+  border-radius: 6px;
+}
+
+/* 2026-08-12 新增：等待同步状态改用浅中性蓝灰，其余状态继续沿用业务语义色； */
+.remote-model-status-unknown {
+  color: #5f6f7c !important;
+  background: #e5edf2 !important;
+  border-color: #b8c8d2 !important;
+}
+
+/* 2026-08-12 新增：3D 区域内 HUD 保持深蓝半透明底和浅色文字，避免全局浅色文字映射降低对比度； */
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .bg-black\/40,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .bg-black\/50,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .bg-black\/60,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .bg-black\/70,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .bg-black\/80,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .bg-black\/30,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .bg-black\/90 {
+  background-color: rgba(28, 54, 72, 0.88) !important;
+}
+
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .text-white,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .text-slate-100,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .text-slate-200,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .text-slate-300 {
+  color: #e2e8f0 !important;
+}
+
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .text-slate-400,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .text-slate-500,
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) .text-slate-600 {
+  color: #a9bdca !important;
+}
+
+.smart-ops-theme .industrial-visual-surface .text-white,
+.smart-ops-theme .industrial-visual-surface .text-slate-100,
+.smart-ops-theme .industrial-visual-surface .text-slate-200,
+.smart-ops-theme .industrial-visual-surface .text-slate-300 {
+  color: #e2e8f0 !important;
+}
+
+.smart-ops-theme .industrial-visual-surface .text-slate-400,
+.smart-ops-theme .industrial-visual-surface .text-slate-500,
+.smart-ops-theme .industrial-visual-surface .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+.smart-ops-theme .industrial-visual-surface .bg-slate-950,
+.smart-ops-theme .industrial-visual-surface .bg-slate-900,
+.smart-ops-theme .industrial-visual-surface .bg-slate-900\/80,
+.smart-ops-theme .industrial-visual-surface .bg-slate-900\/90,
+.smart-ops-theme .industrial-visual-surface .bg-slate-800,
+.smart-ops-theme .industrial-visual-surface .bg-slate-800\/50 {
+  background-color: rgba(28, 54, 72, 0.88) !important;
+}
+
+/* 2026-08-12 调整：弹窗遮罩保留深色半透明层，避免全局浅色映射后失去前后景层次； */
+.smart-ops-theme .fixed.inset-0:is(
+  [class*="bg-slate-9"],
+  [class*="bg-gray-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-neutral-9"],
+  [class*="bg-stone-9"]
+) {
+  background-color: rgba(15, 23, 42, 0.46) !important;
+}
+
+/* 2026-08-12 调整：3D、数字孪生与工业画布内部的深色 HUD 明确列为视觉例外，兼顾彩色模型和灰模可读性； */
+.smart-ops-theme .industrial-visual-surface :is(
+  [class^="bg-slate-7"], [class*=" bg-slate-7"],
+  [class^="bg-slate-8"], [class*=" bg-slate-8"],
+  [class^="bg-slate-9"], [class*=" bg-slate-9"],
+  [class^="bg-gray-7"], [class*=" bg-gray-7"],
+  [class^="bg-gray-8"], [class*=" bg-gray-8"],
+  [class^="bg-gray-9"], [class*=" bg-gray-9"],
+  [class^="bg-stone-7"], [class*=" bg-stone-7"],
+  [class^="bg-stone-8"], [class*=" bg-stone-8"],
+  [class^="bg-stone-9"], [class*=" bg-stone-9"]
+),
+.smart-ops-theme :where(div, section):has(> canvas) :is(
+  [class^="bg-slate-7"], [class*=" bg-slate-7"],
+  [class^="bg-slate-8"], [class*=" bg-slate-8"],
+  [class^="bg-slate-9"], [class*=" bg-slate-9"],
+  [class^="bg-gray-7"], [class*=" bg-gray-7"],
+  [class^="bg-gray-8"], [class*=" bg-gray-8"],
+  [class^="bg-gray-9"], [class*=" bg-gray-9"],
+  [class^="bg-stone-7"], [class*=" bg-stone-7"],
+  [class^="bg-stone-8"], [class*=" bg-stone-8"],
+  [class^="bg-stone-9"], [class*=" bg-stone-9"]
+),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) :is(
+  [class^="bg-slate-7"], [class*=" bg-slate-7"],
+  [class^="bg-slate-8"], [class*=" bg-slate-8"],
+  [class^="bg-slate-9"], [class*=" bg-slate-9"],
+  [class^="bg-gray-7"], [class*=" bg-gray-7"],
+  [class^="bg-gray-8"], [class*=" bg-gray-8"],
+  [class^="bg-gray-9"], [class*=" bg-gray-9"],
+  [class^="bg-stone-7"], [class*=" bg-stone-7"],
+  [class^="bg-stone-8"], [class*=" bg-stone-8"],
+  [class^="bg-stone-9"], [class*=" bg-stone-9"]
+) {
+  background-color: rgba(28, 54, 72, 0.88) !important;
+}
+
+.smart-ops-theme .industrial-visual-surface :is(
+  [class^="border-slate-7"], [class*=" border-slate-7"],
+  [class^="border-slate-8"], [class*=" border-slate-8"],
+  [class^="border-slate-9"], [class*=" border-slate-9"]
+),
+.smart-ops-theme :where(div, section):has(> canvas) :is(
+  [class^="border-slate-7"], [class*=" border-slate-7"],
+  [class^="border-slate-8"], [class*=" border-slate-8"],
+  [class^="border-slate-9"], [class*=" border-slate-9"]
+),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) :is(
+  [class^="border-slate-7"], [class*=" border-slate-7"],
+  [class^="border-slate-8"], [class*=" border-slate-8"],
+  [class^="border-slate-9"], [class*=" border-slate-9"]
+) {
+  border-color: rgba(148, 183, 204, 0.38) !important;
+}
+
+/* 2026-08-12 调整：恢复画布区域内部被普通页面规则浅化的暗角与黑色 HUD，保持模型和数据叠层清晰； */
+.smart-ops-theme .industrial-visual-surface [class*="bg-[radial-gradient"],
+.smart-ops-theme :where(div, section):has(> canvas) [class*="bg-[radial-gradient"],
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) [class*="bg-[radial-gradient"] {
+  background-image: radial-gradient(circle at center, transparent 18%, rgba(21, 43, 58, 0.82) 100%) !important;
+}
+
+.smart-ops-theme .industrial-visual-surface :is(.bg-black\/30, .bg-black\/90),
+.smart-ops-theme :where(div, section):has(> canvas) :is(.bg-black\/30, .bg-black\/90),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas) :is(.bg-black\/30, .bg-black\/90) {
+  background-color: rgba(28, 54, 72, 0.88) !important;
+}
+
+/* 2026-08-12 调整：逐页识别无 Canvas 的图片、视频和 CSS 仿真视窗，将纯黑背景统一为工业蓝灰； */
+.smart-ops-theme :is(
+  .bg-black.relative.overflow-hidden,
+  .bg-black.aspect-video,
+  .bg-black.overflow-hidden.group,
+  .absolute.bg-black,
+  [class*="backdrop-blur"].bg-black,
+  .absolute.bg-black\/40,
+  .absolute.bg-black\/50,
+  .absolute.bg-black\/60,
+  .absolute.bg-black\/70,
+  .absolute.bg-black\/80,
+  [class*="backdrop-blur"].bg-black\/40,
+  [class*="backdrop-blur"].bg-black\/50,
+  [class*="backdrop-blur"].bg-black\/60,
+  [class*="backdrop-blur"].bg-black\/70,
+  [class*="backdrop-blur"].bg-black\/80,
+  .relative.overflow-hidden.bg-black\/40,
+  .relative.overflow-hidden.bg-black\/50,
+  .relative.overflow-hidden.bg-black\/60,
+  .relative.overflow-hidden.bg-black\/70,
+  .relative.overflow-hidden.bg-black\/80
+) {
+  color: #e2e8f0 !important;
+  background-color: rgba(28, 54, 72, 0.92) !important;
+  border-color: rgba(148, 183, 204, 0.38) !important;
+}
+
+.smart-ops-theme :is(
+  .bg-black.relative.overflow-hidden,
+  .bg-black.aspect-video,
+  .bg-black.overflow-hidden.group,
+  .absolute.bg-black,
+  .absolute.bg-black\/40,
+  .absolute.bg-black\/50,
+  .absolute.bg-black\/60,
+  .absolute.bg-black\/70,
+  .absolute.bg-black\/80,
+  [class*="backdrop-blur"].bg-black,
+  [class*="backdrop-blur"].bg-black\/40,
+  [class*="backdrop-blur"].bg-black\/50,
+  [class*="backdrop-blur"].bg-black\/60,
+  [class*="backdrop-blur"].bg-black\/70,
+  [class*="backdrop-blur"].bg-black\/80,
+  .relative.overflow-hidden.bg-black\/40,
+  .relative.overflow-hidden.bg-black\/50,
+  .relative.overflow-hidden.bg-black\/60,
+  .relative.overflow-hidden.bg-black\/70,
+  .relative.overflow-hidden.bg-black\/80
+) :is(
+  .text-white,
+  .text-slate-100,
+  .text-slate-200,
+  .text-slate-300
+) {
+  color: #e2e8f0 !important;
+}
+
+.smart-ops-theme :is(
+  .bg-black.relative.overflow-hidden,
+  .bg-black.aspect-video,
+  .bg-black.overflow-hidden.group,
+  .absolute.bg-black,
+  .absolute.bg-black\/40,
+  .absolute.bg-black\/50,
+  .absolute.bg-black\/60,
+  .absolute.bg-black\/70,
+  .absolute.bg-black\/80,
+  [class*="backdrop-blur"].bg-black,
+  [class*="backdrop-blur"].bg-black\/40,
+  [class*="backdrop-blur"].bg-black\/50,
+  [class*="backdrop-blur"].bg-black\/60,
+  [class*="backdrop-blur"].bg-black\/70,
+  [class*="backdrop-blur"].bg-black\/80,
+  .relative.overflow-hidden.bg-black\/40,
+  .relative.overflow-hidden.bg-black\/50,
+  .relative.overflow-hidden.bg-black\/60,
+  .relative.overflow-hidden.bg-black\/70,
+  .relative.overflow-hidden.bg-black\/80
+) :is(
+  .text-slate-400,
+  .text-slate-500,
+  .text-slate-600
+) {
+  color: #a9bdca !important;
+}
+
+/* 2026-08-12 修复：深色视觉叠层内恢复高明度业务色，避免全局浅色文字映射在蓝灰 HUD 上对比不足； */
+.smart-ops-theme :is(
+  .industrial-visual-surface,
+  .bg-black.relative.overflow-hidden,
+  .bg-black.aspect-video,
+  .bg-black.overflow-hidden.group,
+  [class*="backdrop-blur"].bg-black,
+  [class*="backdrop-blur"].bg-black\/40,
+  [class*="backdrop-blur"].bg-black\/50,
+  [class*="backdrop-blur"].bg-black\/60,
+  [class*="backdrop-blur"].bg-black\/70,
+  [class*="backdrop-blur"].bg-black\/80,
+  .relative.overflow-hidden.bg-black\/40,
+  .relative.overflow-hidden.bg-black\/50,
+  .relative.overflow-hidden.bg-black\/60,
+  .relative.overflow-hidden.bg-black\/70,
+  .relative.overflow-hidden.bg-black\/80
+) :is(
+  [class^="text-cyan-"], [class*=" text-cyan-"],
+  [class^="text-sky-"], [class*=" text-sky-"],
+  [class^="text-blue-"], [class*=" text-blue-"]
+) {
+  color: #7dd3fc !important;
+}
+
+.smart-ops-theme :is(
+  .industrial-visual-surface,
+  .bg-black.relative.overflow-hidden,
+  .bg-black.aspect-video,
+  .bg-black.overflow-hidden.group,
+  [class*="backdrop-blur"].bg-black,
+  [class*="backdrop-blur"].bg-black\/40,
+  [class*="backdrop-blur"].bg-black\/50,
+  [class*="backdrop-blur"].bg-black\/60,
+  [class*="backdrop-blur"].bg-black\/70,
+  [class*="backdrop-blur"].bg-black\/80,
+  .relative.overflow-hidden.bg-black\/40,
+  .relative.overflow-hidden.bg-black\/50,
+  .relative.overflow-hidden.bg-black\/60,
+  .relative.overflow-hidden.bg-black\/70,
+  .relative.overflow-hidden.bg-black\/80
+) :is(
+  [class^="text-green-"], [class*=" text-green-"],
+  [class^="text-emerald-"], [class*=" text-emerald-"],
+  [class^="text-teal-"], [class*=" text-teal-"]
+) {
+  color: #86efac !important;
+}
+
+.smart-ops-theme :is(
+  .industrial-visual-surface,
+  .bg-black.relative.overflow-hidden,
+  .bg-black.aspect-video,
+  .bg-black.overflow-hidden.group,
+  [class*="backdrop-blur"].bg-black,
+  [class*="backdrop-blur"].bg-black\/40,
+  [class*="backdrop-blur"].bg-black\/50,
+  [class*="backdrop-blur"].bg-black\/60,
+  [class*="backdrop-blur"].bg-black\/70,
+  [class*="backdrop-blur"].bg-black\/80,
+  .relative.overflow-hidden.bg-black\/40,
+  .relative.overflow-hidden.bg-black\/50,
+  .relative.overflow-hidden.bg-black\/60,
+  .relative.overflow-hidden.bg-black\/70,
+  .relative.overflow-hidden.bg-black\/80
+) :is(
+  [class^="text-red-"], [class*=" text-red-"],
+  [class^="text-rose-"], [class*=" text-rose-"]
+) {
+  color: #fca5a5 !important;
+}
+
+.smart-ops-theme :is(
+  .industrial-visual-surface,
+  .bg-black.relative.overflow-hidden,
+  .bg-black.aspect-video,
+  .bg-black.overflow-hidden.group,
+  [class*="backdrop-blur"].bg-black,
+  [class*="backdrop-blur"].bg-black\/40,
+  [class*="backdrop-blur"].bg-black\/50,
+  [class*="backdrop-blur"].bg-black\/60,
+  [class*="backdrop-blur"].bg-black\/70,
+  [class*="backdrop-blur"].bg-black\/80,
+  .relative.overflow-hidden.bg-black\/40,
+  .relative.overflow-hidden.bg-black\/50,
+  .relative.overflow-hidden.bg-black\/60,
+  .relative.overflow-hidden.bg-black\/70,
+  .relative.overflow-hidden.bg-black\/80
+) :is(
+  [class^="text-amber-"], [class*=" text-amber-"],
+  [class^="text-orange-"], [class*=" text-orange-"],
+  [class^="text-yellow-"], [class*=" text-yellow-"]
+) {
+  color: #fcd34d !important;
+}
+
+.smart-ops-theme :is(
+  .industrial-visual-surface,
+  .bg-black.relative.overflow-hidden,
+  .bg-black.aspect-video,
+  .bg-black.overflow-hidden.group,
+  [class*="backdrop-blur"].bg-black,
+  [class*="backdrop-blur"].bg-black\/40,
+  [class*="backdrop-blur"].bg-black\/50,
+  [class*="backdrop-blur"].bg-black\/60,
+  [class*="backdrop-blur"].bg-black\/70,
+  [class*="backdrop-blur"].bg-black\/80,
+  .relative.overflow-hidden.bg-black\/40,
+  .relative.overflow-hidden.bg-black\/50,
+  .relative.overflow-hidden.bg-black\/60,
+  .relative.overflow-hidden.bg-black\/70,
+  .relative.overflow-hidden.bg-black\/80
+) :is(
+  [class^="text-indigo-"], [class*=" text-indigo-"],
+  [class^="text-violet-"], [class*=" text-violet-"],
+  [class^="text-purple-"], [class*=" text-purple-"]
+) {
+  color: #c4b5fd !important;
+}
+
+/* 2026-08-12 调整：固定全屏遮罩无论原透明度写法均保持深色，弹窗正文继续使用浅色面板； */
+.smart-ops-theme .fixed.inset-0:is(
+  .bg-black,
+  .bg-black\/30,
+  .bg-black\/40,
+  .bg-black\/50,
+  .bg-black\/60,
+  .bg-black\/70,
+  .bg-black\/80,
+  .bg-black\/90
+) {
+  background-color: rgba(15, 23, 42, 0.46) !important;
+}
+
+@media (max-width: 1024px) {
+  /* 2026-08-11 调整：中等屏幕缩小第一栏内容留白，保留可视化区域宽度； */
+  .platform-content {
+    padding: 1rem;
+  }
+}

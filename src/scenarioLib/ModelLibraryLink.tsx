@@ -21,7 +21,8 @@ export const ModelLibraryLink: React.FC<ModelLibraryLinkProps> = ({ url, label =
       target="_blank"
       rel="noopener noreferrer"
       title="跳转到模型库（占位链接，待接入真实地址）"
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] text-cyan-500/70 border border-cyan-800/40 rounded bg-cyan-950/30 hover:text-cyan-300 hover:border-cyan-600 transition-colors ${className}`}
+      // 2026-08-11 调整：模型库入口使用统一企业蓝链接样式；
+      className={`platform-model-link inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] border rounded transition-colors ${className}`}
       onClick={(e) => e.stopPropagation()}
     >
       <Box size={10} />

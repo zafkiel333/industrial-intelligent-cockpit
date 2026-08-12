@@ -275,7 +275,8 @@ export const MineHoistView: React.FC = () => {
                  <div className="text-[10px] text-slate-400 font-mono">Payload: {hoistStatus.payload.toFixed(2)} t</div>
               </div>
 
-              <ThreeScene type="mine-hoist" color="#d97706" />
+              {/* 2026-08-11 优化：提升机模型线框改用统一青蓝色，减少与蓝白界面的色彩冲突； */}
+              <ThreeScene type="mine-hoist" color="#2fb7d7" />
             <div className="absolute top-4 right-4 z-20">
               <ModelLibraryLink url={MODEL_LIB_URL} />
             </div>
@@ -288,15 +289,16 @@ export const MineHoistView: React.FC = () => {
                     <AreaChart data={depthTrace}>
                        <defs>
                           <linearGradient id="colorDepth" x1="0" y1="0" x2="0" y2="1">
-                             <stop offset="5%" stopColor="#d97706" stopOpacity={0.3}/>
-                             <stop offset="95%" stopColor="#d97706" stopOpacity={0}/>
+                             {/* 2026-08-11 优化：运行轨迹使用企业蓝渐变，与页面主题保持一致； */}
+                             <stop offset="5%" stopColor="#0068b7" stopOpacity={0.24}/>
+                             <stop offset="95%" stopColor="#0068b7" stopOpacity={0}/>
                           </linearGradient>
                        </defs>
-                       <CartesianGrid strokeDasharray="3 3" stroke="#331c0a" vertical={false} />
-                       <XAxis dataKey="time" stroke="#b45309" tick={{fontSize: 9}} />
-                       <YAxis reversed stroke="#b45309" tick={{fontSize: 9}} label={{ value: 'Depth(m)', angle: -90, position: 'insideLeft', fontSize: 9, fill: '#b45309' }} />
-                       <Tooltip contentStyle={{backgroundColor: '#1a0d00', borderColor: '#d97706', color: '#fff'}} />
-                       <Area type="monotone" dataKey="depth" name="深度(m)" stroke="#d97706" strokeWidth={2} fill="url(#colorDepth)" />
+                       <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" vertical={false} />
+                       <XAxis dataKey="time" stroke="#667085" tick={{fontSize: 9}} />
+                       <YAxis reversed stroke="#667085" tick={{fontSize: 9}} label={{ value: 'Depth(m)', angle: -90, position: 'insideLeft', fontSize: 9, fill: '#667085' }} />
+                       <Tooltip contentStyle={{backgroundColor: '#ffffff', borderColor: '#d9e2ec', color: '#1f2937'}} />
+                       <Area type="monotone" dataKey="depth" name="深度(m)" stroke="#0068b7" strokeWidth={2} fill="url(#colorDepth)" />
                     </AreaChart>
                  </ResponsiveContainer>
               </div>

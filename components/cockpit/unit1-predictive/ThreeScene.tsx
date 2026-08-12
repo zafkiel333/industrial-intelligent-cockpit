@@ -78,13 +78,14 @@ const RotatingAssembly = ({ padsTemp, isPrediction, globalMin, globalMax }: { pa
         {/* Main Shaft (Rotor) */}
         <mesh position={[0, 4, 0]}>
           <cylinderGeometry args={[1.5, 1.5, 8, 32]} />
-          <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.1} />
+          {/* 2026-08-11 优化：深灰轴体提高明度，兼顾灰模展示和金属质感； */}
+          <meshStandardMaterial color="#607789" metalness={0.9} roughness={0.16} />
         </mesh>
         
         {/* Thrust Collar (Mirror finish disc - transparent to see data) */}
         <mesh position={[0, -0.3, 0]}>
           <cylinderGeometry args={[4.2, 4.2, 0.4, 64]} />
-          <meshStandardMaterial color="#94a3b8" metalness={1} roughness={0.1} transparent opacity={0.15} depthWrite={false} />
+          <meshStandardMaterial color="#c0ced8" metalness={1} roughness={0.14} transparent opacity={0.36} depthWrite={false} />
         </mesh>
       </group>
 
@@ -93,7 +94,7 @@ const RotatingAssembly = ({ padsTemp, isPrediction, globalMin, globalMax }: { pa
          {/* Inner Ring base */}
          <mesh position={[0, -0.2, 0]}>
             <cylinderGeometry args={[2, 4.5, 0.2, 64]} />
-            <meshStandardMaterial color="#334155" />
+            <meshStandardMaterial color="#526d80" metalness={0.45} roughness={0.38} />
          </mesh>
          <PadInstances padsTemp={padsTemp} globalMin={globalMin} globalMax={globalMax} />
          
@@ -113,22 +114,26 @@ const RotatingAssembly = ({ padsTemp, isPrediction, globalMin, globalMax }: { pa
 
 export const Unit1ThreeScene = ({ padsTemp, isPrediction, globalMin, globalMax }: { padsTemp: number[], isPrediction: boolean, globalMin?: number, globalMax?: number }) => {
   return (
-    <div className="w-full h-full bg-slate-950 rounded-lg overflow-hidden border border-slate-800 shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] relative">
+    // 2026-08-11 调整：一号机组 3D 视窗保留深色工业可视化底板；
+    <div className="industrial-visual-surface w-full h-full bg-slate-950 rounded-lg overflow-hidden border border-slate-800 shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] relative">
        {/* Background decorative glow changes in prediction mode */}
        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 blur-[100px] pointer-events-none transition-colors duration-1000 ${isPrediction ? 'bg-amber-500/10' : 'bg-blue-500/10'}`} />
        
       <Canvas camera={{ position: [8, 6, 8], fov: 45 }}>
         <color attach="background" args={['transparent']} />
-        <ambientLight intensity={0.6} />
+        {/* 2026-08-11 优化：提高环境光并增加冷暖双向补光，保证灰色金属部件可见； */}
+        <ambientLight intensity={0.9} />
+        <hemisphereLight args={['#d9f2ff', '#243f53', 1.05]} />
         <pointLight position={[0, 5, 0]} intensity={2} color={isPrediction ? "#f59e0b" : "#0ea5e9"} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
+        <directionalLight position={[10, 10, 5]} intensity={1.45} />
+        <directionalLight position={[-8, 4, -6]} intensity={0.8} color="#7ddbf4" />
         
         <RotatingAssembly padsTemp={padsTemp} isPrediction={isPrediction} globalMin={globalMin} globalMax={globalMax} />
         
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} autoRotate autoRotateSpeed={0.5} maxPolarAngle={Math.PI/2 - 0.1}/>
         
         {/* Holographic grid base */}
-        <gridHelper args={[30, 30, isPrediction ? '#78350f' : '#1e293b', isPrediction ? '#451a03' : '#0f172a']} position={[0, -2, 0]} />
+        <gridHelper args={[30, 30, isPrediction ? '#d49a49' : '#82a8bd', isPrediction ? '#8a6b45' : '#52758a']} position={[0, -2, 0]} />
       </Canvas>
       {/* HUD overlay for 3D view mode */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center">

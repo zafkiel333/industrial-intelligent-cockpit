@@ -318,6 +318,10 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
+    // 2026-08-11 优化：提升浅色页面内 3D 灰模与金属材质的色彩和亮度表现；
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
     mountRef.current.appendChild(renderer.domElement);
 
     // Controls
@@ -361,8 +365,20 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
     }
     
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    // 2026-08-11 优化：增加环境光、天空光和轮廓光，避免灰模在蓝灰背景中丢失细节；
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
     scene.add(ambientLight);
+
+    const hemisphereLight = new THREE.HemisphereLight(0xdaf3ff, 0x1e3447, 1.05);
+    scene.add(hemisphereLight);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.35);
+    keyLight.position.set(6, 9, 7);
+    scene.add(keyLight);
+
+    const rimLight = new THREE.DirectionalLight(0x7ddbf4, 0.9);
+    rimLight.position.set(-7, 4, -6);
+    scene.add(rimLight);
  
 
 
@@ -379,7 +395,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
     if (type === 'crane') mainLightColor = '#facc15';
     if (type === 'buoy') mainLightColor = '#eab308'; 
     if (type === 'tachometer') mainLightColor = '#d946ef';
-    if (type === 'mine-hoist') mainLightColor = '#d97706'; 
+    // 2026-08-11 调整：提升机使用青蓝轮廓光，与浅色企业主题及蓝灰视窗协调；
+    if (type === 'mine-hoist') mainLightColor = '#2fb7d7';
     if (type === 'tbm') mainLightColor = '#ef4444';
     if (type === 'drilling-rig') mainLightColor = '#06b6d4';
     if (type === 'crusher') mainLightColor = '#f59e0b'; 
@@ -428,8 +445,9 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
     });
     const mesh = new THREE.Mesh(geometry, wireframeMaterial);
     const coreGeo = new THREE.IcosahedronGeometry(0.8, 1);
+    // 2026-08-11 优化：通用灰模基础材质提高明度，在中深蓝灰视窗中保持轮廓；
     const solidMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x1e293b,
+      color: 0x71879a,
       roughness: 0.3,
       metalness: 0.9,
       emissive: mainLightColor,
@@ -1150,7 +1168,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
         const sheaveGeo = new THREE.CylinderGeometry(2.5, 2.5, 0.8, 32);
         sheaveGeo.rotateZ(Math.PI / 2);
         disposables.push(sheaveGeo);
-        const sheaveMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.5, metalness: 0.6 });
+        // 2026-08-11 优化：提升机主体和笼体使用青蓝金属色，灰色配重由补光保证可见；
+        const sheaveMat = new THREE.MeshStandardMaterial({ color: mainLightColor, roughness: 0.5, metalness: 0.6 });
         disposables.push(sheaveMat);
         const sheave = new THREE.Mesh(sheaveGeo, sheaveMat);
         sheave.position.y = 4;
@@ -1162,7 +1181,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
         animatables.cage = cageGroup;
         const cageGeo = new THREE.BoxGeometry(1.5, 2.5, 1.5);
         disposables.push(cageGeo);
-        const cage = new THREE.Mesh(cageGeo, new THREE.MeshStandardMaterial({ color: 0xf59e0b, wireframe: true }));
+        const cage = new THREE.Mesh(cageGeo, new THREE.MeshStandardMaterial({ color: mainLightColor, wireframe: true }));
         cageGroup.add(cage);
         const cwGeo = new THREE.BoxGeometry(1, 1.5, 0.5);
         disposables.push(cwGeo);
@@ -1695,5 +1714,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ type = 'default', color 
     };
   }, [type, color]);
 
-  return <div ref={mountRef} className="w-full h-full cursor-move z-0" title="Click and drag to rotate" />;
+  // 2026-08-11 调整：标记通用 3D 画布为深色工业可视化区域，避免浅色主题覆盖模型背景；
+  return <div ref={mountRef} className="industrial-visual-surface w-full h-full cursor-move z-0" title="Click and drag to rotate" />;
 };

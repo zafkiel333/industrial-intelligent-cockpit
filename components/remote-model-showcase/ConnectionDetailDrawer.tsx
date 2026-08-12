@@ -53,8 +53,9 @@ export const ConnectionDetailDrawer: React.FC<ConnectionDetailDrawerProps> = ({
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-[2px]" role="presentation" onMouseDown={onClose}>
-      <aside className="ml-auto flex h-full w-full max-w-2xl flex-col border-l border-cyan-500/25 bg-[#050b14] shadow-[-20px_0_50px_rgba(0,0,0,0.45)]" role="dialog" aria-modal="true" aria-label="设备数字孪生资源协同状态" onMouseDown={(event) => event.stopPropagation()}>
+    // 2026-08-12 调整：协同详情保留遮罩，抽屉内容切换为浅蓝灰分层作用域；
+    <div className="remote-model-connection-overlay fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-[2px]" role="presentation" onMouseDown={onClose}>
+      <aside className="remote-model-connection-drawer ml-auto flex h-full w-full max-w-2xl flex-col border-l border-cyan-500/25 bg-[#050b14] shadow-[-20px_0_50px_rgba(0,0,0,0.45)]" role="dialog" aria-modal="true" aria-label="设备数字孪生资源协同状态" onMouseDown={(event) => event.stopPropagation()}>
         <header className="flex items-start justify-between gap-4 border-b border-slate-800 px-5 py-4">
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">

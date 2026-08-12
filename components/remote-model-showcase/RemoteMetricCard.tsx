@@ -14,7 +14,8 @@ export const RemoteMetricCard: React.FC<RemoteMetricCardProps> = ({ field }) => 
   const abnormal = field.abnormal || field.value < field.normal_min || field.value > field.normal_max;
 
   return (
-    <div className={`relative overflow-hidden border p-3 transition ${abnormal ? 'border-rose-500/45 bg-rose-950/15' : 'border-slate-700/60 bg-slate-950/35 hover:border-cyan-700/55'}`}>
+    // 2026-08-12 调整：为前四页实时参数卡增加正常/异常浅色语义作用域；
+    <div className={`remote-model-metric-card ${abnormal ? 'remote-model-metric-card-alert' : 'remote-model-metric-card-normal'} relative overflow-hidden border p-3 transition ${abnormal ? 'border-rose-500/45 bg-rose-950/15' : 'border-slate-700/60 bg-slate-950/35 hover:border-cyan-700/55'}`}>
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-1.5 text-[11px] text-slate-400">

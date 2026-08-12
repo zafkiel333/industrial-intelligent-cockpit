@@ -9,7 +9,8 @@ interface DataProvenancePanelProps {
 }
 
 export const DataProvenancePanel: React.FC<DataProvenancePanelProps> = ({ provenance }) => (
-  <div className="grid gap-3 sm:grid-cols-2">
+  // 2026-08-12 调整：数据来源与本地分析成果使用蓝、紫两类浅色语义面板；
+  <div className="remote-model-provenance-panel grid gap-3 sm:grid-cols-2">
     <div className="border border-cyan-500/20 bg-cyan-950/10 p-3">
       <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-cyan-200">
         <Database size={13} />资源平台提供

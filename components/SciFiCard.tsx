@@ -17,27 +17,28 @@ export const SciFiCard: React.FC<SciFiCardProps> = ({
   noPadding = false,
   highlight = false
 }) => {
-  const borderClass = highlight ? 'border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'border-slate-800/60 shadow-lg';
+  // 2026-08-11 调整：通用卡片改用统一的浅色表面、企业蓝强调线与柔和阴影；
+  const borderClass = highlight ? 'platform-card-highlight' : 'platform-card-default';
   const accentLineOpacity = highlight ? 'opacity-100' : 'opacity-0 group-hover:opacity-100';
 
   // 2026-08-09 修复：允许卡片及内容在 Grid/Flex 中正确收缩，避免异常或长数据持续撑大页面；
   return (
-    <div className={`relative flex min-w-0 flex-col bg-[#0b1221]/80 backdrop-blur-sm border ${borderClass} ${className}`}>
+    <div className={`platform-card relative flex min-w-0 flex-col backdrop-blur-sm border ${borderClass} ${className}`}>
       {/* Top Accent Line */}
-      <div className={`absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-cyan-500/50 to-transparent ${accentLineOpacity} transition-opacity`}></div>
+      <div className={`platform-card-accent absolute top-0 left-0 w-[2px] h-full ${accentLineOpacity} transition-opacity`}></div>
       
       {/* Header */}
       {(title || subtitle) && (
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/5">
+        <div className="platform-card-header flex items-center justify-between px-4 py-3 border-b">
           <div className="flex items-center gap-2">
             {/* Icon decoration */}
-            <div className="w-1 h-3 bg-cyan-500 rounded-sm"></div>
-            <h3 className="font-bold text-slate-100 tracking-wide text-sm uppercase font-[Rajdhani]">
+            <div className="w-1 h-3 bg-[#0068B7] rounded-sm"></div>
+            <h3 className="platform-card-title font-bold tracking-wide text-sm uppercase font-[Rajdhani]">
               {title}
             </h3>
           </div>
           {subtitle && (
-             <span className="text-[10px] bg-cyan-900/30 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-800/30">
+             <span className="platform-card-subtitle text-[10px] px-1.5 py-0.5 rounded border">
                {subtitle}
              </span>
           )}

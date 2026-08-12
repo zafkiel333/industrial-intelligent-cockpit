@@ -41,7 +41,8 @@ export const ScenarioMetaBar: React.FC<{ scenarioId: string }> = ({ scenarioId }
   }, [scenarioId]);
 
   return (
-    <SciFiCard className="mb-4" noPadding>
+    // 2026-08-12 调整：为场景信息条增加独立浅色层级，区别于普通内容卡片；
+    <SciFiCard className="platform-meta-bar mb-4" noPadding>
       <div className="flex flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3">
         {/* 场景名称 + 分类编码(ID)：常显 */}
         <div className="flex flex-col min-w-[160px]">

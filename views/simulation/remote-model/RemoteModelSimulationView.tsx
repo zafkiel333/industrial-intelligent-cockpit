@@ -141,7 +141,8 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
 
   if (initialLoading && !bootstrap) {
     return (
-      <div className="flex h-full min-h-[620px] items-center justify-center bg-[#050b14] text-slate-300">
+      // 2026-08-12 调整：四个外部模型页面的初始化状态使用统一浅蓝灰信息面板；
+      <div className="remote-model-showcase-state flex h-full min-h-[620px] items-center justify-center bg-[#050b14] text-slate-300">
         <div className="text-center">
           <LoaderCircle className="mx-auto animate-spin text-cyan-400" size={34} />
           <div className="mt-4 text-sm tracking-[0.22em]">正在初始化数字孪生数据链路</div>
@@ -153,7 +154,8 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
 
   if (!bootstrap || !dashboard) {
     return (
-      <div className="flex h-full min-h-[620px] items-center justify-center bg-[#050b14] px-6 text-slate-300">
+      // 2026-08-12 调整：外部服务异常状态使用浅色边界和清晰的危险提示层级；
+      <div className="remote-model-showcase-state flex h-full min-h-[620px] items-center justify-center bg-[#050b14] px-6 text-slate-300">
         <div className="max-w-lg border border-rose-500/30 bg-rose-950/10 p-8 text-center">
           <WifiOff className="mx-auto text-rose-400" size={34} />
           <h2 className="mt-4 text-lg font-semibold">外部模型服务暂不可用</h2>
@@ -174,9 +176,10 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
 
   return (
     // 2026-08-09 修复：由应用主内容区统一滚动，避免模型或缺失数据形成嵌套高度扩张；
-    <div className="min-h-0 w-full overflow-x-hidden bg-[#050b14] text-slate-200 font-[Rajdhani]">
-      <div className="min-h-full bg-[radial-gradient(circle_at_50%_0%,rgba(8,145,178,0.12),transparent_36%)] p-4 lg:p-5">
-        <header className="mb-4 border border-slate-800/70 bg-[#08111f]/90 px-4 py-4 shadow-xl">
+    // 2026-08-12 调整：为仿真分析前四页增加独立浅色主题作用域，强化标题、模型、参数和诊断区层级；
+    <div className="remote-model-showcase-page min-h-0 w-full overflow-x-hidden bg-[#050b14] text-slate-200 font-[Rajdhani]">
+      <div className="remote-model-showcase-layout min-h-full bg-[radial-gradient(circle_at_50%_0%,rgba(8,145,178,0.12),transparent_36%)] p-4 lg:p-5">
+        <header className="remote-model-showcase-header mb-4 border border-slate-800/70 bg-[#08111f]/90 px-4 py-4 shadow-xl">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="mb-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-cyan-400/80">
@@ -255,8 +258,8 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
         />
 
         {/* 2026-08-09 修复：固定模型与参数卡边界，超量数据仅在组件内部滚动； */}
-        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(420px,0.9fr)]">
-          <SciFiCard title="3D 设备数字孪生" subtitle={bootstrap.model.format.toUpperCase()} noPadding highlight className="h-[492px] min-h-0 overflow-hidden">
+        <div className="remote-model-showcase-primary-grid grid items-start gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(420px,0.9fr)]">
+          <SciFiCard title="3D 设备数字孪生" subtitle={bootstrap.model.format.toUpperCase()} noPadding highlight className="remote-model-showcase-viewer-card h-[492px] min-h-0 overflow-hidden">
             <RemoteModelViewer
               asset={bootstrap.model}
               fields={dashboard.bindable_fields}
@@ -266,7 +269,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
             />
           </SciFiCard>
 
-          <SciFiCard title="实时运行参数" subtitle={`${dashboard.bindable_fields.length} POINTS`} className="h-[492px] min-h-0 overflow-hidden">
+          <SciFiCard title="实时运行参数" subtitle={`${dashboard.bindable_fields.length} POINTS`} className="remote-model-showcase-telemetry-card h-[492px] min-h-0 overflow-hidden">
             <div className="h-full overflow-y-auto pr-1">
               <div className="grid gap-3 sm:grid-cols-2">
                 {dashboard.bindable_fields.map((field) => <RemoteMetricCard key={field.field} field={field} />)}
@@ -280,7 +283,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
 
         <div className="mt-4 grid gap-4 xl:grid-cols-3">
           {config.chartGroups.map((group, groupIndex) => (
-            <SciFiCard key={group.title} title={group.title} subtitle={`${history.length} SAMPLES`} className="min-h-[272px]">
+            <SciFiCard key={group.title} title={group.title} subtitle={`${history.length} SAMPLES`} className="remote-model-showcase-chart-card min-h-[272px]">
               <div className="h-[215px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
@@ -315,7 +318,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
 
         {/* 2026-08-09 新增：展示数据分析、故障预测和可下载的评估预测报告； */}
         <div className="mt-4 grid gap-4 2xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,0.6fr)]">
-          <SciFiCard title="数据分析、设备评估与故障预测" subtitle="DIAGNOSIS OUTPUT" highlight>
+          <SciFiCard title="数据分析、设备评估与故障预测" subtitle="DIAGNOSIS OUTPUT" highlight className="remote-model-showcase-diagnosis-card">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border border-cyan-500/20 bg-cyan-950/10 px-3 py-2.5">
               <div className="text-[11px] leading-5 text-slate-400">
                 诊断与预测仅依赖当前遥测及运行期历史，3D 模型文件缺失不会中断分析。

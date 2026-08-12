@@ -17,7 +17,8 @@ const riskStyle: Record<DiagnosisResult['riskLevel'], { label: string; className
 export const AssessmentPanel: React.FC<AssessmentPanelProps> = ({ diagnosis }) => {
   if (!diagnosis) {
     return (
-      <div className="flex min-h-52 items-center justify-center border border-dashed border-slate-700/70 bg-slate-950/25 px-8 text-center text-xs leading-6 text-slate-500">
+      // 2026-08-12 调整：诊断等待区加入专属浅色作用域，移除残留深灰文字底板；
+      <div className="remote-model-assessment-panel flex min-h-52 items-center justify-center border border-dashed border-slate-700/70 bg-slate-950/25 px-8 text-center text-xs leading-6 text-slate-500">
         正在积累遥测窗口，诊断结论将在首批数据就绪后生成。
       </div>
     );
@@ -25,7 +26,8 @@ export const AssessmentPanel: React.FC<AssessmentPanelProps> = ({ diagnosis }) =
 
   const risk = riskStyle[diagnosis.riskLevel];
   return (
-    <div className="space-y-4">
+    // 2026-08-12 调整：诊断结论、故障预测和处置建议统一使用浅色信息块；
+    <div className="remote-model-assessment-panel space-y-4">
       <div className="grid gap-3 md:grid-cols-[150px_1fr]">
         <div className="flex flex-col items-center justify-center border border-cyan-500/20 bg-cyan-950/10 p-4">
           <div className="relative flex h-24 w-24 items-center justify-center rounded-full border-4 border-cyan-400/20 bg-slate-950">
