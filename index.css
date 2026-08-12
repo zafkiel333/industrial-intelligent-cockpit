@@ -15,7 +15,8 @@
   --platform-border-strong: #aabcc9;
   --platform-text: #1f2937;
   --platform-text-secondary: #667085;
-  --platform-text-muted: #7b8798;
+  /* 2026-08-12 修复：加深小字号辅助文字，避免浅色卡片上的弱灰文字对比不足； */
+  --platform-text-muted: #5f6b7a;
   --platform-visual: #29485e;
   --platform-visual-border: #7893a6;
   --platform-visual-accent: #63d4ef;
@@ -786,6 +787,91 @@ body {
   background-image: linear-gradient(135deg, #fcebd1, #fff8ed) !important;
 }
 
+/* 2026-08-12 修复：渐变裁剪文字在浅色主题下改为实体高对比度前景，避免浅色渐变与卡片背景融合； */
+.smart-ops-theme .text-transparent[class*="bg-clip-text"] {
+  color: var(--platform-brand-active) !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-image: none !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+}
+
+.smart-ops-theme .platform-readable-title {
+  color: var(--platform-brand-active) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.smart-ops-theme .text-transparent[class*="from-green-"],
+.smart-ops-theme .text-transparent[class*="from-emerald-"],
+.smart-ops-theme .text-transparent[class*="from-teal-"] {
+  color: #166534 !important;
+}
+
+.smart-ops-theme .text-transparent[class*="from-red-"],
+.smart-ops-theme .text-transparent[class*="from-rose-"] {
+  color: #b91c1c !important;
+}
+
+.smart-ops-theme .text-transparent[class*="from-amber-"],
+.smart-ops-theme .text-transparent[class*="from-orange-"],
+.smart-ops-theme .text-transparent[class*="from-yellow-"] {
+  color: #8a4b08 !important;
+}
+
+.smart-ops-theme .text-transparent[class*="from-indigo-"],
+.smart-ops-theme .text-transparent[class*="from-violet-"],
+.smart-ops-theme .text-transparent[class*="from-purple-"] {
+  color: #55418b !important;
+}
+
+/* 2026-08-12 修复：提升低透明度业务文字和单位文字的可读性，装饰图标及绝对定位水印保持原透明度； */
+.smart-ops-theme :is(span, p, label, small, figcaption)[class~="opacity-20"],
+.smart-ops-theme :is(span, p, label, small, figcaption)[class~="opacity-25"],
+.smart-ops-theme :is(span, p, label, small, figcaption)[class~="opacity-30"],
+.smart-ops-theme :is(span, p, label, small, figcaption)[class~="opacity-40"] {
+  opacity: 0.72 !important;
+}
+
+/* 2026-08-12 修复：半透明业务色文字在浅色表面使用完整语义色，避免 10px 至 12px 标签难以辨认； */
+.smart-ops-theme :is(span, p, label, small, h1, h2, h3, h4, h5, h6, div:not(.absolute)):is(
+  [class*="text-cyan-"][class*="/"],
+  [class*="text-sky-"][class*="/"],
+  [class*="text-blue-"][class*="/"]
+) {
+  color: var(--platform-brand-active) !important;
+}
+
+.smart-ops-theme :is(span, p, label, small, h1, h2, h3, h4, h5, h6, div:not(.absolute)):is(
+  [class*="text-green-"][class*="/"],
+  [class*="text-emerald-"][class*="/"],
+  [class*="text-teal-"][class*="/"]
+) {
+  color: #166534 !important;
+}
+
+.smart-ops-theme :is(span, p, label, small, h1, h2, h3, h4, h5, h6, div:not(.absolute)):is(
+  [class*="text-red-"][class*="/"],
+  [class*="text-rose-"][class*="/"]
+) {
+  color: #b91c1c !important;
+}
+
+.smart-ops-theme :is(span, p, label, small, h1, h2, h3, h4, h5, h6, div:not(.absolute)):is(
+  [class*="text-amber-"][class*="/"],
+  [class*="text-orange-"][class*="/"],
+  [class*="text-yellow-"][class*="/"]
+) {
+  color: #8a4b08 !important;
+}
+
+.smart-ops-theme :is(span, p, label, small, h1, h2, h3, h4, h5, h6, div:not(.absolute)):is(
+  [class*="text-indigo-"][class*="/"],
+  [class*="text-violet-"][class*="/"],
+  [class*="text-purple-"][class*="/"]
+) {
+  color: #55418b !important;
+}
+
 .smart-ops-theme .border-cyan-500,
 .smart-ops-theme .border-cyan-500\/30,
 .smart-ops-theme .border-cyan-500\/50,
@@ -1208,6 +1294,33 @@ body {
   box-shadow: var(--platform-shadow);
 }
 
+/* 2026-08-12 修复：覆盖图表内联的深色 Tooltip 文字与遮罩，避免全局浅色提示框出现白底浅字； */
+.smart-ops-theme .recharts-default-tooltip .recharts-tooltip-label,
+.smart-ops-theme .recharts-default-tooltip .recharts-tooltip-item,
+.smart-ops-theme .recharts-default-tooltip .recharts-tooltip-item > * {
+  color: var(--platform-text) !important;
+}
+
+.smart-ops-theme .recharts-tooltip-cursor {
+  fill: rgba(0, 104, 183, 0.08) !important;
+  stroke: #91afc1 !important;
+}
+
+/* 2026-08-12 修复：时间窗 Brush 使用浅蓝灰轨道和深色刻度，避免深色轨道中的刻度文字难以辨认； */
+.smart-ops-theme .recharts-brush .recharts-brush-slide {
+  fill: #dce9f0 !important;
+  stroke: #91afc1 !important;
+}
+
+.smart-ops-theme .recharts-brush .recharts-brush-traveller rect {
+  fill: #f8fafc !important;
+  stroke: var(--platform-brand) !important;
+}
+
+.smart-ops-theme .recharts-brush text {
+  fill: var(--platform-text-secondary) !important;
+}
+
 /* 2026-08-11 优化：暖色图表使用统一低饱和橙色，与品牌蓝形成受控的辅助色搭配； */
 .smart-ops-theme .recharts-wrapper [stroke="#d97706"],
 .smart-ops-theme .recharts-wrapper [stroke="#f59e0b"],
@@ -1501,7 +1614,8 @@ body {
 .smart-ops-theme .industrial-visual-surface .text-slate-400,
 .smart-ops-theme .industrial-visual-surface .text-slate-500,
 .smart-ops-theme .industrial-visual-surface .text-slate-600 {
-  color: #94a3b8 !important;
+  /* 2026-08-12 修复：提高模型内部小字号说明文字明度，在工业蓝灰背景上保持足够对比； */
+  color: #b8c8d2 !important;
 }
 
 .smart-ops-theme .industrial-visual-surface .bg-slate-950,
@@ -1818,4 +1932,164 @@ body {
   .platform-content {
     padding: 1rem;
   }
+}
+
+/* 2026-08-12 修复：识别包含 Canvas 的视窗直属浮层，覆盖 ThreeScene 组件与 HUD 互为兄弟节点的结构； */
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute {
+  color: #e2e8f0 !important;
+}
+
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute:is(
+  [class^="bg-black"], [class*=" bg-black"],
+  [class^="bg-slate-8"], [class*=" bg-slate-8"],
+  [class^="bg-slate-9"], [class*=" bg-slate-9"],
+  [class^="bg-gray-8"], [class*=" bg-gray-8"],
+  [class^="bg-gray-9"], [class*=" bg-gray-9"]
+),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="bg-black"], [class*=" bg-black"],
+  [class^="bg-slate-8"], [class*=" bg-slate-8"],
+  [class^="bg-slate-9"], [class*=" bg-slate-9"],
+  [class^="bg-gray-8"], [class*=" bg-gray-8"],
+  [class^="bg-gray-9"], [class*=" bg-gray-9"]
+) {
+  color: #f8fafc !important;
+  background-color: rgba(20, 43, 59, 0.94) !important;
+}
+
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  .text-slate-300,
+  .text-slate-400,
+  .text-slate-500,
+  .text-slate-600
+) {
+  color: #cbd5e1 !important;
+}
+
+/* 2026-08-12 修复：Canvas 兄弟 HUD 中的业务状态色使用高明度版本，防止浅色主题深色语义字落在深色浮层上； */
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="text-cyan-"], [class*=" text-cyan-"],
+  [class^="text-sky-"], [class*=" text-sky-"],
+  [class^="text-blue-"], [class*=" text-blue-"]
+) {
+  color: #7dd3fc !important;
+}
+
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="text-green-"], [class*=" text-green-"],
+  [class^="text-emerald-"], [class*=" text-emerald-"],
+  [class^="text-teal-"], [class*=" text-teal-"]
+) {
+  color: #86efac !important;
+}
+
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="text-red-"], [class*=" text-red-"],
+  [class^="text-rose-"], [class*=" text-rose-"]
+) {
+  color: #fca5a5 !important;
+}
+
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="text-amber-"], [class*=" text-amber-"],
+  [class^="text-orange-"], [class*=" text-orange-"],
+  [class^="text-yellow-"], [class*=" text-yellow-"]
+) {
+  color: #fcd34d !important;
+}
+
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="text-indigo-"], [class*=" text-indigo-"],
+  [class^="text-violet-"], [class*=" text-violet-"],
+  [class^="text-purple-"], [class*=" text-purple-"]
+) {
+  color: #c4b5fd !important;
+}
+
+/* 2026-08-12 修复：1号机组柱状模型的当前检视和时间轴使用确定性 HUD 配色，避免结构变化再次漏配； */
+.unit1-predictive-visual-shell .unit1-predictive-hud {
+  color: #f8fafc !important;
+  background-color: rgba(20, 43, 59, 0.94) !important;
+  border-color: rgba(169, 189, 202, 0.62) !important;
+  text-shadow: 0 1px 2px rgba(2, 6, 23, 0.52);
+}
+
+.unit1-predictive-visual-shell .unit1-predictive-hud :is(.text-slate-300, .text-slate-400, .text-slate-500) {
+  color: #cbd5e1 !important;
+}
+
+.unit1-predictive-visual-shell .unit1-predictive-hud :is(.text-cyan-400, .text-sky-400, .text-blue-400) {
+  color: #7dd3fc !important;
+}
+
+.unit1-predictive-visual-shell .unit1-predictive-hud :is(.text-amber-400, .text-amber-500, .text-amber-600\/80) {
+  color: #fcd34d !important;
+}
+
+.unit1-predictive-visual-shell .unit1-predictive-hud input[type="range"] {
+  background-color: #526f82 !important;
+}
+
+/* 2026-08-12 修复：深色视觉区的业务标签同步恢复深色半透明底，避免高明度状态字与全局浅化背景再次同色； */
+.smart-ops-theme .industrial-visual-surface :is(
+  [class^="bg-cyan-8"], [class*=" bg-cyan-8"], [class^="bg-cyan-9"], [class*=" bg-cyan-9"],
+  [class^="bg-sky-8"], [class*=" bg-sky-8"], [class^="bg-sky-9"], [class*=" bg-sky-9"],
+  [class^="bg-blue-8"], [class*=" bg-blue-8"], [class^="bg-blue-9"], [class*=" bg-blue-9"]
+),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="bg-cyan-8"], [class*=" bg-cyan-8"], [class^="bg-cyan-9"], [class*=" bg-cyan-9"],
+  [class^="bg-sky-8"], [class*=" bg-sky-8"], [class^="bg-sky-9"], [class*=" bg-sky-9"],
+  [class^="bg-blue-8"], [class*=" bg-blue-8"], [class^="bg-blue-9"], [class*=" bg-blue-9"]
+) {
+  background-color: rgba(3, 105, 161, 0.42) !important;
+}
+
+.smart-ops-theme .industrial-visual-surface :is(
+  [class^="bg-green-8"], [class*=" bg-green-8"], [class^="bg-green-9"], [class*=" bg-green-9"],
+  [class^="bg-emerald-8"], [class*=" bg-emerald-8"], [class^="bg-emerald-9"], [class*=" bg-emerald-9"],
+  [class^="bg-teal-8"], [class*=" bg-teal-8"], [class^="bg-teal-9"], [class*=" bg-teal-9"]
+),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="bg-green-8"], [class*=" bg-green-8"], [class^="bg-green-9"], [class*=" bg-green-9"],
+  [class^="bg-emerald-8"], [class*=" bg-emerald-8"], [class^="bg-emerald-9"], [class*=" bg-emerald-9"],
+  [class^="bg-teal-8"], [class*=" bg-teal-8"], [class^="bg-teal-9"], [class*=" bg-teal-9"]
+) {
+  background-color: rgba(22, 101, 52, 0.42) !important;
+}
+
+.smart-ops-theme .industrial-visual-surface :is(
+  [class^="bg-red-8"], [class*=" bg-red-8"], [class^="bg-red-9"], [class*=" bg-red-9"],
+  [class^="bg-rose-8"], [class*=" bg-rose-8"], [class^="bg-rose-9"], [class*=" bg-rose-9"]
+),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="bg-red-8"], [class*=" bg-red-8"], [class^="bg-red-9"], [class*=" bg-red-9"],
+  [class^="bg-rose-8"], [class*=" bg-rose-8"], [class^="bg-rose-9"], [class*=" bg-rose-9"]
+) {
+  background-color: rgba(153, 27, 27, 0.44) !important;
+}
+
+.smart-ops-theme .industrial-visual-surface :is(
+  [class^="bg-amber-8"], [class*=" bg-amber-8"], [class^="bg-amber-9"], [class*=" bg-amber-9"],
+  [class^="bg-orange-8"], [class*=" bg-orange-8"], [class^="bg-orange-9"], [class*=" bg-orange-9"],
+  [class^="bg-yellow-8"], [class*=" bg-yellow-8"], [class^="bg-yellow-9"], [class*=" bg-yellow-9"]
+),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="bg-amber-8"], [class*=" bg-amber-8"], [class^="bg-amber-9"], [class*=" bg-amber-9"],
+  [class^="bg-orange-8"], [class*=" bg-orange-8"], [class^="bg-orange-9"], [class*=" bg-orange-9"],
+  [class^="bg-yellow-8"], [class*=" bg-yellow-8"], [class^="bg-yellow-9"], [class*=" bg-yellow-9"]
+) {
+  background-color: rgba(146, 64, 14, 0.46) !important;
+}
+
+.smart-ops-theme .industrial-visual-surface :is(
+  [class^="bg-indigo-8"], [class*=" bg-indigo-8"], [class^="bg-indigo-9"], [class*=" bg-indigo-9"],
+  [class^="bg-violet-8"], [class*=" bg-violet-8"], [class^="bg-violet-9"], [class*=" bg-violet-9"],
+  [class^="bg-purple-8"], [class*=" bg-purple-8"], [class^="bg-purple-9"], [class*=" bg-purple-9"]
+),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(canvas) > .absolute :is(
+  [class^="bg-indigo-8"], [class*=" bg-indigo-8"], [class^="bg-indigo-9"], [class*=" bg-indigo-9"],
+  [class^="bg-violet-8"], [class*=" bg-violet-8"], [class^="bg-violet-9"], [class*=" bg-violet-9"],
+  [class^="bg-purple-8"], [class*=" bg-purple-8"], [class^="bg-purple-9"], [class*=" bg-purple-9"]
+) {
+  background-color: rgba(76, 29, 149, 0.42) !important;
 }

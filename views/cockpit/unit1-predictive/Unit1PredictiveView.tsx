@@ -288,8 +288,11 @@ export const Unit1PredictiveView: React.FC = () => {
     <div className="flex flex-col h-full overflow-y-auto space-y-4 p-4 text-slate-200">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 flex items-center gap-3">
-            1号机组异常预测分析 (全维推力瓦监控)
+          {/* 2026-08-12 修复：标题改用高对比度实体文字并与操作按钮分离，避免浅色主题重映射渐变后文字接近背景； */}
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="platform-readable-title text-2xl font-bold">
+              1号机组异常预测分析 (全维推力瓦监控)
+            </h2>
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setUploadModalOpen(true)}
@@ -305,7 +308,7 @@ export const Unit1PredictiveView: React.FC = () => {
                 <Trash2 size={14} /> 一键清空
               </button>
             </div>
-          </h2>
+          </div>
           <p className="text-slate-400 text-sm mt-1">融合物理信息神经网络与退化分析模型，通过时序数据综合预测未来趋势</p>
         </div>
         <div className="px-4 py-3 bg-slate-900 rounded border border-slate-700 flex flex-col gap-1 items-end shadow-inner">
@@ -334,10 +337,11 @@ export const Unit1PredictiveView: React.FC = () => {
       {currentData && (
       <div className="flex flex-col xl:flex-row gap-4 flex-none xl:h-[45vh] min-h-[400px]">
         {/* 3D Model View */}
-        <div className="xl:w-1/3 border border-slate-800 rounded-lg overflow-hidden relative shadow-lg min-h-[300px] xl:min-h-0">
+        {/* 2026-08-12 修复：为模型组件及其兄弟 HUD 建立统一视觉作用域，避免浮层脱离模型内部主题规则； */}
+        <div className="unit1-predictive-visual-shell xl:w-1/3 border border-slate-800 rounded-lg overflow-hidden relative shadow-lg min-h-[300px] xl:min-h-0">
            <Unit1ThreeScene padsTemp={currentData.pads} isPrediction={isPrediction} globalMin={globalTempInfo.min} globalMax={globalTempInfo.max} />
            <div className="absolute top-4 left-4 right-4 flex justify-between pointer-events-none">
-             <div className="bg-slate-900/80 px-3 py-1 rounded border border-slate-700 text-xs shadow flex items-center gap-2">
+              <div className="unit1-predictive-hud bg-slate-900/80 px-3 py-1 rounded border border-slate-700 text-xs shadow flex items-center gap-2">
                 当前检视: <span className={isPrediction ? 'text-amber-400 font-mono' : 'text-blue-400 font-mono'}>{timeLabel}</span>
              </div>
              <div className="pointer-events-auto">
@@ -345,7 +349,7 @@ export const Unit1PredictiveView: React.FC = () => {
              </div>
            </div>
            
-           <div className="absolute bottom-4 left-4 right-4 bg-slate-900/90 p-3 rounded border border-slate-700/50 shadow-xl pointer-events-auto">
+           <div className="unit1-predictive-hud absolute bottom-4 left-4 right-4 bg-slate-900/90 p-3 rounded border border-slate-700/50 shadow-xl pointer-events-auto">
               <div className="flex justify-between items-center mb-3">
                  <span className="text-[10px] text-slate-400 tracking-wider">时间轴: 拖拉以穿越历史与预测域</span>
                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${isPrediction ? 'bg-amber-900/50 text-amber-500 border border-amber-700/50' : 'bg-blue-900/50 text-blue-400 border border-blue-700/50'}`}>
