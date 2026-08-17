@@ -6,9 +6,10 @@ import { Hexagon, ChevronDown, ChevronRight, Circle } from 'lucide-react';
 interface SidebarProps {
   activeId: string;
   onSelect: (id: string) => void;
+  compact?: boolean;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect, compact = false }) => {
   const [expandedIds, setExpandedIds] = useState<string[]>(['smart-ops']);
 
   const toggleExpand = (id: string) => {
@@ -101,8 +102,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect }) => {
 
   return (
     // 2026-08-11 调整：通用侧栏整体切换为浅色企业管理平台样式；
-    <div className="platform-sidebar w-64 flex-shrink-0 border-r overflow-y-auto h-full backdrop-blur-md flex flex-col z-30">
-      <div className="platform-sidebar-brand p-6 border-b sticky top-0 z-10">
+    <div className={`platform-sidebar ${compact ? 'w-56' : 'w-64'} flex-shrink-0 border-r overflow-y-auto h-full backdrop-blur-md flex flex-col z-30`}>
+      <div className={`platform-sidebar-brand ${compact ? 'p-4' : 'p-6'} border-b sticky top-0 z-10`}>
         <h1 className="text-2xl font-bold text-[#0068B7] flex items-center gap-2">
           <Hexagon className="text-[#0068B7]" size={24} />
           工业智脑

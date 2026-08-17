@@ -32,18 +32,27 @@ import type {
 } from "./src/remoteModelShowcase/types";
 
 const app = express();
-// 2026-08-09 调整：支持通过 PORT 环境变量配置服务端口并保留 3000 默认值；
+// 2026-08-17 调整：生产环境默认只监听回环地址，并允许部署配置覆盖。
 const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || (process.env.NODE_ENV === "production" ? "127.0.0.1" : "0.0.0.0");
+const APP_VERSION = process.env.APP_VERSION || process.env.RELEASE_VERSION || "0.0.0";
+const SCENE_DATA_DIRECTORY = path.resolve(
+  process.env.SCENE_DATA_DIRECTORY || path.join(process.cwd(), "src", "data"),
+);
 
 // Need cors and body-parser for completeness? Express has them built or let's ignore if not cross-origin.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", version: APP_VERSION });
+});
+
 // Directories
 // 2026-07-13 清理：powerExample/tempExample 两个目录是早期原型遗留的死代码（从未被读写），已移除。
 const DIRS = {
-  powerUnit1: path.join(process.cwd(), "/src/data/Unit1Pred/有功功率文件"),
-  tempUnit1: path.join(process.cwd(), "/src/data/Unit1Pred/机组推力瓦温度数据"),
+  powerUnit1: path.join(SCENE_DATA_DIRECTORY, "Unit1Pred", "有功功率文件"),
+  tempUnit1: path.join(SCENE_DATA_DIRECTORY, "Unit1Pred", "机组推力瓦温度数据"),
 };
 
 // Ensure directories exist
@@ -52,7 +61,7 @@ Object.values(DIRS).forEach((dir) => {
 });
 
 // Handle tmp upload dir
-const tmpDir = path.join(process.cwd(), "/tmp_uploads");
+const tmpDir = path.join(SCENE_DATA_DIRECTORY, "tmp_uploads");
 if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
 // Configure Multer
@@ -273,43 +282,43 @@ interface ScenarioConfig {
 //   - vibe-ConicalCrusher → vibe-ConeCrusherVibration（同上，真正活文件是 ConeCrusherVibration，指标重新拟定）
 const SCENARIO_CONFIGS: Record<string, ScenarioConfig> = {
   "cv-spillway-monitoring": {
-    dir: path.join(process.cwd(), "/src/data/cv-spillway-monitoring/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "cv-spillway-monitoring", "uploads"),
     metrics: ["flowRate", "waterLevel", "vibrationLevel"],
   },
   "vibe-DamGalleryMicroseism": {
-    dir: path.join(process.cwd(), "/src/data/vibe-DamGalleryMicroseism/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "vibe-DamGalleryMicroseism", "uploads"),
     metrics: ["eventEnergy", "stabilityIndex", "waterLevel", "crackWidth", "seepageFlow"],
   },
   "intake-trash-rack-life": {
-    dir: path.join(process.cwd(), "/src/data/intake-trash-rack-life/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "intake-trash-rack-life", "uploads"),
     metrics: ["flowVelocity", "waterLevelDiff", "vibrationAmplitude", "blockageRatio"],
   },
   "mpm-16": {
-    dir: path.join(process.cwd(), "/src/data/mpm-16/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "mpm-16", "uploads"),
     metrics: ["temperature", "pressure", "vibration"],
   },
   "pm-hydro-36": {
-    dir: path.join(process.cwd(), "/src/data/pm-hydro-36/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "pm-hydro-36", "uploads"),
     metrics: ["pressure", "hoopStress"],
   },
   "eq-7": {
-    dir: path.join(process.cwd(), "/src/data/eq-7/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "eq-7", "uploads"),
     metrics: ["speed", "rpm", "fuelConsumption", "exhaustTemp"],
   },
   "cv-mooring-tension": {
-    dir: path.join(process.cwd(), "/src/data/cv-mooring-tension/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "cv-mooring-tension", "uploads"),
     metrics: ["tensionL1", "tensionL2", "tensionL3", "tensionL4"],
   },
   "eq-12": {
-    dir: path.join(process.cwd(), "/src/data/eq-12/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "eq-12", "uploads"),
     metrics: ["depth", "velocity", "payload", "brakePressure", "ropeTensionR1", "ropeTensionR2", "ropeTensionR3", "ropeTensionR4"],
   },
   "mining-shovel-rope-life": {
-    dir: path.join(process.cwd(), "/src/data/mining-shovel-rope-life/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "mining-shovel-rope-life", "uploads"),
     metrics: ["tension", "abrasion"],
   },
   "vibe-ConeCrusherVibration": {
-    dir: path.join(process.cwd(), "/src/data/vibe-ConeCrusherVibration/uploads"),
+    dir: path.join(SCENE_DATA_DIRECTORY, "vibe-ConeCrusherVibration", "uploads"),
     metrics: ["vibration", "oilPressure", "motorCurrent", "crushingForce"],
   },
 };
@@ -1292,8 +1301,8 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT}`);
     console.log(`Model refresh interval: ${MODEL_REFRESH_INTERVAL_HOURS} hours`);
     console.log(`Press 'q' followed by 'Enter' in the terminal to exit the development server.`);
   });

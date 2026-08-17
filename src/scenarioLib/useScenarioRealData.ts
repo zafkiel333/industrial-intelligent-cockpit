@@ -2,6 +2,7 @@
 // 参照 unit1-predictive 页面原有的 fetchData 逻辑抽出，供 Phase 4.1~4.10 的 10 个试点页面复用。
 // 对接 server.ts 新增的 /api/scenarios/:scenarioId/data 通用接口。
 import { useCallback, useEffect, useState } from 'react';
+import { apiUrl } from '../integration/apiClient';
 
 export interface ScenarioDataRow {
   time: string;
@@ -26,7 +27,7 @@ export function useScenarioRealData(scenarioId: string) {
   const fetchData = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const res = await fetch(`/api/scenarios/${scenarioId}/data`);
+      const res = await fetch(apiUrl(`scenarios/${scenarioId}/data`));
       if (!res.ok) {
         let errText = '未能加载数据，可能暂无后端数据返回';
         try {
@@ -56,7 +57,7 @@ export function useScenarioRealData(scenarioId: string) {
   }, [fetchData]);
 
   const clearData = useCallback(async () => {
-    const res = await fetch(`/api/scenarios/${scenarioId}/upload/clear`, { method: 'DELETE' });
+    const res = await fetch(apiUrl(`scenarios/${scenarioId}/upload/clear`), { method: 'DELETE' });
     const data = await res.json();
     if (data.success) {
       await fetchData();

@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-standalone
+dist-microapp
 dist-ssr
 *.local
 
@@ -28,3 +30,4 @@ dist-ssr
 
 # Project backup archives
 cockpit*.zip
+scene-library-release-*.tar.gz

@@ -12,6 +12,7 @@ import type {
   ShowcaseApiErrorBody,
   TelemetryHistoryPoint,
 } from './types';
+import { apiUrl } from '../integration/apiClient';
 
 const POLL_INTERVAL_MS = 5_000;
 const HISTORY_LIMIT = 60;
@@ -65,7 +66,7 @@ function errorMessage(error: unknown): string {
 }
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
+  const response = await fetch(apiUrl(url), {
     ...init,
     headers: {
       Accept: 'application/json',
@@ -180,7 +181,7 @@ function loadBootstrap(sceneId: ModelShowcaseSceneId): Promise<SceneRuntimeCache
   const existing = bootstrapRequests.get(sceneId);
   if (existing) return existing;
 
-  const request = requestJson<ModelShowcaseBootstrap>(`/api/model-showcase/${sceneId}/bootstrap`)
+  const request = requestJson<ModelShowcaseBootstrap>(`model-showcase/${sceneId}/bootstrap`)
     .then((result) => {
       if (!result?.model || !result.dashboard) throw new Error('模型初始化接口返回结构不完整');
       const stored = storeDashboard(sceneId, result.dashboard).cache;
@@ -231,7 +232,7 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId) {
     const version = (diagnosisRequestVersions.get(sceneId) || 0) + 1;
     diagnosisRequestVersions.set(sceneId, version);
     try {
-      const result = await requestJson<DiagnosisResult>(`/api/model-showcase/${sceneId}/diagnosis`, {
+      const result = await requestJson<DiagnosisResult>(`model-showcase/${sceneId}/diagnosis`, {
         method: 'POST',
         body: '{}',
       });
@@ -250,8 +251,8 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId) {
     if (foreground && mounted.current) setRefreshing(true);
     try {
       const endpoint = requestedMode === 'dashboard'
-        ? `/api/model-showcase/${sceneId}/dashboard`
-        : `/api/model-showcase/${sceneId}/scenario/${requestedMode}`;
+        ? `model-showcase/${sceneId}/dashboard`
+        : `model-showcase/${sceneId}/scenario/${requestedMode}`;
       const next = await requestJson<RemoteDashboardData>(endpoint, requestedMode === 'dashboard'
         ? undefined
         : { method: 'POST', body: '{}' });
@@ -321,7 +322,7 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId) {
     setSyncing(true);
     try {
       const scenario: RemoteScenarioType = mode === 'dashboard' ? 'normal' : mode;
-      const result = await requestJson<ConsistencyResult>(`/api/model-showcase/${sceneId}/data-sync`, {
+      const result = await requestJson<ConsistencyResult>(`model-showcase/${sceneId}/data-sync`, {
         method: 'POST',
         body: JSON.stringify({
           scenario,

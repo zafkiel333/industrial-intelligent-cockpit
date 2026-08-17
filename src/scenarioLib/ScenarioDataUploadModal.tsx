@@ -4,6 +4,7 @@
 // 每个场景所有指标都在同一张 Excel 表里（同一时间轴多列），一次上传即可。
 import React, { useState } from 'react';
 import { Upload, X, Loader2, CheckCircle } from 'lucide-react';
+import { apiUrl } from '../integration/apiClient';
 
 interface ScenarioDataUploadModalProps {
   scenarioId: string;
@@ -35,7 +36,7 @@ export const ScenarioDataUploadModal: React.FC<ScenarioDataUploadModalProps> = (
       const formData = new FormData();
       uploadFiles.forEach((file) => formData.append('files', file));
 
-      const res = await fetch(`/api/scenarios/${scenarioId}/upload`, {
+      const res = await fetch(apiUrl(`scenarios/${scenarioId}/upload`), {
         method: 'POST',
         body: formData,
       });

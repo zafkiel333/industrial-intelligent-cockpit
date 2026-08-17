@@ -935,10 +935,17 @@ import { SIMULATION_CHILDREN } from './constants';
 import { MENU_ITEMS } from './constants';
 import { MenuItem } from './types';
 import { Globe, Clock, Settings, Bell, Loader2 } from 'lucide-react';
-export const App = () => {
+
+export interface AppProps {
+  embedded?: boolean;
+  viewId?: string;
+  onNavigate?: (viewId: string, title?: string) => void;
+}
+
+export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }) => {
   //const [activeTabId, setActiveTabId] = useState('smart-ops');
 
-  const [activeTabId, setActiveTabId] = useState<string>(MENU_ITEMS[0].id);
+  const [activeTabId, setActiveTabId] = useState<string>(viewId || MENU_ITEMS[0].id);
   const [currentTime, setCurrentTime] = useState<string>('');
 
   const [LoadedMaintenanceView, setLoadedMaintenanceView] = useState<React.ComponentType | null>(null);
@@ -973,6 +980,20 @@ export const App = () => {
       }
     }
     return undefined;
+  };
+
+  useEffect(() => {
+    if (viewId && viewId !== activeTabId) setActiveTabId(viewId);
+  }, [viewId]);
+
+  const handleSelect = (id: string) => {
+    setActiveTabId(id);
+    const item = findItemById(MENU_ITEMS, id);
+    try {
+      onNavigate?.(id, item?.label);
+    } catch (error) {
+      console.warn('[scene-library] host navigation callback failed:', error);
+    }
   };
 
   
@@ -2456,17 +2477,17 @@ export const App = () => {
     // 2026-07-09 新增：ScenarioTelemetryProvider 包裹全局，供 ScenarioMetaBar 统一管理场景耗时/日志数据
     <ScenarioTelemetryProvider>
     {/* 2026-08-12 调整：将已确认的浅蓝灰分层主题扩展到全部导航栏目和业务页面； */}
-    <div className="platform-shell flex h-screen w-screen overflow-hidden bg-[#F4F7FA] text-slate-800 font-[Rajdhani]">
+    <div className={`platform-shell flex overflow-hidden bg-[#F4F7FA] text-slate-800 font-[Rajdhani] ${embedded ? 'h-full w-full' : 'h-screen w-screen'}`}>
 
       {/* Sidebar Navigation */}
-      <Sidebar activeId={activeTabId} onSelect={setActiveTabId} />
+      <Sidebar activeId={activeTabId} onSelect={handleSelect} compact={embedded} />
 
       {/* Main Content Area */}
       {/* 2026-08-12 调整：主内容外壳在全部页面使用统一浅色背景和顶部栏层级； */}
       <main className="platform-main platform-main-smart-ops flex-1 flex flex-col h-full overflow-hidden relative">
         
         {/* Top Header Bar - Simplified to blend in */}
-        <header className="platform-header h-14 flex items-center justify-between px-6 border-b backdrop-blur-sm z-20">
+        {!embedded && <header className="platform-header h-14 flex items-center justify-between px-6 border-b backdrop-blur-sm z-20">
           <div className="flex items-center gap-4">
              {/* Logo or Brand Area */}
              <div className="flex items-center gap-2">
@@ -2490,11 +2511,11 @@ export const App = () => {
                <Settings size={14} />
             </div>
           </div>
-        </header>
+        </header>}
 
         {/* Dynamic Content Container */}
         {/* 2026-08-12 调整：全量页面启用统一浅色语义映射，保留业务状态色和深色可视化区域； */}
-        <div className="platform-content smart-ops-theme flex-1 p-6 overflow-y-auto relative scroll-smooth">
+        <div className={`platform-content smart-ops-theme flex-1 overflow-y-auto relative scroll-smooth ${embedded ? 'p-4' : 'p-6'}`}>
            <div className="h-full max-w-[1920px] mx-auto">
              {/* 2026-07-09 新增：场景信息条，挂载在页面内容区、renderContent() 之前，随内容区一起滚动 */}
              <ScenarioMetaBar scenarioId={activeTabId} />

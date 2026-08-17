@@ -7,6 +7,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Expand, Pause, Play, RotateCcw } from 'lucide-react';
 import type { ModelAssetDescriptor, RemoteBindableField, RemoteRenderConfig } from '../../src/remoteModelShowcase/types';
+import { apiUrl } from '../../src/integration/apiClient';
 
 interface RemoteModelViewerProps {
   asset: ModelAssetDescriptor;
@@ -26,7 +27,7 @@ function modelCacheKey(asset: ModelAssetDescriptor): string {
 }
 
 function versionedModelUrl(asset: ModelAssetDescriptor): string {
-  const url = new URL(asset.localAssetUrl, window.location.origin);
+  const url = new URL(apiUrl(asset.localAssetUrl), window.location.origin);
   url.searchParams.set('v', asset.version);
   return `${url.pathname}${url.search}`;
 }

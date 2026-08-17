@@ -7,6 +7,7 @@ import type {
   ModelShowcaseSceneId,
   ShowcaseApiErrorBody,
 } from './types';
+import { apiUrl } from '../integration/apiClient';
 
 const CONNECTION_POLL_INTERVAL_MS = 10_000;
 const connectionSnapshots = new Map<ModelShowcaseSceneId, ModelShowcaseConnectionSnapshot>();
@@ -16,7 +17,7 @@ async function requestConnection(sceneId: ModelShowcaseSceneId): Promise<ModelSh
   const existing = connectionRequests.get(sceneId);
   if (existing) return existing;
 
-  const request = fetch(`/api/model-showcase/${sceneId}/connection`, {
+  const request = fetch(apiUrl(`model-showcase/${sceneId}/connection`), {
     headers: { Accept: 'application/json' },
   }).then(async (response) => {
     const body = await response.json().catch(() => ({})) as ShowcaseApiErrorBody & ModelShowcaseConnectionSnapshot;
@@ -33,7 +34,7 @@ async function requestConnection(sceneId: ModelShowcaseSceneId): Promise<ModelSh
 
 // 2026-08-12 新增：手动更新只调用本地 BFF，由后端完成限流、校验、持久化及旧版本保护；
 async function requestModelRefresh(sceneId: ModelShowcaseSceneId): Promise<ModelRefreshResult> {
-  const response = await fetch(`/api/model-showcase/${sceneId}/model/refresh`, {
+  const response = await fetch(apiUrl(`model-showcase/${sceneId}/model/refresh`), {
     method: 'POST',
     headers: { Accept: 'application/json' },
   });

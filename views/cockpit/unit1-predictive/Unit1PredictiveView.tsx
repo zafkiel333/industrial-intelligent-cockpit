@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 import { Activity, AlertTriangle, Cpu, TrendingUp, Thermometer, ShieldAlert, Zap, Layers, CheckCircle, Upload, X, Loader2, Trash2 } from 'lucide-react';
 // 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
 import { ModelLibraryLink } from '../../../src/scenarioLib/ModelLibraryLink';
+import { apiUrl } from '../../../src/integration/apiClient';
 // MODEL_LIB_LINK[eq-18]: 2026-07-09 新增，占位模型库地址；
 // 模型库正式上线后，只需把下面这一行的 url 改成真实地址即可，其余逻辑不用动。
 const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-lib/models/eq-18';
@@ -46,7 +47,7 @@ export const Unit1PredictiveView: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/data');
+      const res = await fetch(apiUrl('data'));
       if (!res.ok) {
          let errText = '未能加载数据，可能暂无后端数据返回';
          try {
@@ -91,7 +92,7 @@ export const Unit1PredictiveView: React.FC = () => {
         formData.append('files', file);
       });
 
-      const res = await fetch('/api/upload', {
+      const res = await fetch(apiUrl('upload'), {
         method: 'POST',
         body: formData,
       });
@@ -129,7 +130,7 @@ export const Unit1PredictiveView: React.FC = () => {
     }
     try {
       setLoading(true);
-      const res = await fetch('/api/upload/clear', { method: 'DELETE' });
+      const res = await fetch(apiUrl('upload/clear'), { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         alert(data.message);
