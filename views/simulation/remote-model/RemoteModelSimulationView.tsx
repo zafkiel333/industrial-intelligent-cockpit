@@ -34,6 +34,7 @@ import { ConnectionDetailDrawer } from '../../../components/remote-model-showcas
 import { ProjectConnectionMap } from '../../../components/remote-model-showcase/ProjectConnectionMap';
 import { RemoteMetricCard } from '../../../components/remote-model-showcase/RemoteMetricCard';
 import { RemoteModelViewer } from '../../../components/remote-model-showcase/RemoteModelViewer';
+import { openHostModelDetail } from '../../../src/integration/hostModelNavigation';
 import { getModelShowcaseConfig } from '../../../src/remoteModelShowcase/modelCatalog';
 import { downloadScenarioReport } from '../../../src/scenarioLib/scenarioFieldReport';
 import { useModelShowcaseConnection } from '../../../src/remoteModelShowcase/useModelShowcaseConnection';
@@ -78,6 +79,8 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
   // 2026-08-10 新增：连接快照与业务遥测独立请求，任一链路失败都不会清空另一方已有数据；
   const connection = useModelShowcaseConnection(sceneId);
   const [connectionDetailsOpen, setConnectionDetailsOpen] = useState(false);
+  const [modelDetailOpening, setModelDetailOpening] = useState(false);
+  const [modelNavigationError, setModelNavigationError] = useState<string | null>(null);
   const {
     bootstrap,
     dashboard,
@@ -117,6 +120,28 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
   const handleRefreshAll = () => {
     telemetry.refresh();
     void connection.refresh();
+  };
+
+  // 2026-08-18 新增：四页共用同一宿主导航请求，由主平台内标签开关决定最终呈现方式；
+  const handleOpenModelDetail = async () => {
+    if (modelDetailOpening) return;
+    setModelDetailOpening(true);
+    setModelNavigationError(null);
+    try {
+      await openHostModelDetail({
+        detailUrl: config.sourceDetailUrl,
+        modelId: config.modelId,
+        modelName: config.expectedRemoteName,
+      });
+    } catch (navigationError) {
+      const message = navigationError instanceof Error
+        ? navigationError.message
+        : '暂时无法打开模型详情，请稍后重试。';
+      console.error('[scene-library] model detail navigation failed:', navigationError);
+      setModelNavigationError(message);
+    } finally {
+      setModelDetailOpening(false);
+    }
   };
 
   // 2026-08-09 新增：复用通用导出能力生成当前设备评估与故障预测 Markdown 报告；
@@ -285,24 +310,33 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
           )}
         </header>
 
+        {modelNavigationError && (
+          <div className="mb-4 flex items-center gap-2 border border-rose-300 bg-rose-50 px-3 py-2 text-[11px] text-rose-800" role="alert">
+            <AlertCircle size={13} />
+            {modelNavigationError}
+          </div>
+        )}
+
         {/* 2026-08-10 新增：用三段式拓扑呈现来源项目、后端代理和当前驾驶舱之间的连接； */}
         <ProjectConnectionMap
           snapshot={connection.snapshot}
           modelId={config.modelId}
           modelName={config.expectedRemoteName}
-          detailUrl={config.sourceDetailUrl}
           loading={connection.loading}
           error={connection.error}
           onOpenDetails={() => setConnectionDetailsOpen(true)}
+          onOpenModelDetail={() => void handleOpenModelDetail()}
+          modelDetailOpening={modelDetailOpening}
         />
         <ConnectionDetailDrawer
           open={connectionDetailsOpen}
           snapshot={connection.snapshot}
-          detailUrl={config.sourceDetailUrl}
           refreshing={connection.refreshing}
           lastCheckedAt={connection.lastCheckedAt}
           onClose={() => setConnectionDetailsOpen(false)}
           onRefresh={connection.refresh}
+          onOpenModelDetail={() => void handleOpenModelDetail()}
+          modelDetailOpening={modelDetailOpening}
         />
 
         {/* 2026-08-09 修复：固定模型与参数卡边界，超量数据仅在组件内部滚动； */}

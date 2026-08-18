@@ -9,11 +9,12 @@ import { DataProvenancePanel } from './DataProvenancePanel';
 interface ConnectionDetailDrawerProps {
   open: boolean;
   snapshot: ModelShowcaseConnectionSnapshot | null;
-  detailUrl: string;
   refreshing: boolean;
   lastCheckedAt: number | null;
   onClose: () => void;
   onRefresh: () => void;
+  onOpenModelDetail: () => void;
+  modelDetailOpening: boolean;
 }
 
 const formatTime = (value: string | null) => value
@@ -36,11 +37,12 @@ const channelExtra = (channel: ModelConnectionChannelState) => [
 export const ConnectionDetailDrawer: React.FC<ConnectionDetailDrawerProps> = ({
   open,
   snapshot,
-  detailUrl,
   refreshing,
   lastCheckedAt,
   onClose,
   onRefresh,
+  onOpenModelDetail,
+  modelDetailOpening,
 }) => {
   useEffect(() => {
     if (!open) return undefined;
@@ -80,9 +82,10 @@ export const ConnectionDetailDrawer: React.FC<ConnectionDetailDrawerProps> = ({
           <section>
             <div className="mb-2 flex items-center justify-between gap-3">
               <h3 className="text-xs font-semibold text-slate-200">资源来源与应用去向</h3>
-              <a href={snapshot?.sourceProject.detailUrl || detailUrl} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 border border-cyan-500/35 bg-cyan-500/10 px-2.5 py-1.5 text-[10px] text-cyan-200 hover:bg-cyan-500/20">
-                查看资源详情<ExternalLink size={11} />
-              </a>
+              {/* 2026-08-18 调整：与拓扑入口共用主平台宿主导航协议。 */}
+              <button type="button" onClick={onOpenModelDetail} disabled={modelDetailOpening} className="inline-flex items-center gap-1.5 border border-cyan-500/35 bg-cyan-500/10 px-2.5 py-1.5 text-[10px] text-cyan-200 hover:bg-cyan-500/20 disabled:cursor-wait disabled:opacity-60">
+                {modelDetailOpening ? '正在打开…' : '查看资源详情'}<ExternalLink size={11} />
+              </button>
             </div>
             <div className="grid gap-2 text-[10px] sm:grid-cols-3">
               <div className="border border-slate-700/60 bg-slate-950/40 p-3"><div className="text-slate-600">模型资源平台</div><div className="mt-1 text-slate-300">{snapshot?.sourceProject.name || 'ICES-Union 3d2.0'}</div></div>

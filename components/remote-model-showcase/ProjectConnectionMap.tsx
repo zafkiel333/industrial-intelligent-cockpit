@@ -9,10 +9,11 @@ interface ProjectConnectionMapProps {
   snapshot: ModelShowcaseConnectionSnapshot | null;
   modelId: number;
   modelName: string;
-  detailUrl: string;
   loading: boolean;
   error: string | null;
   onOpenDetails: () => void;
+  onOpenModelDetail: () => void;
+  modelDetailOpening: boolean;
 }
 
 const ArrowNode = () => (
@@ -26,10 +27,11 @@ export const ProjectConnectionMap: React.FC<ProjectConnectionMapProps> = ({
   snapshot,
   modelId,
   modelName,
-  detailUrl,
   loading,
   error,
   onOpenDetails,
+  onOpenModelDetail,
+  modelDetailOpening,
 }) => {
   const status = snapshot?.overallStatus ?? 'unknown';
   const cacheLabel = snapshot?.connector.modelCache === 'hit' ? '已就绪' : '等待首次加载';
@@ -63,9 +65,10 @@ export const ProjectConnectionMap: React.FC<ProjectConnectionMapProps> = ({
                 <div className="mt-1 text-[10px] text-slate-500">{modelName} · 资源编号 {modelId}</div>
               </div>
             </div>
-            <a href={snapshot?.sourceProject.detailUrl || detailUrl} target="_blank" rel="noreferrer noopener" className="inline-flex shrink-0 items-center gap-1 border border-cyan-500/35 bg-cyan-500/10 px-2 py-1.5 text-[10px] text-cyan-200 hover:bg-cyan-500/20" title="打开设备模型资源详情">
-              查看资源详情<ExternalLink size={11} />
-            </a>
+            {/* 2026-08-18 调整：交由主平台路由打开内标签或执行普通同页跳转。 */}
+            <button type="button" onClick={onOpenModelDetail} disabled={modelDetailOpening} className="inline-flex shrink-0 items-center gap-1 border border-cyan-500/35 bg-cyan-500/10 px-2 py-1.5 text-[10px] text-cyan-200 hover:bg-cyan-500/20 disabled:cursor-wait disabled:opacity-60" title="在主平台中打开设备模型资源详情">
+              {modelDetailOpening ? '正在打开…' : '查看资源详情'}<ExternalLink size={11} />
+            </button>
           </div>
         </div>
 
