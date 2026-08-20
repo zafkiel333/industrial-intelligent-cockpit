@@ -45,6 +45,7 @@ assert(
 );
 
 const catalogSource = read('src/remoteModelShowcase/modelCatalog.ts');
+const hostNavigationSource = read('src/integration/hostModelNavigation.ts');
 const expectedModelIds = [2326, 2328, 2316, 2310];
 for (const modelId of expectedModelIds) {
   assert(
@@ -55,6 +56,19 @@ for (const modelId of expectedModelIds) {
 assert(
   (catalogSource.match(/sourceDetailUrl:\s*['"]/g) || []).length === expectedModelIds.length,
   'the external-model catalog contains an unexpected number of detail URLs',
+);
+assert(
+  hostNavigationSource.includes("target: {\n      path: MODEL_DETAIL_PATH"),
+  'host navigation must send the approved route instead of a full external URL',
+);
+assert(
+  hostNavigationSource.includes('iframeOrigin: window.location.origin') &&
+    hostNavigationSource.includes('expectedParentOrigin: parentOrigin'),
+  'host navigation timeout diagnostics do not expose the actual iframe/parent origins',
+);
+assert(
+  hostNavigationSource.includes('消息来源白名单是否一致'),
+  'host navigation timeout does not explain the likely iframe origin whitelist mismatch',
 );
 
 const remoteModelUiFiles = [

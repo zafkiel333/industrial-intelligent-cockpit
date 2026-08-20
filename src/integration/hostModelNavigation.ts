@@ -124,7 +124,18 @@ export function openHostModelDetail(target: HostModelNavigationTarget): Promise<
   return new Promise((resolve, reject) => {
     const timeoutId = window.setTimeout(() => {
       window.removeEventListener('message', handleResult);
-      reject(new Error('主平台未响应模型详情跳转请求，请稍后重试。'));
+      console.error('[scene-library:navigate] 主平台响应超时', {
+        requestId,
+        iframeOrigin: window.location.origin,
+        expectedParentOrigin: parentOrigin,
+        targetPath: request.target.path,
+        modelId: request.target.query.id,
+      });
+      reject(
+        new Error(
+          '主平台未响应模型详情跳转请求。请主平台检查 iframe 实际来源与消息来源白名单是否一致。',
+        ),
+      );
     }, NAVIGATION_TIMEOUT_MS);
 
     function finish(): void {
