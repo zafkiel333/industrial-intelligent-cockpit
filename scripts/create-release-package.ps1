@@ -5,7 +5,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 if ($ReleaseId -notmatch '^\d{8}-\d{6}$') {
-    throw "ReleaseId 格式必须为 yyyyMMdd-HHmmss，实际值：$ReleaseId"
+    throw "ReleaseId must use yyyyMMdd-HHmmss format. Actual: $ReleaseId"
 }
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
@@ -26,13 +26,13 @@ $RequiredSourceFiles = @(
 
 foreach ($RelativePath in $RequiredSourceFiles) {
     if (-not (Test-Path -LiteralPath $RelativePath -PathType Leaf)) {
-        throw "发布所需文件不存在：$RelativePath"
+        throw "Required release file is missing: $RelativePath"
     }
 }
 
 $Package = "scene-library-release-$ReleaseId.tar.gz"
 if (Test-Path -LiteralPath $Package) {
-    throw "发布包已经存在，拒绝覆盖：$Package"
+    throw "Release package already exists and will not be overwritten: $Package"
 }
 
 $PackageRoots = @(
@@ -46,17 +46,17 @@ $PackageRoots = @(
 
 & tar.exe -czf $Package @PackageRoots
 if ($LASTEXITCODE -ne 0) {
-    throw "tar 生成发布包失败，退出码：$LASTEXITCODE"
+    throw "tar failed to create the release package. Exit code: $LASTEXITCODE"
 }
 
 $PackageEntries = @(& tar.exe -tzf $Package)
 if ($LASTEXITCODE -ne 0) {
-    throw "tar 读取发布包失败，退出码：$LASTEXITCODE"
+    throw "tar failed to list the release package. Exit code: $LASTEXITCODE"
 }
 
 foreach ($RelativePath in $RequiredSourceFiles) {
     if ($PackageEntries -notcontains $RelativePath) {
-        throw "发布包缺少运行文件：$RelativePath"
+        throw "Release package is missing a runtime file: $RelativePath"
     }
 }
 
@@ -65,7 +65,7 @@ $ForbiddenEntries = @($PackageEntries | Where-Object {
 })
 if ($ForbiddenEntries.Count -gt 0) {
     $ForbiddenEntries | ForEach-Object { Write-Host "FORBIDDEN_ENTRY=$_" }
-    throw '发布包包含禁止目录或文件。'
+    throw 'Release package contains a forbidden directory or file.'
 }
 
 $PackageInfo = Get-Item -LiteralPath $Package
