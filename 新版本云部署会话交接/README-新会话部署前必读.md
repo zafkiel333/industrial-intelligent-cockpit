@@ -467,12 +467,22 @@ npm run typecheck（全量诊断；若仍只有本文记录的 7 个历史错误
 
 目标：生成唯一命名的 `scene-library-release-<RELEASE_ID>.tar.gz`。
 
+必须使用仓库脚本生成，不能再手写不完整的 tar 清单：
+
+```powershell
+$ReleaseId = Get-Date -Format 'yyyyMMdd-HHmmss'
+& .\scripts\create-release-package.ps1 -ReleaseId $ReleaseId
+```
+
+`server.ts` 在生产运行时直接导入 `src/remoteModelShowcase`。因此发布包除双构建产物、`server.ts` 和 npm 清单外，还必须包含该目录。只打包 `dist` 与单独一个 `server.ts` 会在新 Release 启动时出现 `ERR_MODULE_NOT_FOUND`，不得切换生产。
+
 生成后必须：
 
 - 用 `tar -tzf` 检查关键文件；
 - 确认没有顶层多包一层错误目录；
 - 计算 `Get-FileHash -Algorithm SHA256`；
 - 记录包大小、Release ID、Git commit 和 dirty 状态。
+- 确认输出包含 `SERVER_RUNTIME_SOURCES_INCLUDED`。
 
 ### 阶段 6：验证 SSH 密钥并读取远端基线
 
