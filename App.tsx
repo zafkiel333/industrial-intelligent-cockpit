@@ -934,7 +934,7 @@ const maintenanceTrainingViews = import.meta.glob('./views/Maintenance-Training/
 import { SIMULATION_CHILDREN } from './constants';
 // import { EQUIPMENT_LIST } from './constants';
 import { MENU_ITEMS } from './constants';
-import { MenuItem } from './types';
+import { findMenuItemById } from './src/integration/menu';
 import { Globe, Clock, Settings, Bell, Loader2 } from 'lucide-react';
 
 export interface AppProps {
@@ -971,25 +971,13 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-  // Helper to find item by ID in nested structure
-  const findItemById = (items: MenuItem[], id: string): MenuItem | undefined => {
-    for (const item of items) {
-      if (item.id === id) return item;
-      if (item.children) {
-        const found = findItemById(item.children, id);
-        if (found) return found;
-      }
-    }
-    return undefined;
-  };
-
   useEffect(() => {
     if (viewId && viewId !== activeTabId) setActiveTabId(viewId);
   }, [viewId]);
 
   const handleSelect = (id: string) => {
     setActiveTabId(id);
-    const item = findItemById(MENU_ITEMS, id);
+    const item = findMenuItemById(MENU_ITEMS, id);
     try {
       onNavigate?.(id, item?.label);
     } catch (error) {
@@ -1029,7 +1017,7 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
     }
   }, [activeTabId]);
 
-  const activeItem = useMemo(() => findItemById(MENU_ITEMS, activeTabId), [activeTabId]);
+  const activeItem = useMemo(() => findMenuItemById(MENU_ITEMS, activeTabId), [activeTabId]);
 
   const renderContent = () => {
     //if (!activeItem) return <GenericView title="Loading..." />;
@@ -2480,8 +2468,8 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
     {/* 2026-08-12 调整：将已确认的浅蓝灰分层主题扩展到全部导航栏目和业务页面； */}
     <div className={`platform-shell flex overflow-hidden bg-[#F4F7FA] text-slate-800 font-[Rajdhani] ${embedded ? 'h-full w-full' : 'h-screen w-screen'}`}>
 
-      {/* Sidebar Navigation */}
-      <Sidebar activeId={activeTabId} onSelect={handleSelect} compact={embedded} />
+      {/* 主平台负责嵌入模式导航；独立访问仍保留场景库原导航，便于开发和故障排查。 */}
+      {!embedded && <Sidebar activeId={activeTabId} onSelect={handleSelect} />}
 
       {/* Main Content Area */}
       {/* 2026-08-12 调整：主内容外壳在全部页面使用统一浅色背景和顶部栏层级； */}

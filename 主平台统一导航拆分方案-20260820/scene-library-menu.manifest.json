@@ -1,0 +1,7375 @@
+{
+  "schemaVersion": "1.0",
+  "menuVersion": "dev-46e7605-dirty",
+  "generatedAt": "2026-08-20T08:54:24.642Z",
+  "sourceCommit": "46e7605c8c6f1102fdeb6aba1a7984b2e1b062ba",
+  "sourceDirty": true,
+  "defaultViewId": "smart-ops",
+  "menuContentSha256": "b7de7be4e41977d0e9fdfc75c204ff93086d4a33b57f9c33e0351cd1fa05b021",
+  "totalNodeCount": 1049,
+  "items": [
+    {
+      "viewId": "smart-ops",
+      "title": "工业智能运维",
+      "order": 10,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "eq-0",
+          "title": "水轮机智能运维",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-1",
+          "title": "发电机智能运维",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-2",
+          "title": "输电装置智能运维",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-3",
+          "title": "泵站智能运维",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-4",
+          "title": "排污口检测智能运维",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-5",
+          "title": "污水处理智能运维",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-6",
+          "title": "风机电组智能运维",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-7",
+          "title": "船舶智能运维",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-8",
+          "title": "靠泊系统智能运维",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-9",
+          "title": "起重设备智能运维",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-10",
+          "title": "航标智能运维",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-11",
+          "title": "测速仪智能运维",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-12",
+          "title": "矿山提升机智能运维",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-13",
+          "title": "掘进设备智能运维",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-14",
+          "title": "钻孔设备智能运维",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-15",
+          "title": "破碎设备智能运维",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-16",
+          "title": "选矿设备智能运维",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-17",
+          "title": "制砂机智能运维",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "eq-18",
+          "title": "1号机组异常预测分析",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "product-kb",
+      "title": "工业产品知识库",
+      "order": 20,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "kb-ship-power",
+          "title": "船舶动力部件知识库",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-channel-equip",
+          "title": "航道设备组件知识库",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-port-machinery",
+          "title": "港口机械部件知识库",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-port-channel-sys",
+          "title": "港口与航道系统知识库",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-ship-lock",
+          "title": "船闸运行工况知识库",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-dispatch-rules",
+          "title": "航道通航调度规则",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-ship-adapt",
+          "title": "船型与航道适配规则",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-port-combo",
+          "title": "港口装备组合方案库",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-mining-equip",
+          "title": "采掘设备知识库",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-transport-equip",
+          "title": "运输设备知识库",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-crushing-equip",
+          "title": "破碎与分选设备知识库",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-hydro-gen",
+          "title": "水轮发电机组知识库",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-pumped-storage",
+          "title": "抽水蓄能机组知识库",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-hydro-aux",
+          "title": "水电站辅助系统知识库",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "kb-water-conveyance",
+          "title": "输水系统知识库",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "cockpit",
+      "title": "运行驾驶舱",
+      "order": 30,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "cp-mining-dispatch",
+          "title": "露天矿车智能调度驾驶舱",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-mining-safety",
+          "title": "井下六大系统安全态势驾驶舱",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-tailings-safety",
+          "title": "矿库安全监测预警驾驶舱",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-mining-eco",
+          "title": "矿山生态修复与环保驾驶舱",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-mining-emergency",
+          "title": "矿山应急救援指挥驾驶舱",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-hydro-cascade",
+          "title": "流域梯级电站联合调度驾驶舱",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-dam-safety",
+          "title": "大坝安全与水工建筑驾驶舱",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-flood-control",
+          "title": "防洪度汛与水情测报驾驶舱",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-pumped-storage",
+          "title": "抽水蓄能电站运行驾驶舱",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-smart-water",
+          "title": "城市智慧水务全网驾驶舱",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-irrigation",
+          "title": "大型灌区水资源配置驾驶舱",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-ocean-fleet",
+          "title": "全球远洋船队监控驾驶舱",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-container-terminal",
+          "title": "集装箱码头生产作业驾驶舱",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-bulk-terminal",
+          "title": "散货码头物流驾驶舱",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-inland-waterway",
+          "title": "内河航道与通航枢纽驾驶舱",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-green-port",
+          "title": "绿色港口能耗与碳排驾驶舱",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cp-maritime-safety",
+          "title": "水上交通安全监管驾驶舱",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "index-analysis",
+      "title": "运行指数分析",
+      "order": 40,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "ia-mining-recovery",
+          "title": "采矿回采率与贫化率分析",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-mineral-recovery",
+          "title": "选矿金属回收率分析",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-mining-oee",
+          "title": "综采设备OEE（设备综合效率）分析",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-truck-cycle",
+          "title": "矿用卡车运循环效能分析",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-blasting-quality",
+          "title": "爆破效果质量指数分析",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-mining-energy",
+          "title": "矿山能耗单耗分析",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-ventilation",
+          "title": "通风系统风量有效率分析",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-hydro-util",
+          "title": "水能利用率与耗水率分析",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-spillage-loss",
+          "title": "机组弃水损失电量分析",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-turbine-wear",
+          "title": "水轮机气蚀与磨损指数分析",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-reservoir-benefit",
+          "title": "水库兴利调度效益分析",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-dam-health",
+          "title": "大坝安全综合健康指数",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-ps-efficiency",
+          "title": "抽水蓄能综合转换效率分析",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-power-ram",
+          "title": "发电设备可靠性指标(RAM)分析",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-berth-util",
+          "title": "港口泊位利用率与周转率分析",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-crane-efficiency",
+          "title": "岸桥/场桥作业效率(MPH)分析",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-ship-eeoi",
+          "title": "船舶能效营运指数(EEOI)分析",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-ship-cii",
+          "title": "船舶碳强度指标(CII)评级分析",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-lock-efficiency",
+          "title": "闸坝通航效率指数分析",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-transport-connect",
+          "title": "集疏运体系衔接效率分析",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ia-channel-safety",
+          "title": "航道通航安全风险指数",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "digital-delivery",
+      "title": "数字化交付",
+      "order": 50,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "dd-hydro-completion",
+          "title": "水利水电工程竣工数字化交付",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-hydro-twin",
+          "title": "数字孪生水电站交付",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-hydro-bim",
+          "title": "水工建筑物BIM模型交付",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-hydro-dispatch",
+          "title": "水库调度模型与规则数字交付",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-hydro-equip-lifecycle",
+          "title": "机组设备全生命周期数据交付",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-dam-safety",
+          "title": "大坝安全监测系统数字交付",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-hydro-monitor",
+          "title": "水文监测与预报模型交付",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-flood-control",
+          "title": "防洪调度与应急推演系统交付",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-hydro-asset",
+          "title": "水电站资产与运维台账数字交付",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-construction",
+          "title": "数字矿山整体建设交付",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-bim",
+          "title": "矿山BIM/GIM一体化模型交付",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-process",
+          "title": "采掘工艺与流程数字化移交",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-processing",
+          "title": "智能选矿与洗选系统数字交付",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-equip-lifecycle",
+          "title": "矿山设备全生命周期档案交付",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-safety",
+          "title": "安全生产监测预警系统交付",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-geo",
+          "title": "地质建模与资源储量模型交付",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-transport",
+          "title": "运输与提升系统数字化交付",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-energy",
+          "title": "能耗与碳排放监测系统交付",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-mine-eco",
+          "title": "矿山生态修复与闭坑数字交付",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-port-completion",
+          "title": "港口工程竣工数字化交付",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-port-bim",
+          "title": "港航设施BIM模型数字交付",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-channel-regulation",
+          "title": "航道整治工程数字移交",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-ship-lock",
+          "title": "船闸枢纽数字化交付",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-smart-port",
+          "title": "智慧港口管理系统交付",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-nav-dispatch",
+          "title": "通航调度与指挥系统交付",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-ship-lifecycle",
+          "title": "船舶全生命周期数字交付",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-port-asset",
+          "title": "港口设备设施资产数字交付",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-channel-monitor",
+          "title": "航道监测与维护系统交付",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dd-nav-safety",
+          "title": "应急通航与安全管理系统交付",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "simulation",
+      "title": "仿真分析",
+      "order": 60,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "sim-visual-hydro-turbine",
+          "title": "水轮机多工况数字孪生仿真",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-visual-wastewater-pump",
+          "title": "污水泵运行效能与故障仿真",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-visual-bridge-crane",
+          "title": "桥式起重机载荷安全数字孪生仿真",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-visual-haul-truck",
+          "title": "矿卡牵引运输状态与故障仿真",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-vent",
+          "title": "井下通风与有害气体扩散仿真",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-roof",
+          "title": "采掘工作面顶板稳定性仿真",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-blast",
+          "title": "爆破震动与冲击波传播仿真",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-truck",
+          "title": "矿山卡车运输路径与拥堵仿真",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-slope",
+          "title": "露天矿边坡稳定性仿真",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-equip",
+          "title": "采矿设备结构强度与疲劳寿命仿真",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-belt",
+          "title": "皮带输送系统动态仿真",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-evac",
+          "title": "井下行人安全疏散路径仿真",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-water",
+          "title": "矿井水害涌水与排水系统仿真",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-power",
+          "title": "矿山电力系统负荷与故障仿真",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-coop",
+          "title": "自卸卡车-装载机协同作业效率仿真",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-hoist",
+          "title": "矿用提升机运行与钢丝绳受力仿真",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-dust",
+          "title": "粉尘源产生与除尘系统效率仿真",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-freeze",
+          "title": "矿山井筒冻结法施工温度场仿真",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-crash",
+          "title": "矿车碰撞与防撞缓冲结构仿真",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-slurry",
+          "title": "选矿流程中矿浆流动与分级效率仿真",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-dispatch",
+          "title": "矿山智能调度系统“人-车-设备”联合仿真",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-mine-eco",
+          "title": "矿区生态修复与地表形态演化仿真",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-flood",
+          "title": "水库调度与洪水演进过程仿真",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-spill",
+          "title": "溢洪道泄流能力与消能工水力仿真",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-dam",
+          "title": "大坝坝体应力-渗流-温度耦合仿真",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-gate",
+          "title": "闸门启闭过程流固耦合仿真",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-turb",
+          "title": "水电站机组（蜗壳-导叶-转轮）水力性能仿真",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-river",
+          "title": "河道整治工程中河床冲淤演变仿真",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-urban",
+          "title": "城市内涝积水与排水管网运行仿真",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-sedi",
+          "title": "水库泥沙淤积与调沙方案仿真",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-break",
+          "title": "堤防漫顶溃口演化与淹没范围仿真",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-trans",
+          "title": "水电机组启停过渡过程电-机-水联合仿真",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-group",
+          "title": "水闸群联合调度与上下游水位协同仿真",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-pump",
+          "title": "泵站运行工况与能耗优化仿真",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-fish",
+          "title": "生态下泄流量与鱼道通行仿真",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-grid",
+          "title": "水库-电网联合调度（流量-发电-负荷）仿真",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-emer",
+          "title": "高坝溃坝极端工况应急演练仿真",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-ice",
+          "title": "冰情（凌汛）对河道行洪能力影响仿真",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-hydro-vib",
+          "title": "水工建筑物振动与动荷载响应仿真",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-flow",
+          "title": "船舶在港航道交通流仿真",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-lock",
+          "title": "船闸过闸调度与船舶排队仿真",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-motion",
+          "title": "复杂海况/内河工况下船舶运动仿真",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-load",
+          "title": "码头装卸作业与岸桥调度仿真",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-multi",
+          "title": "港区集疏运（公路+铁路）多式联运仿真",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-reg",
+          "title": "航道整治工程对通航条件的影响仿真",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-coll",
+          "title": "船舶碰撞与搁浅事故仿真",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-spill",
+          "title": "港区油品/危险品泄漏扩散仿真",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-berth",
+          "title": "船舶靠离泊操纵与拖轮协同仿真",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-dredge",
+          "title": "航道疏浚施工船机布置与效率仿真",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-sched",
+          "title": "航运调度与时刻表优化仿真",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-bridge",
+          "title": "桥区通航安全仿真（桥墩+桥底净空）",
+          "order": 510,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-surge",
+          "title": "港区风暴潮与极端水位对运营影响仿真",
+          "order": 520,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-group",
+          "title": "内河-枢纽船闸群协同运行仿真",
+          "order": 530,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-auto",
+          "title": "自动化港口（AGV+堆场+岸桥）协同仿真",
+          "order": 540,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-carbon",
+          "title": "航运碳排放与节能减排措施仿真",
+          "order": 550,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sim-port-evac",
+          "title": "港口疏散与应急疏运仿真",
+          "order": 560,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "customer-data",
+      "title": "客户数据管理",
+      "order": 70,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "cdm-master",
+          "title": "客户主数据建档与统一编码",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-org",
+          "title": "客户组织架构与隶属关系管理",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-contacts",
+          "title": "客户联系人与关键岗位画像",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-certs",
+          "title": "客户资质证照与合规材料管理",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-assets",
+          "title": "客户资产（设备）挂接与台账管理",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-sites",
+          "title": "客户项目/站点/码头/矿区档案管理",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-contracts",
+          "title": "客户合同与商务条款数据管理",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-workorders",
+          "title": "客户服务工单与现场处置记录",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-warranty",
+          "title": "质保与维保计划管理",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-parts",
+          "title": "备件与耗材消耗记录（客户维度）",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-complaints",
+          "title": "客户投诉/质量问题闭环管理",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-finance",
+          "title": "客户结算/对账/开票信息管理",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-credit",
+          "title": "客户信用额度与风险预警",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-security",
+          "title": "客户数据权限与共享范围控制",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-integration",
+          "title": "客户数据集成与同步（ERP/CRM/SCADA/IoT）",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-lifecycle",
+          "title": "客户生命周期管理",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-behavior",
+          "title": "客户行为分析与预测",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-satisfaction",
+          "title": "客户满意度与反馈管理",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-risk-compliance",
+          "title": "客户风险评估与合规性审查",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-delivery",
+          "title": "客户交付/运输跟踪与管理",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-contract-perf",
+          "title": "客户合同履约跟踪与管理",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-privacy",
+          "title": "客户数据安全与隐私保护",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-finance-payment",
+          "title": "客户财务与支付信息管理",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-training",
+          "title": "客户支持与培训记录",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-reporting",
+          "title": "客户多维度数据视图与报告",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-social",
+          "title": "客户社交媒体与在线互动分析",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-loyalty",
+          "title": "客户忠诚度与奖励管理",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-kb",
+          "title": "客户服务与支持案例库",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-supply-chain",
+          "title": "供应链与客户数据协同管理",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-portal",
+          "title": "客户自助服务平台与门户管理",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-tendering",
+          "title": "客户招投标与中标历史记录",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-competitors",
+          "title": "客户竞对态势与份额分析",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-decision-chain",
+          "title": "客户决策链与人脉关系图谱",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-marketing-activity",
+          "title": "客户营销活动参与记录",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-white-space",
+          "title": "客户空白市场与交叉销售分析",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-strategic-planning",
+          "title": "大客户年度战略规划",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-benchmark-cases",
+          "title": "客户标杆案例与样板点管理",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-custom-dev",
+          "title": "客户定制化开发与交付档案",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-channel-auth",
+          "title": "客户渠道授权与代理等级管理",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-churn-model",
+          "title": "客户流失预警与挽留模型",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-reverse-logistics",
+          "title": "客户退换货与逆向物流管理",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-site-visits",
+          "title": "客户现场拜访与签到记录",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-trial-equipment",
+          "title": "客户试用与借测设备管理",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-shipping-config",
+          "title": "客户包装与发货特殊要求配置",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-esg-profile",
+          "title": "客户ESG指标与碳排放档案",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-business-intel",
+          "title": "客户工商情报与舆情监控",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-ip-nda",
+          "title": "客户知识产权与保密协议管理",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-crisis-response",
+          "title": "客户应急响应与危机公关预案",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-digital-touchpoints",
+          "title": "客户数字化触点与访问轨迹",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cdm-faq-kb",
+          "title": "客户知识库与常见问题沉淀",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "remote-expert",
+      "title": "远程专家服务",
+      "order": 80,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "re-profile",
+          "title": "专家资源池与画像",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-matching",
+          "title": "智能匹配调度引擎",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-consultation",
+          "title": "远程音视频会诊",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-diagnosis",
+          "title": "智能故障诊断中心",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-decision",
+          "title": "联合决策支持平台",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-tickets",
+          "title": "专家工单管理系统",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-collaboration",
+          "title": "专家协同工作台",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-guidance",
+          "title": "远程AR作业指导",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-conclusion",
+          "title": "诊断结论归档中心",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-knowledge",
+          "title": "专家知识沉淀库",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-compliance",
+          "title": "服务合规审计",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "re-evaluation",
+          "title": "服务效能评估",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-device-fault",
+          "title": "远程设备故障专家会诊",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-ops-anomaly",
+          "title": "远程运行异常联合研判",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-emergency-support",
+          "title": "远程应急抢险技术支援",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-accident-review",
+          "title": "远程重大事故技术复盘",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-health-eval",
+          "title": "远程设备健康状态评估",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-failure-analysis",
+          "title": "远程关键部件失效分析",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-life-prediction",
+          "title": "远程设备寿命预测与延寿评估",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-ops-optimization",
+          "title": "远程运维策略优化服务",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-complex-diag",
+          "title": "远程复杂工况诊断支持",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-param-tuning",
+          "title": "远程参数整定与性能调优",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-maintenance-review",
+          "title": "远程检修方案评审服务",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-maintenance-guide",
+          "title": "远程检修过程专家指导",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-downtime-analysis",
+          "title": "远程停机原因分析与认定",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-system-fault",
+          "title": "远程系统级联动故障诊断",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-extreme-condition",
+          "title": "远程极端工况应对支持",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-safety-risk",
+          "title": "远程安全风险评估服务",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-safety-accident",
+          "title": "远程安全事故技术鉴定",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-compliance-check",
+          "title": "远程作业规程合规性审查",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-strategy-sim",
+          "title": "远程运行策略仿真与验证",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-process-optimize",
+          "title": "远程工艺流程优化咨询",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-energy-diag",
+          "title": "远程能效分析与节能诊断",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-env-compliance",
+          "title": "远程环保排放合规评估",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-upgrade-arg",
+          "title": "远程设备升级改造论证",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-tech-route",
+          "title": "远程技术路线比选咨询",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-dt-calibration",
+          "title": "远程数字孪生模型校核",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-data-analysis",
+          "title": "远程多源运行数据深度分析",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-expert-collab",
+          "title": "远程专家协同会商服务",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-cross-region",
+          "title": "远程跨区域集中运维支撑",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-major-project",
+          "title": "远程重大项目技术把关",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-new-equipment",
+          "title": "远程新设备投运技术支持",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-commissioning",
+          "title": "远程调试与试运行专家服务",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-stability-eval",
+          "title": "远程系统稳定性评估",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-production-opt",
+          "title": "远程生产组织优化建议",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-disaster-warning",
+          "title": "远程灾害风险预警研判",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-inspection-review",
+          "title": "远程智能巡检结果复核",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-unmanned-ops",
+          "title": "远程无人化作业技术支持",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-fault-kb",
+          "title": "远程复杂故障案例库支持",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-training",
+          "title": "远程专家培训与技术传承",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-standard-guide",
+          "title": "远程行业标准解读与应用指导",
+          "order": 510,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "res-tech-consult",
+          "title": "远程关键技术问题专项咨询",
+          "order": 520,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "predictive-maintenance",
+      "title": "预测性维护",
+      "order": 90,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "pm-hydro-0",
+          "title": "水轮发电机组整机健康状态总览",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-1",
+          "title": "水轮机主轴与推力轴承健康监测",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-2",
+          "title": "发电机定子绕组健康指数趋势",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-3",
+          "title": "发电机转子不平衡劣化评估",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-4",
+          "title": "机组轴系振动趋势预测",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-5",
+          "title": "水轮机转轮空蚀与裂纹劣化预测",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-6",
+          "title": "导轴承与推力轴承剩余寿命预测",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-7",
+          "title": "机组故障风险预测总览",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-8",
+          "title": "机组故障发生概率与时间窗口预测",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-9",
+          "title": "机组多工况劣化演化路径分析",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-10",
+          "title": "调速器液压系统健康状态评估",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-11",
+          "title": "调速系统油泵振动与压力趋势预测",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-12",
+          "title": "导叶执行机构劣化早期识别",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-13",
+          "title": "调速系统阀组卡涩风险预测",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-14",
+          "title": "调速系统关键部件剩余寿命预测",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-15",
+          "title": "主变压器运行健康状态总览",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-16",
+          "title": "主变绕组温升与绝缘劣化预测",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-17",
+          "title": "主变油色谱异常趋势预测",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-18",
+          "title": "套管局放与绝缘老化风险评估",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-19",
+          "title": "变压器故障发生概率预测",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-20",
+          "title": "GIS 开关设备健康状态评估",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-21",
+          "title": "断路器机械特性劣化趋势预测",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-22",
+          "title": "隔离开关触头磨损风险预测",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-23",
+          "title": "母线连接点过热风险预测",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-24",
+          "title": "开关站设备失效模式预测",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-25",
+          "title": "闸门结构整体健康状态评估",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-26",
+          "title": "弧形闸门启闭机构劣化趋势预测",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-27",
+          "title": "闸门钢结构腐蚀与疲劳劣化预测",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-28",
+          "title": "闸门滚轮与滑块磨损寿命预测",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-29",
+          "title": "闸门卡阻与失灵风险预测",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-30",
+          "title": "排水泵站整机健康状态总览",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-31",
+          "title": "水泵轴承与叶轮劣化趋势预测",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-32",
+          "title": "冷却水系统泵组故障风险预测",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-33",
+          "title": "空压机与油系统设备健康评估",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-34",
+          "title": "辅机系统多设备健康对比分析",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-35",
+          "title": "压力钢管结构健康状态评估",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-36",
+          "title": "压力钢管焊缝疲劳与裂纹预测",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-37",
+          "title": "水力脉动对机组劣化影响评估",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-38",
+          "title": "水位突变工况下设备风险预测",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-39",
+          "title": "极端洪水工况设备失效预测",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-40",
+          "title": "多机组联合故障风险预测",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-41",
+          "title": "发电系统级失效传播预测",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-42",
+          "title": "水工—机电耦合失效预测",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-43",
+          "title": "电气—机械系统级风险评估",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-44",
+          "title": "关键设备级联失效预测",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-45",
+          "title": "设备预测精度与误差统计分析",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-46",
+          "title": "预测漏报与误报设备分布分析",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-47",
+          "title": "预测驱动检修计划优化评估",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-48",
+          "title": "预测性维护经济性评估",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-hydro-49",
+          "title": "水电站预测性维护综合评估视图",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-0",
+          "title": "电铲整机健康状态总览",
+          "order": 510,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-1",
+          "title": "电铲回转机构健康状态评估",
+          "order": 520,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-2",
+          "title": "电铲提升钢丝绳疲劳与断丝预测",
+          "order": 530,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-3",
+          "title": "电铲提升减速箱振动趋势预测",
+          "order": 540,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-4",
+          "title": "电铲主电机绝缘劣化风险预测",
+          "order": 550,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-5",
+          "title": "液压挖掘机整机健康状态总览",
+          "order": 560,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-6",
+          "title": "挖掘机液压泵健康指数监测",
+          "order": 570,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-7",
+          "title": "挖掘机液压阀卡滞风险预测",
+          "order": 580,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-8",
+          "title": "挖掘机回转轴承剩余寿命预测",
+          "order": 590,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-9",
+          "title": "挖掘机动臂结构疲劳劣化预测",
+          "order": 600,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-10",
+          "title": "矿用自卸卡车整车健康状态总览",
+          "order": 610,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-11",
+          "title": "矿卡发动机健康状态评估",
+          "order": 620,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-12",
+          "title": "矿卡变速箱与传动系统劣化预测",
+          "order": 630,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-13",
+          "title": "矿卡轮边减速器故障风险预测",
+          "order": 640,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-14",
+          "title": "矿卡制动系统失效时间窗口预测",
+          "order": 650,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-15",
+          "title": "矿用电机车整车健康状态评估",
+          "order": 660,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-16",
+          "title": "电机车牵引电机绝缘老化预测",
+          "order": 670,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-17",
+          "title": "电机车齿轮箱磨损趋势预测",
+          "order": 680,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-18",
+          "title": "电机车制动系统可靠性预测",
+          "order": 690,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-19",
+          "title": "电机车关键部件剩余寿命预测",
+          "order": 700,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-mining-20",
+          "title": "颚式破碎机整机健康状态总览",
+          "order": 710,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-0",
+          "title": "颚式破碎机主轴与轴承劣化预测",
+          "order": 720,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-1",
+          "title": "圆锥破碎机衬板磨损趋势预测",
+          "order": 730,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-2",
+          "title": "圆锥破碎机偏心套故障风险预测",
+          "order": 740,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-3",
+          "title": "反击式破碎机转子裂纹预测",
+          "order": 750,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-4",
+          "title": "振动筛激振器健康状态评估",
+          "order": 760,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-5",
+          "title": "振动筛轴承疲劳寿命预测",
+          "order": 770,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-6",
+          "title": "筛箱结构松动与裂纹风险预测",
+          "order": 780,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-7",
+          "title": "筛网磨损与堵塞风险预测",
+          "order": 790,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-8",
+          "title": "筛分系统多设备健康对比分析",
+          "order": 800,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-9",
+          "title": "带式输送机整线健康状态总览",
+          "order": 810,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-10",
+          "title": "输送带纵向撕裂风险预测",
+          "order": 820,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-11",
+          "title": "驱动滚筒与改向滚筒磨损预测",
+          "order": 830,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-12",
+          "title": "输送机减速箱振动与温升预测",
+          "order": 840,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-13",
+          "title": "托辊故障分布与失效趋势预测",
+          "order": 850,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-14",
+          "title": "提升机整机健康状态评估",
+          "order": 860,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-15",
+          "title": "提升机钢丝绳疲劳寿命预测",
+          "order": 870,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-16",
+          "title": "提升机制动系统可靠性预测",
+          "order": 880,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-17",
+          "title": "提升机主轴与轴承剩余寿命预测",
+          "order": 890,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-18",
+          "title": "提升机失效时间窗口预测",
+          "order": 900,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-19",
+          "title": "球磨机整机健康状态总览",
+          "order": 910,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-20",
+          "title": "球磨机主轴承润滑劣化预测",
+          "order": 920,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-21",
+          "title": "球磨机衬板磨损趋势预测",
+          "order": 930,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-22",
+          "title": "浮选机搅拌机构故障风险预测",
+          "order": 940,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-23",
+          "title": "浓缩机驱动装置失效预测",
+          "order": 950,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-24",
+          "title": "船舶主机整机健康状态总览",
+          "order": 960,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-25",
+          "title": "船舶主机曲轴与主轴承健康监测",
+          "order": 970,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-26",
+          "title": "船舶主机气缸套磨损趋势预测",
+          "order": 980,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-27",
+          "title": "船舶主机活塞组件劣化评估",
+          "order": 990,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-28",
+          "title": "船舶主机故障风险预测总览",
+          "order": 1000,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-29",
+          "title": "船舶主机故障发生概率预测",
+          "order": 1010,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-30",
+          "title": "船舶主机失效时间窗口预测",
+          "order": 1020,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-31",
+          "title": "船舶主机关键部件剩余寿命预测",
+          "order": 1030,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-32",
+          "title": "船舶主机剩余寿命置信区间分析",
+          "order": 1040,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-33",
+          "title": "船舶主机典型失效模式预测",
+          "order": 1050,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-34",
+          "title": "船舶推进轴系健康状态评估",
+          "order": 1060,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-35",
+          "title": "推进轴承振动与温升趋势预测",
+          "order": 1070,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-36",
+          "title": "推进轴系不对中劣化预测",
+          "order": 1080,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-37",
+          "title": "螺旋桨叶片裂纹与腐蚀预测",
+          "order": 1090,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-38",
+          "title": "推进系统劣化速度评估",
+          "order": 1100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-39",
+          "title": "船舶辅机发电机健康状态总览",
+          "order": 1110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-40",
+          "title": "船用发电机定子绕组绝缘预测",
+          "order": 1120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-41",
+          "title": "船舶配电板与母线过热风险预测",
+          "order": 1130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-42",
+          "title": "船舶电力系统负载异常预测",
+          "order": 1140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-43",
+          "title": "船舶电力系统失效模式分析",
+          "order": 1150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-44",
+          "title": "燃油供给系统健康状态评估",
+          "order": 1160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-45",
+          "title": "燃油泵与喷油器劣化趋势预测",
+          "order": 1170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-46",
+          "title": "燃油系统堵塞与泄漏风险预测",
+          "order": 1180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-47",
+          "title": "润滑油系统污染与劣化预测",
+          "order": 1190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-48",
+          "title": "润滑系统关键部件剩余寿命预测",
+          "order": 1200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-49",
+          "title": "主机冷却水泵健康状态评估",
+          "order": 1210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-50",
+          "title": "海水冷却系统结垢与腐蚀预测",
+          "order": 1220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-51",
+          "title": "换热器堵塞与效率衰减预测",
+          "order": 1230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-52",
+          "title": "压缩空气系统故障风险预测",
+          "order": 1240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-53",
+          "title": "船舶辅助系统多设备健康对比分析",
+          "order": 1250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-54",
+          "title": "舵机液压系统健康状态评估",
+          "order": 1260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-55",
+          "title": "舵机液压泵与执行机构劣化预测",
+          "order": 1270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-56",
+          "title": "舵机卡滞与失灵风险预测",
+          "order": 1280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-57",
+          "title": "操舵系统失效时间窗口预测",
+          "order": 1290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-58",
+          "title": "舵机关键部件剩余寿命预测",
+          "order": 1300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-59",
+          "title": "船用绞车整机健康状态总览",
+          "order": 1310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-60",
+          "title": "绞车减速箱与制动器劣化预测",
+          "order": 1320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-61",
+          "title": "舱口盖启闭机构故障风险预测",
+          "order": 1330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-62",
+          "title": "船用起重机回转机构健康评估",
+          "order": 1340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-63",
+          "title": "甲板机械失效模式预测",
+          "order": 1350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-64",
+          "title": "港口岸桥起重机健康状态总览",
+          "order": 1360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-65",
+          "title": "岸桥小车与起升机构劣化预测",
+          "order": 1370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-66",
+          "title": "场桥行走机构与减速箱预测维护",
+          "order": 1380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-67",
+          "title": "航道助航灯塔供电设备健康评估",
+          "order": 1390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-68",
+          "title": "航标设备失效风险预测",
+          "order": 1400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-69",
+          "title": "重载航行工况设备劣化预测",
+          "order": 1410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-70",
+          "title": "恶劣海况下推进系统风险预测",
+          "order": 1420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-71",
+          "title": "高盐雾环境设备腐蚀失效预测",
+          "order": 1430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-72",
+          "title": "极端气象条件设备失效预测",
+          "order": 1440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-73",
+          "title": "连续航行工况疲劳失效预测",
+          "order": 1450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-74",
+          "title": "多船舶设备联合故障预测",
+          "order": 1460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-75",
+          "title": "船舶系统级故障传播预测",
+          "order": 1470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-76",
+          "title": "关键航运设备级联失效预测",
+          "order": 1480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-77",
+          "title": "预测驱动检修与靠港计划评估",
+          "order": 1490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "pm-pmOther-78",
+          "title": "航运预测性维护综合评估视图",
+          "order": 1500,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "app-maintenance",
+      "title": "应用维修服务",
+      "order": 100,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "am-portal",
+          "title": "维修需求提报门户",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-dispatch",
+          "title": "工单智能调度台",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-emergency",
+          "title": "紧急抢修绿色通道",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-pending",
+          "title": "挂单与延期申请处理",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-closeout",
+          "title": "维修工单核销与关闭",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-outsourcing",
+          "title": "外协服务工单跟踪",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-merge-split",
+          "title": "工单合并与拆分处理",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-timeline",
+          "title": "历史工单回溯时间轴",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-ptw",
+          "title": "电子作业票（PTW）申请",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-loto",
+          "title": "LOTO挂牌上锁管理",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-checkin",
+          "title": "移动端接单签到",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-ar-expert",
+          "title": "AR远程专家连线",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-sop-guide",
+          "title": "维修SOP分步执行导引",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-3d-explode",
+          "title": "3D拆装爆炸图交互",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-media-capture",
+          "title": "现场故障多媒体采集",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-test-run",
+          "title": "维修后试机记录单",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-parts-cart",
+          "title": "现场备件申领购物车",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-sn-tracking",
+          "title": "以旧换新（序列号追踪）",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-stock-alert",
+          "title": "关键备件库存预警看板",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-tools-loan",
+          "title": "维修工具借用与归还",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-parts-substitute",
+          "title": "备件替换代用审批",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-reverse-logistics",
+          "title": "逆向物流与坏件返修",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-oil-record",
+          "title": "润滑油液添加记录",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-bom-check",
+          "title": "维修BOM一致性校验",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-gantt-plan",
+          "title": "年度大修计划甘特图",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-route-config",
+          "title": "巡检路线规划与配置",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-lub-calendar",
+          "title": "润滑与保养任务日历",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-cbm-correction",
+          "title": "设备状态修正（CBM触发）",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-calibration",
+          "title": "定期精度校准记录",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-annual-inspect",
+          "title": "特种设备年检管理",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-skill-matrix",
+          "title": "维修人员技能矩阵",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-shift-roster",
+          "title": "维修排班与轮岗表",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-vendor-eval",
+          "title": "外包服务商绩效评价",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-labor-kpi",
+          "title": "维修工时绩效统计",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-training-analysis",
+          "title": "维修培训需求分析",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-asset-lcc",
+          "title": "单台设备全生命周期成本卡片",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-budget-monitor",
+          "title": "维修预算执行监控",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-warranty-mgmt",
+          "title": "索赔与质保期管理",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-roi-analysis",
+          "title": "维修投入产出比分析",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-cost-compare",
+          "title": "自行维修vs外包维修成本对比",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-incident-record",
+          "title": "维修事故与未遂事件记录",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-waste-declare",
+          "title": "废弃物处理申报",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-5s-score",
+          "title": "维修现场5S检查评分",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-ppe-mgmt",
+          "title": "个人防护装备领用",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-rcfa-report",
+          "title": "故障根因分析（RCFA）报告",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-mtbf-mttr",
+          "title": "MTBF/MTTR趋势分析图",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-repeat-fault",
+          "title": "重复性故障识别",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-knowledge-back",
+          "title": "维修知识反哺提报",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-survey",
+          "title": "维修满意度调查问卷",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "am-downtime-coding",
+          "title": "停机原因编码分析",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "spare-parts",
+      "title": "备品备件服务",
+      "order": 110,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "sp-demand-forecast",
+          "title": "备品备件需求预测服务",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-life-eval",
+          "title": "备品备件寿命评估服务",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-critical-list",
+          "title": "关键备件清单构建服务",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-std-coding",
+          "title": "备件标准化与编码服务",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-stock-opt",
+          "title": "备件库存优化服务",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-safety-stock",
+          "title": "安全库存配置服务",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-substitute-match",
+          "title": "备件替代件匹配服务",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-cert-service",
+          "title": "原厂及非原厂备件认证服务",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-quality-trace",
+          "title": "备件质量追溯服务",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-arrival-inspect",
+          "title": "备件到货检验服务",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-in-service-monitor",
+          "title": "备件在役状态监测服务",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-failure-analysis",
+          "title": "备件失效分析服务",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-refurbish",
+          "title": "备件维修翻新服务",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-re-manufacturing",
+          "title": "备件再制造服务",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-lifecycle-mgmt",
+          "title": "备件全生命周期管理服务",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-price-eval",
+          "title": "备件价格评估与比价服务",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-risk-eval",
+          "title": "备件供应风险评估服务",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-emergency-support",
+          "title": "备件应急保障服务",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-turbine-parts",
+          "title": "水轮机关键备件保障服务",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-gen-stator-rotor",
+          "title": "发电机定转子备件管理服务",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-gate-hoist",
+          "title": "闸门及启闭机备件服务",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-bearing-seal",
+          "title": "大型轴承与密封件备件服务",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-hydro-hydraulic",
+          "title": "水工液压系统备件服务",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-governor-support",
+          "title": "调速系统备件保障服务",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-automation-sys",
+          "title": "电站自动化系统备件服务",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-sensors",
+          "title": "水电站专用传感器备件服务",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-metal-structure",
+          "title": "水工金属结构备件服务",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-flood-emergency",
+          "title": "防汛抢险备件应急服务",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-localization-sub",
+          "title": "老旧水电站备件国产化替代服务",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-maintenance-planning",
+          "title": "水电设备停机检修备件统筹服务",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-ship-main-engine",
+          "title": "船舶主机备件服务",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-ship-auxiliary",
+          "title": "船舶辅机系统备件服务",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-ship-propulsion",
+          "title": "船用推进系统备件服务",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-ship-electrical",
+          "title": "船舶电气系统备件服务",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-ship-automation-nav",
+          "title": "船舶自动化与导航设备备件服务",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-ship-safety-parts",
+          "title": "船舶关键安全备件保障服务",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-class-cert",
+          "title": "船级社认证备件服务",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-shipping-emergency",
+          "title": "航运应急抢修备件快速供应服务",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-mining-critical",
+          "title": "采掘设备关键备件服务",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-crush-screen",
+          "title": "破碎与筛分设备备件服务",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-conveying-sys",
+          "title": "输送系统备件服务",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-mine-hydraulic",
+          "title": "矿用液压系统备件服务",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-mine-motor-inv",
+          "title": "矿山电机与变频器备件服务",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-mine-bearing",
+          "title": "矿用重载轴承备件服务",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-mine-monitor",
+          "title": "矿山安全监测设备备件服务",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-mine-wear-parts",
+          "title": "矿山耐磨件备件服务",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-underground-emergency",
+          "title": "井下设备应急备件保障服务",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-mine-localization",
+          "title": "矿山设备国产化替代与改造备件服务",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-procurement-collab",
+          "title": "备件采购协同服务",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sp-warehouse-automation",
+          "title": "仓储自动化升级服务",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "mock-maintenance",
+      "title": "模拟维修服务",
+      "order": 120,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "mm-01",
+          "title": "水轮发电机组虚拟拆装与检修演练",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-02",
+          "title": "水电站主变压器故障模拟与维修推演",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-03",
+          "title": "闸门启闭机结构损伤模拟维修",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-04",
+          "title": "水轮机叶片空蚀修复过程仿真",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-05",
+          "title": "水电站轴承系统寿命退化与更换模拟",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-06",
+          "title": "船舶主机系统虚拟检修演练",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-07",
+          "title": "船舶推进轴系故障模拟维修",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-08",
+          "title": "船舶电力系统异常工况维修仿真",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-09",
+          "title": "港口起重设备关键部件虚拟维护",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-10",
+          "title": "航道疏浚设备液压系统维修模拟",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-11",
+          "title": "船闸机电设备综合维修仿真",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-12",
+          "title": "矿用破碎机结构损伤模拟维修",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-13",
+          "title": "矿山提升机钢丝绳失效更换模拟",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-14",
+          "title": "矿用皮带输送系统故障维修演练",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-15",
+          "title": "矿山通风系统设备虚拟检修",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-16",
+          "title": "矿用液压支架关键部件维修仿真",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-17",
+          "title": "矿山排水泵站故障诊断与维修模拟",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-18",
+          "title": "矿用钻机动力系统拆解维修演练",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-19",
+          "title": "矿山电铲关键机构虚拟维护",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-20",
+          "title": "矿用发动机故障维修过程仿真",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-21",
+          "title": "水电站年度检修方案模拟与优化",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-22",
+          "title": "船舶坞修全过程虚拟演练",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-23",
+          "title": "港口设备多工种协同维修仿真",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-24",
+          "title": "矿山设备大修方案可行性模拟",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-25",
+          "title": "水轮机运行异常快速维修决策模拟",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-26",
+          "title": "船舶关键设备应急维修推演",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-27",
+          "title": "矿山突发设备停机应急维修演练",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-28",
+          "title": "水电站远程专家辅助维修模拟",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-29",
+          "title": "船舶设备跨区域远程维修协同模拟",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-30",
+          "title": "矿山无人值守设备虚拟检修",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-31",
+          "title": "水电站设备检修工艺标准化仿真",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-32",
+          "title": "船舶老旧设备维修可行性评估模拟",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-33",
+          "title": "矿山装备改造前维修路径仿真",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-34",
+          "title": "水电设备检修人员培训模拟系统",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-35",
+          "title": "航运设备新手维修技能训练仿真",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-36",
+          "title": "矿山复杂故障多方案维修对比模拟",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-37",
+          "title": "水电站关键备件更换时序模拟",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-38",
+          "title": "船舶设备寿命末期维修策略推演",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-39",
+          "title": "矿山设备全生命周期维修成本模拟",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-40",
+          "title": "水电站数字孪生维修场景构建",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-41",
+          "title": "船舶设备维修风险评估模拟",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-42",
+          "title": "矿山装备维修安全演练仿真",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-43",
+          "title": "水电站设备快速复役维修模拟",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-44",
+          "title": "港口设备全天候维修策略仿真",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-45",
+          "title": "矿山装备维修工序冲突消解模拟",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mm-46",
+          "title": "跨系统设备联合维修协同仿真",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "ops-knowledge",
+      "title": "运维知识管理",
+      "order": 130,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "km-watershed-dispatch",
+          "title": "流域梯级调度规则引擎",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-dam-seepage",
+          "title": "大坝渗流热力学反演模型库",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-turbine-cavitation",
+          "title": "水轮机汽蚀破坏案例图谱",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-flood-discharge",
+          "title": "泄洪消能防冲经验库",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-eco-flow",
+          "title": "生态流量合规性知识图谱",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-generator-insulation",
+          "title": "发电机组绝缘老化特征库",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-underwater-robot",
+          "title": "水工建筑物水下机器人检测图鉴",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-flood-emergency",
+          "title": "极端洪水应急预案演练脚本库",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-sedimentation",
+          "title": "库区泥沙淤积演变历史档案",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-black-start",
+          "title": "黑启动操作逻辑库",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-trash-rack",
+          "title": "进水口拦污栅压差阈值标准",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-freeze-thaw",
+          "title": "寒冷地区防冻融技术规范库",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-hoist-fault",
+          "title": "大型启闭机液压系统故障树",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-economic-operation",
+          "title": "水电站经济运行策略库",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-slope-disaster",
+          "title": "库岸边坡地质灾害机理库",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-stilling-basin",
+          "title": "水下消力池磨损修复工艺库",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-fish-passage",
+          "title": "过鱼设施运行效能档案",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-lock-dispatch",
+          "title": "船闸通航联合调度算法库",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-channel-shoal",
+          "title": "航道浅滩演变与疏浚知识库",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-crane-fatigue",
+          "title": "港口岸桥金属结构疲劳寿命档案",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-ais-behavior",
+          "title": "船舶自动识别系统异常行为特征库",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-dangerous-goods",
+          "title": "危险货物集装箱隔离堆存规则库",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-agv-deadlock",
+          "title": "港口自动化引导车路径死锁案例库",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-buoy-drift",
+          "title": "助航灯浮标漂移规律库",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-ship-impact",
+          "title": "船舶靠泊撞击力经验参数库",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-vts-plan",
+          "title": "VTS交通组织预案库",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-green-port-power",
+          "title": "绿色港口岸电连接兼容性档案",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-maritime-accident",
+          "title": "水上交通事故判例与法规库",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-crane-wind",
+          "title": "集装箱装卸桥防风锚定策略库",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-dust-suppression",
+          "title": "散货堆场抑尘喷淋策略库",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-tunnel-joint",
+          "title": "水下隧道沉管接头健康诊断模型",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-pilot-exp",
+          "title": "引航员特殊水域操作经验集",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-multimodal",
+          "title": "多式联运接口标准库",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-unmanned-ship",
+          "title": "无人船巡航避障算法训练集",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-hydraulic-support",
+          "title": "综采工作面液压支架阻力分布图谱",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-truck-tire",
+          "title": "矿用自卸卡车轮胎磨损与路面关联库",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-belt-tear",
+          "title": "皮带输送机纵向撕裂视觉样本库",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-ventilation-network",
+          "title": "井下通风网络解算模型库",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-crushing-index",
+          "title": "矿石破碎功指数档案",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-shovel-tooth",
+          "title": "电铲斗齿脱落智能识别特征库",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-tailings-safety",
+          "title": "尾矿库干滩长度与浸润线安全阈值库",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-ground-pressure",
+          "title": "深井地压冲击前兆特征库",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-explosion-proof",
+          "title": "矿用防爆设备电气整定值计算逻辑",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-flotation-reagent",
+          "title": "浮选药剂添加配比专家系统",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-shearer-pick",
+          "title": "采煤机截齿截割阻力模型",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-vehicle-path",
+          "title": "无轨胶轮车井下路径规划图谱",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-rope-ndt",
+          "title": "提升机钢丝绳无损探伤缺陷图谱",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-slope-radar",
+          "title": "露天矿边坡雷达位移预警模型",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-mill-liner",
+          "title": "磨机衬板钢球级配优化档案",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-water-inrush",
+          "title": "井下突水水源快速判别知识库",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-blasting-control",
+          "title": "矿山爆破参数优化与震动控制库",
+          "order": 510,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-truck-edge",
+          "title": "无人矿卡边缘场景库",
+          "order": 520,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "km-scraper-chain",
+          "title": "刮板输送机链条张力动态平衡策略",
+          "order": 530,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "service-data",
+      "title": "服务数据管理",
+      "order": 140,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "sm-1",
+          "title": "露天矿与井工矿大型采掘装备运行服务数据管理",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-2",
+          "title": "矿山破碎、输送、提升系统运维服务数据管理",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-3",
+          "title": "矿用电铲、液压支架、采煤机服务过程数据管理",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-4",
+          "title": "矿山装备高粉尘高振动工况服务数据管理",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-5",
+          "title": "矿山装备故障停机与抢修服务数据管理",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-6",
+          "title": "矿山多工作面协同运维服务数据管理",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-7",
+          "title": "矿山装备关键部件寿命与更换服务数据管理",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-8",
+          "title": "矿山无人化装备远程运维服务数据管理",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-9",
+          "title": "矿山多厂家装备服务数据统一管理",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-10",
+          "title": "矿山装备检修计划与执行闭环数据管理",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-11",
+          "title": "矿山装备智能巡检与服务数据管理",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-12",
+          "title": "矿山极端工况与安全保障服务数据管理",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sm-13",
+          "title": "矿山能源消耗与设备服务数据管理",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-1",
+          "title": "船舶主机与辅机系统运行服务数据管理",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-2",
+          "title": "船舶航行状态与能效服务数据管理",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-3",
+          "title": "船舶设备复杂海况适应性服务数据管理",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-4",
+          "title": "船舶在役监测与预测性维护服务数据管理",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-5",
+          "title": "船舶靠离泊与港口协同服务数据管理",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-6",
+          "title": "港口装卸与配套装备运维服务数据管理",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-7",
+          "title": "航道设施巡检与养护服务数据管理",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-8",
+          "title": "船岸协同条件下航运装备服务数据管理",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-9",
+          "title": "多船队多航线运行服务数据集中管理",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-10",
+          "title": "航运装备应急故障与抢修服务数据管理",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-11",
+          "title": "船舶设备能效优化与服务数据管理",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-12",
+          "title": "船舶关键系统可靠性评估服务数据管理",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sh-13",
+          "title": "航运装备跨周期服役服务数据管理",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-1",
+          "title": "水电站机组运行状态服务数据管理",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-2",
+          "title": "水轮机与发电机系统运维服务数据管理",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-3",
+          "title": "水电设备长期连续运行工况服务数据管理",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-4",
+          "title": "水电站检修窗口期与资源调度服务数据管理",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-5",
+          "title": "水库调度指令执行与反馈服务数据管理",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-6",
+          "title": "水工建筑物巡检与结构健康服务数据管理",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-7",
+          "title": "水电站设备异常与事故处置服务数据管理",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-8",
+          "title": "梯级水电站联合运行服务数据管理",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-9",
+          "title": "跨区域水利工程运行维护服务数据管理",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-10",
+          "title": "水电站数字化移交后服务数据接管管理",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-11",
+          "title": "水电设备状态评估与健康管理服务数据管理",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-12",
+          "title": "水电站设备寿命预测服务数据管理",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hd-13",
+          "title": "水电站应急调度与保障服务数据管理",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-1",
+          "title": "矿山航运水利装备服务数据统一汇聚与治理",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-2",
+          "title": "装备服务数据与运行工况协同管理",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-3",
+          "title": "装备服务数据驱动的运维决策支持",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-4",
+          "title": "装备服务知识沉淀与复用数据管理",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-5",
+          "title": "装备全生命周期服务数据反哺设计与改进",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-6",
+          "title": "装备服务数据质量评估与治理",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-7",
+          "title": "装备服务数据分级分类与权限管理",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-8",
+          "title": "装备服务数据安全与合规管理",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-9",
+          "title": "装备服务数据多源融合与共享",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-10",
+          "title": "装备服务数据驱动的智能分析",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "int-11",
+          "title": "装备服务数据支撑的服务模式优化",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "inspection",
+      "title": "设备点巡检",
+      "order": 150,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "ins-0",
+          "title": "矿山轨道运输智能点巡检",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-1",
+          "title": "矿山爆破区域智能点巡检",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-2",
+          "title": "矿山尾矿堆场智能点巡检",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-3",
+          "title": "矿山支护结构智能点巡检",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-4",
+          "title": "矿山通风井口智能点巡检",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-5",
+          "title": "矿山采掘面智能点巡检",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-6",
+          "title": "矿山危险区监测智能点巡检",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-7",
+          "title": "矿山排水泵井智能点巡检",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-8",
+          "title": "矿山能源集控智能点巡检",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-9",
+          "title": "矿山运输车辆调度智能点巡检",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-10",
+          "title": "航运港口泊位智能点巡检",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-11",
+          "title": "航运航道浮标智能点巡检",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-12",
+          "title": "航运船舶货舱智能点巡检",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-13",
+          "title": "航运港口登船桥智能点巡检",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-14",
+          "title": "航运船舶船体结构智能点巡检",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-15",
+          "title": "航运船舶压载水智能点巡检",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-16",
+          "title": "航运港口灯光信号智能点巡检",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-17",
+          "title": "航运船舶油料舱智能点巡检",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-18",
+          "title": "航运航道堤防智能点巡检",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-19",
+          "title": "航运港口水质监测智能点巡检",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-20",
+          "title": "水利水电闸门叶片智能点巡检",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-21",
+          "title": "水利水电泄洪通道智能点巡检",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-22",
+          "title": "水利水电水文站智能点巡检",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-23",
+          "title": "水利水电水轮机轴承智能点巡检",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-24",
+          "title": "水利水电厂房屋顶智能点巡检",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-25",
+          "title": "水利水电蓄能池边坡智能点巡检",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-26",
+          "title": "水利水电控制室网络智能点巡检",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-27",
+          "title": "水利水电水闸闸门缆索智能点巡检",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-28",
+          "title": "水利水电水质采样点智能点巡检",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-29",
+          "title": "水利水电大坝坝肩智能点巡检",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-30",
+          "title": "矿山液压支架顶板智能点巡检",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-31",
+          "title": "矿山通风风门智能点巡检",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-32",
+          "title": "矿山充填作业区智能点巡检",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-33",
+          "title": "矿山危险化学品仓库智能点巡检",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-34",
+          "title": "矿山井下运输轨道智能点巡检",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-35",
+          "title": "航运船舶甲板救生设备智能点巡检",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-36",
+          "title": "航运港口吊装作业智能点巡检",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-37",
+          "title": "航运船舶冷链舱智能点巡检",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-38",
+          "title": "航运航道冲刷区智能点巡检",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-39",
+          "title": "航运港口供水泵智能点巡检",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-40",
+          "title": "水利水电尾水渠智能点巡检",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-41",
+          "title": "水利水电水位监测堤坝智能点巡检",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-42",
+          "title": "水利水电输水隧洞智能点巡检",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-43",
+          "title": "水利水电导流明渠智能点巡检",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-44",
+          "title": "水利水电水闸闸机智能点巡检",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-45",
+          "title": "矿山地表沉降监测智能点巡检",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-46",
+          "title": "矿山井下照明系统智能点巡检",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-47",
+          "title": "矿山尾矿坝坡智能点巡检",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-48",
+          "title": "矿山设备电控柜智能点巡检",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ins-49",
+          "title": "矿山危险气体监测点智能点巡检",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "maintenance-plan",
+      "title": "维修计划管理",
+      "order": 160,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "mpm-0",
+          "title": "水轮发电机组大修计划",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-1",
+          "title": "泄洪闸门定期维保",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-2",
+          "title": "大坝主体结构加固排期",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-3",
+          "title": "压力钢管防腐处理计划",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-4",
+          "title": "主变压器预防性检修",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-5",
+          "title": "大型泵站年度检修排程",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-6",
+          "title": "水库清淤清障作业计划",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-7",
+          "title": "通航船闸大修停航计划",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-8",
+          "title": "液压启闭机系统维保",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-9",
+          "title": "尾水隧洞排空检修计划",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-10",
+          "title": "发电机转子抽芯更换排期",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-11",
+          "title": "水轮机调速器系统校验",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-12",
+          "title": "励磁系统升级改造计划",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-13",
+          "title": "冷却水系统反冲洗维保",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-14",
+          "title": "水闸止水橡皮更换计划",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-15",
+          "title": "拦污栅清污机定期维护",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-16",
+          "title": "调压井结构安全巡检计划",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-17",
+          "title": "进水蝶阀球阀检修排期",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-18",
+          "title": "水文监测站仪器标定计划",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-19",
+          "title": "大坝渗流监测设施维护",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-20",
+          "title": "主井提升机钢丝绳更换",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-21",
+          "title": "主通风机停机大修计划",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-22",
+          "title": "长距离皮带机硫化接头排期",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-23",
+          "title": "旋回破碎机衬板更换计划",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-24",
+          "title": "球磨机大小齿轮润滑维保",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-25",
+          "title": "井下中央变电所预防性检修",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-26",
+          "title": "主排水泵解体大修排程",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-27",
+          "title": "矿用电铲挖掘机定期维保",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-28",
+          "title": "百吨级矿卡车队轮保计划",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-29",
+          "title": "牙轮钻机液压系统维护",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-30",
+          "title": "浮选机转子定子更换排期",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-31",
+          "title": "浓缩机驱动桥检修计划",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-32",
+          "title": "尾矿库坝体加固培厚计划",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-33",
+          "title": "井下电机车大修排期",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-34",
+          "title": "掘进机截割头更换计划",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-35",
+          "title": "采煤机滚筒及截齿维保",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-36",
+          "title": "液压支架升井大修排程",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-37",
+          "title": "刮板输送机链条紧固更换",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-38",
+          "title": "井下避难硐室维生系统测试",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-39",
+          "title": "瓦斯监控系统探头标定计划",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-40",
+          "title": "岸桥起重机钢丝绳探伤更换",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-41",
+          "title": "场桥柴油发电机组大修",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-42",
+          "title": "自动化导引车电池组轮换计划",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-43",
+          "title": "船舶主机吊缸检修排期",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-44",
+          "title": "螺旋桨水下抛光清理计划",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-45",
+          "title": "船体防污漆进坞重涂排程",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-46",
+          "title": "压载水处理系统滤器清洗",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-47",
+          "title": "系泊绞车刹车带更换计划",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-48",
+          "title": "船舶导航雷达校准维保",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-49",
+          "title": "港口散货输送带大修计划",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-50",
+          "title": "装船机溜筒及防尘系统维护",
+          "order": 510,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-51",
+          "title": "码头防冲板护舷更换排期",
+          "order": 520,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-52",
+          "title": "拖轮全回转推进器检修",
+          "order": 530,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-53",
+          "title": "冷藏箱插座架电气维保",
+          "order": 540,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-54",
+          "title": "港区高压变电站预防性试验",
+          "order": 550,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-55",
+          "title": "挖泥船绞刀头齿套更换",
+          "order": 560,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-56",
+          "title": "VTS雷达塔天线维保计划",
+          "order": 570,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-57",
+          "title": "船用辅锅炉化学清洗排期",
+          "order": 580,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-58",
+          "title": "救生艇降放装置承重测试",
+          "order": 590,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-59",
+          "title": "港区自动化闸口系统巡检",
+          "order": 600,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-60",
+          "title": "空压机站主机大修计划",
+          "order": 610,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-61",
+          "title": "中央空调通风系统清洗维保",
+          "order": 620,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-62",
+          "title": "气体灭火系统钢瓶检测排期",
+          "order": 630,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-63",
+          "title": "应急柴油发电机带载测试",
+          "order": 640,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mpm-64",
+          "title": "厂房桥式起重机轨道校正",
+          "order": 650,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "life-warning",
+      "title": "零部件寿命预警",
+      "order": 170,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "turbine-blade-erosion",
+          "title": "水轮机转轮叶片冲蚀预警",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "generator-insulation-aging",
+          "title": "发电机定子线棒绝缘老化监测",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "transformer-bushing-life",
+          "title": "主变压器套管寿命预测",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "gate-hoist-rope-fatigue",
+          "title": "闸门启闭机钢丝绳疲劳预警",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "governor-servo-valve-wear",
+          "title": "调速器伺服阀磨损预警",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "intake-trash-rack-life",
+          "title": "进水口拦污栅结构寿命评估",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "spillway-gate-seal-aging",
+          "title": "泄洪洞闸门止水橡胶老化预警",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "excitation-system-module-life",
+          "title": "励磁系统功率模块寿命预警",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "oil-pressure-vessel-fatigue",
+          "title": "油压装置压力容器疲劳监测",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cooling-pump-bearing-life",
+          "title": "冷却水泵轴承寿命预警",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "guide-bearing-pad-wear",
+          "title": "导轴承瓦面磨损趋势预警",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "inlet-main-valve-seal-life",
+          "title": "进水主阀密封圈寿命预警",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "drainage-motor-winding-life",
+          "title": "排水泵站电机绕组寿命预警",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dam-sensor-battery-life",
+          "title": "坝体监测传感器电池寿命预警",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "inverter-capacitor-aging",
+          "title": "变频器直流电容老化预警",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "lubrication-filter-replacement",
+          "title": "润滑油系统滤芯更换预警",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "diesel-generator-injector-life",
+          "title": "柴油发电机组喷油嘴寿命预警",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "relay-protection-component-life",
+          "title": "继电保护装置电子元件寿命预警",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "server-hard-drive-life",
+          "title": "监控系统服务器硬盘寿命预警",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cutter-pick-wear",
+          "title": "采掘机截齿磨损预警",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mining-truck-tire-life",
+          "title": "矿用卡车轮胎寿命预警",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "conveyor-belt-cord-damage",
+          "title": "输送带钢丝绳芯损伤预警",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "crusher-liner-wear-life",
+          "title": "破碎机衬板磨损寿命预警",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ball-mill-steel-ball-consumption",
+          "title": "球磨机钢球消耗预警",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hoist-main-bearing-fatigue",
+          "title": "提升机主轴承疲劳监测",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mine-fan-blade-fatigue",
+          "title": "矿井通风机叶片振动疲劳预警",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "hydraulic-support-seal-life",
+          "title": "液压支架密封件寿命预警",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "drill-rig-pipe-fatigue",
+          "title": "露天钻机钻杆疲劳预警",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "flotation-impeller-wear",
+          "title": "选矿厂浮选机叶轮磨损预警",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mining-shovel-rope-life",
+          "title": "矿用电铲钢丝绳寿命预警",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "underground-loader-gear-life",
+          "title": "地下装载机变速箱齿轮寿命预警",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "tailings-pump-parts-life",
+          "title": "尾矿泵过流件寿命预警",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibrating-screen-mesh-damage",
+          "title": "振动筛筛网破损预警",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "substation-breaker-contact-life",
+          "title": "矿用变电站断路器触头寿命预警",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "underground-drainage-pipe-corrosion",
+          "title": "井下排水系统管路腐蚀预警",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "explosion-proof-motor-bearing-life",
+          "title": "矿用防爆电机轴承寿命预警",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "sprinkler-nozzle-clogging",
+          "title": "自动喷淋系统喷头堵塞预警",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "mine-car-brake-pad-life",
+          "title": "矿车制动片磨损寿命预警",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "gas-drainage-pump-seal-life",
+          "title": "瓦斯抽采泵站密封水环寿命预警",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ship-engine-liner-wear",
+          "title": "船舶主机缸套磨损预警",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "propeller-blade-cavitation",
+          "title": "螺旋桨叶片空泡腐蚀预警",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "quay-crane-gearbox-life",
+          "title": "岸桥起升机构减速机寿命预警",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "rtg-tire-wear-life",
+          "title": "场桥轮胎磨损寿命预警",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "port-conveyor-drum-lagging-life",
+          "title": "港口皮带机滚筒包胶寿命预警",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ship-steering-pump-life",
+          "title": "船舶舵机液压泵寿命预警",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "nav-mark-battery-light-life",
+          "title": "航标灯电池及光源寿命预警",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "dredger-pump-liner-wear",
+          "title": "疏浚船泥泵衬板磨损预警",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ship-turbocharger-bearing-life",
+          "title": "船舶增压器轴承寿命预警",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ship-loader-slewing-bearing-life",
+          "title": "港口装船机回转支承寿命预警",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ship-stern-shaft-seal-life",
+          "title": "船舶尾轴密封装置寿命预警",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ship-boiler-tube-thinning",
+          "title": "船舶锅炉受热面管壁减薄预警",
+          "order": 510,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "port-stacker-rope-fatigue",
+          "title": "港口堆料机钢丝绳疲劳预警",
+          "order": 520,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ship-separator-filter-life",
+          "title": "船舶油水分离器滤芯寿命预警",
+          "order": 530,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "port-transformer-assessment",
+          "title": "港口变电所互感器寿命评估",
+          "order": 540,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "reefer-compressor-life",
+          "title": "船舶冷藏集装箱压缩机寿命预警",
+          "order": 550,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "tug-thruster-gearbox-life",
+          "title": "港口拖轮推进器齿轮箱寿命预警",
+          "order": 560,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ballast-water-uv-lamp-life",
+          "title": "船舶压载水系统紫外灯管寿命预警",
+          "order": 570,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "shore-power-plug-contact-life",
+          "title": "港口岸电系统插头触点寿命预警",
+          "order": 580,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "emergency-generator-battery-life",
+          "title": "船舶应急发电机启动电瓶寿命预警",
+          "order": 590,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "portal-crane-luffing-life",
+          "title": "港口门座起重机变幅机构寿命预警",
+          "order": 600,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "workshop-overhead-crane-wheel-wear",
+          "title": "维修车间行车车轮磨损预警",
+          "order": 610,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "central-air-conditioning-compressor-life",
+          "title": "办公区中央空调压缩机寿命预警",
+          "order": 620,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "fire-fighting-pump-seal-life",
+          "title": "消防泵组机械密封寿命预警",
+          "order": 630,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ups-battery-aging-warning",
+          "title": "控制室 UPS 蓄电池老化预警",
+          "order": 640,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "industrial-network-switch-life",
+          "title": "工业以太网交换机运行寿命预警",
+          "order": 650,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "cv-monitor",
+      "title": "计算机视觉监测",
+      "order": 180,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "cv-dam-crack",
+          "title": "大坝表面裂缝视觉识别",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-turbine-cavitation",
+          "title": "水轮机叶片空蚀智能检测",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-sluice-gate-seal",
+          "title": "闸门止水密封完整性检测",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-transformer-leak",
+          "title": "变压器渗漏油视觉监测",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-insulator-flashover",
+          "title": "绝缘子闪络与污秽视觉监测",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-spillway-monitoring",
+          "title": "溢洪道冲刷与结构完整性监测",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-dam-seepage",
+          "title": "大坝渗流异常视觉监测",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-fish-way-status",
+          "title": "鱼道运行状态与生物通过率监测",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-solar-panel",
+          "title": "光伏板表面遮挡与热斑视觉识别",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-conveyor-tear",
+          "title": "输送带纵向撕裂视觉识别",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-slope-stability",
+          "title": "露天矿边坡稳定性视觉分析",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-crusher-liner-wear",
+          "title": "破碎机衬板磨损视觉测量",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-shovel-tooth-loss",
+          "title": "电铲铲斗斗齿脱落智能监测",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-conveyor-alignment",
+          "title": "输送带跑偏视觉监测",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-crusher-feeding",
+          "title": "破碎机给料粒度视觉分析",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-hydraulic-cylinder",
+          "title": "液压缸活塞杆划伤视觉检测",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-mine-ventilation",
+          "title": "矿井通风设施完整性监测",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-tailing-dam",
+          "title": "尾矿库干滩长度与水位视觉监测",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-belt-cleaner",
+          "title": "皮带清扫器刮板磨损监测",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-excavator-bucket",
+          "title": "挖掘机铲斗结构疲劳裂缝监测",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-open-pit-slope",
+          "title": "露天矿边坡稳定性视觉监测",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-stockpile-volume",
+          "title": "物料堆场体积与盘点视觉测量",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-belt-foreign-object",
+          "title": "传送带异物与大块物料视觉识别",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-truck-tire",
+          "title": "矿用卡车胎压与磨损视觉监测",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-hoist-rope",
+          "title": "矿井提升机钢丝绳断丝与磨损监测",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-hull-damage",
+          "title": "船体结构破损与变形视觉检测",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-berthing-distance",
+          "title": "船舶靠泊距离与姿态视觉测量",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-ship-propeller",
+          "title": "船舶螺旋桨空泡与损伤监测",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-port-fender",
+          "title": "码头护舷变形与损坏监测",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-container-spreader",
+          "title": "集装箱吊具锁头状态监测",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-engine-room-oil-mist",
+          "title": "机舱油雾浓度视觉预警",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-ship-anchor-chain",
+          "title": "锚链磨损与锈蚀视觉监测",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-mooring-tension",
+          "title": "系泊缆绳张力与磨损监测",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-channel-obstacle",
+          "title": "航道障碍物自动识别",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-motor-bearing",
+          "title": "电机轴承端盖渗油监测",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-pump-seal-leak",
+          "title": "泵组机械密封泄漏监测",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-hydraulic-hose",
+          "title": "液压系统软管老化与渗漏监测",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-robot-joint-wear",
+          "title": "工业机器人关节磨损与定位精度监测",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-hvac-cleanliness",
+          "title": "暖通管道内部清洁度视觉检测",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-fire-extinguisher",
+          "title": "灭火器压力表与有效期视觉检测",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-electrical-cabinet",
+          "title": "配电柜元器件变色与松动监测",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-flange-bolt-loosening",
+          "title": "管道法兰螺栓松动视觉监测",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-battery-corrosion",
+          "title": "蓄电池端子腐蚀与渗液视觉检测",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-rack-integrity",
+          "title": "仓库货架结构完整性与变形监测",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-generator-exhaust",
+          "title": "柴油发电机排烟颜色与成分视觉分析",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-cooling-tower-fan",
+          "title": "冷却塔风机叶片结冰与振动视觉监测",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-steam-trap-status",
+          "title": "疏水阀运行状态与内漏视觉识别",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-lighting-failure",
+          "title": "厂区照明系统故障自动识别",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-workshop-floor",
+          "title": "车间地面油污与积水识别",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-ppe-compliance",
+          "title": "个人防护装备佩戴合规性检测",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-cable-tunnel",
+          "title": "电缆隧道积水与外力破坏监测",
+          "order": 510,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-warehouse-security",
+          "title": "仓库周界入侵与物资移动监测",
+          "order": 520,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-crane-rail-wear",
+          "title": "行车轨道磨损与变形监测",
+          "order": 530,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-gas-pipe-leak",
+          "title": "燃气管道微小泄漏视觉识别",
+          "order": 540,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-cooling-tower",
+          "title": "冷却塔填料结垢视觉监测",
+          "order": 550,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-pump-vibration",
+          "title": "泵组异常振动视觉放大分析",
+          "order": 560,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-valve-position",
+          "title": "阀门开关状态与开度视觉识别",
+          "order": 570,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-ladder-integrity",
+          "title": "工业爬梯结构稳固性监测",
+          "order": 580,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-oil-tank-corrosion",
+          "title": "储油罐表面锈蚀与渗漏监测",
+          "order": 590,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-pipe-hanger",
+          "title": "管道支吊架位移与失效监测",
+          "order": 600,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "cv-dust-collector",
+          "title": "除尘器滤袋破损视觉识别",
+          "order": 610,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "vibration-monitor",
+      "title": "震动监测",
+      "order": 190,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "vibe-TurbineShaft",
+          "title": "水轮发电机组轴领振动监测",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-StatorCore",
+          "title": "定子铁芯振动与电磁力分析",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-GuideBearing",
+          "title": "上导/下导轴承座振动监测",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ThrustBearing",
+          "title": "推力轴承架稳定性监测",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-VoluteHydraulic",
+          "title": "蜗壳水力脉动与结构振动",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-DraftTubePulsation",
+          "title": "尾水管压力脉动诱发振动",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-DamGalleryMicroseism",
+          "title": "大坝廊道微震监测",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-SpillwayGate",
+          "title": "溢洪道闸门启闭振动分析",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-SurgeTankVibration",
+          "title": "调压室水位波动与结构振动",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PumpedStorageSwitch",
+          "title": "抽水蓄能机组工况切换振动",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-MineHoist",
+          "title": "矿井提升机主轴承振动",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ConveyorBeltVibration",
+          "title": "矿用皮带机驱动滚筒振动",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-JawCrusher",
+          "title": "破碎机主轴与衬板冲击振动",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ConeCrusherVibration",
+          "title": "圆锥破碎机振动监测",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-BallMillVibration",
+          "title": "选矿球磨机筒体振动分析",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-VibratingScreen",
+          "title": "振动筛多点同步振动监测",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-MineVentilator",
+          "title": "井下通风机叶片不平衡振动",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-SlurryPumpVibration",
+          "title": "矿井排水泵组振动监测",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-UndergroundLoader",
+          "title": "地下铲运机震动监测",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-MineTruckVibration",
+          "title": "矿用卡车震动监测",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-DrillingRig",
+          "title": "露天矿采矿机震动监测",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-MineSubstationVibration",
+          "title": "皮带机滚筒及托辊振动",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-TailingsDam",
+          "title": "露天矿电铲提升机构振动",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-MineExcavatorVibration",
+          "title": "露天矿电铲回转机构振动",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortCraneVibration",
+          "title": "岸桥起升机构减速机振动",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipPropulsionVibration",
+          "title": "螺旋桨叶片激振力监测",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ContainerSpreader",
+          "title": "集装箱吊具锁头状态监测",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipUnloaderVibration",
+          "title": "船舶卸船机震动监测",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortTugboat",
+          "title": "港口拖轮震动监测",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-DredgerVibration",
+          "title": "绞吸式挖泥船震动监测",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortConveyor",
+          "title": "港口输送带托辊故障振动",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipGeneratorVibration",
+          "title": "船舶辅机发电机组振动",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortOilPump",
+          "title": "港口输油泵震动监测",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipCraneVibration",
+          "title": "船舶起重机震动监测",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortStackerReclaimer",
+          "title": "港口堆取料机震动监测",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipCompressorVibration",
+          "title": "船舶空压机震动监测",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortShipLoader",
+          "title": "港口装船机回转支承振动",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipBoilerVibration",
+          "title": "船舶锅炉震动监测",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortBeltScale",
+          "title": "港口皮带秤震动监测",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipThrusterVibration",
+          "title": "船舶侧推器运行振动监测",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortTugboatEngine",
+          "title": "港口拖轮主机震动监测",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipPropellerShaft",
+          "title": "船舶螺旋桨轴系震动监测",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortQuayCrane",
+          "title": "岸桥小车运行轨道冲击振动",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipAuxiliaryEngine",
+          "title": "船舶辅机发电机组振动",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortUnloader",
+          "title": "港口卸船机震动监测",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipMainEngine",
+          "title": "船舶主主机轴系扭振监测",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortConveyorBelt",
+          "title": "港口输送皮带震动监测",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipGenerator",
+          "title": "船舶发电机震动监测",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortStacker",
+          "title": "港口堆料机震动监测",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipCompressor",
+          "title": "船舶压缩机震动监测",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortWinch",
+          "title": "锚机启闭过程振动监测",
+          "order": 510,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipPump",
+          "title": "船舶泵组震动监测",
+          "order": 520,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortHopper",
+          "title": "港口漏斗震动监测",
+          "order": 530,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipFan",
+          "title": "船舶通风机震动监测",
+          "order": 540,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortFender",
+          "title": "码头护舷靠泊冲击振动",
+          "order": 550,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipHull",
+          "title": "船体结构总纵振动监测",
+          "order": 560,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortPipeline",
+          "title": "码头装卸油管路流体诱发震动",
+          "order": 570,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipSeparator",
+          "title": "船用分油机高速旋转不平衡震动",
+          "order": 580,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortSubstation",
+          "title": "港口变电站变压器电磁震动监测",
+          "order": 590,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipSteering",
+          "title": "船舶舵机液压冲击震动监测",
+          "order": 600,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortConveyorIdler",
+          "title": "皮带机托辊轴承早期故障震动",
+          "order": 610,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipWaterMaker",
+          "title": "船用造水机高压泵震动监测",
+          "order": 620,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortLightingTower",
+          "title": "港口高杆灯风诱发涡激振动监测",
+          "order": 630,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-ShipAirConditioning",
+          "title": "船舶中央空调风机盘管异常震动",
+          "order": 640,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "vibe-PortFirePump",
+          "title": "港口消防泵组紧急启动震动监测",
+          "order": 650,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    },
+    {
+      "viewId": "maintenance-training",
+      "title": "维修培训",
+      "order": 200,
+      "enabled": true,
+      "children": [
+        {
+          "viewId": "TurbineRunnerHoistingTraining",
+          "title": "水轮机转轮吊装与拆卸虚拟实训",
+          "order": 10,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "StatorInsulationTestSim",
+          "title": "发电机定子线圈绝缘测试模拟操作",
+          "order": 20,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "GovernorValveDiagTraining",
+          "title": "调速器电液伺服阀故障诊断教学",
+          "order": 30,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "InletValveHydraulicRepairSim",
+          "title": "进水蝶阀液压系统检修演练",
+          "order": 40,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "SpillwayGateHoistStdOps",
+          "title": "溢洪道闸门启闭机维护标准作业",
+          "order": 50,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "HydroBearingTempTroubleshoot",
+          "title": "水导轴承瓦温异常排查全景模拟",
+          "order": 60,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ExcitationBrushReplacementOps",
+          "title": "励磁系统碳刷在线更换实操",
+          "order": 70,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "TransformerCoolerCleaningEdu",
+          "title": "主变压器冷却器清洗工艺教学",
+          "order": 80,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "GISBreakerTestingSim",
+          "title": "GIS开关站断路器机械特性测试实训",
+          "order": 90,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "StationPowerWiringTroubleshoot",
+          "title": "厂用电盘柜二次回路接线排故",
+          "order": 100,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "PenstockLeakageEmergencyDrill",
+          "title": "压力钢管伸缩节漏水应急封堵演练",
+          "order": 110,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "DraftTubePumpSealRepair",
+          "title": "尾水管排水泵机械密封更换教学",
+          "order": 120,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "SCADASystemRecoverySim",
+          "title": "计算机监控系统死机恢复模拟",
+          "order": 130,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "TrashRackRopeRepairTraining",
+          "title": "拦污栅清污机钢丝绳断裂抢修实训",
+          "order": 140,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "GuideVaneShearPinHandling",
+          "title": "导水机构剪断销剪断故障处理演练",
+          "order": 150,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ShearerGearbox3DTraining",
+          "title": "采煤机截割部减速箱拆解3D教学",
+          "order": 160,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "HydraulicSupportLeakSim",
+          "title": "液压支架立柱窜液故障排查模拟",
+          "order": 170,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ScraperConveyorChainRepairDrill",
+          "title": "刮板输送机断链事故应急抢修演练",
+          "order": 180,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "HoistBrakeClearanceTuning",
+          "title": "矿井提升机盘形制动器间隙调校实操",
+          "order": 190,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MiningTruckWheelAssemblySim",
+          "title": "露天矿卡车电动轮总成拆装实训",
+          "order": 200,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "RotaryDrillLubeMaintenance",
+          "title": "牙轮钻机回转机构润滑保养教学",
+          "order": 210,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "JawCrusherPlateReplacementSim",
+          "title": "颚式破碎机动颚板翻转更换演练",
+          "order": 220,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "BallMillBearingScrapingVR",
+          "title": "球磨机中空轴瓦刮研工艺虚拟实训",
+          "order": 230,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "FlotationMachineSealStdOps",
+          "title": "浮选机主轴承座密封更换标准作业",
+          "order": 240,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ExplosionProofInverterRepairEdu",
+          "title": "井下防爆变频器IGBT模块维修教学",
+          "order": 250,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "SubmersiblePumpMotorDryingSim",
+          "title": "矿用隔爆型潜水泵电机烘干实操",
+          "order": 260,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "GasPumpVacuumTroubleshoot",
+          "title": "瓦斯抽放泵水环真空度异常排查",
+          "order": 270,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "VentilatorBladeAngleTuning",
+          "title": "矿井主通风机叶片角度调整实训",
+          "order": 280,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "BeltConveyorDeviationTuningSim",
+          "title": "井下胶带输送机跑偏自动纠偏调试",
+          "order": 290,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MicroseismicSensorCalibrationEdu",
+          "title": "矿山微震监测系统传感器标定教学",
+          "order": 300,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MarineDieselCylinderHeadVR",
+          "title": "船舶低速柴油机气缸盖拆装虚拟实训",
+          "order": 310,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MarinePurifierOilLeakSim",
+          "title": "船用分油机跑油故障排查全景模拟",
+          "order": 320,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "SteeringGearPumpZeroTuning",
+          "title": "舵机液压泵变量机构零位调校实操",
+          "order": 330,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "QuayCraneHoistGearboxRepairEdu",
+          "title": "岸桥起升机构减速箱高速轴检修教学",
+          "order": 340,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "RTGTravelMotorSyncTuningSim",
+          "title": "场桥大车行走电机同步控制调试",
+          "order": 350,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "BallastWaterUVLampRepair",
+          "title": "船舶压载水处理系统UV灯管更换演练",
+          "order": 360,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "FreshWaterGeneratorVacuumDiag",
+          "title": "船用造水机真空度不足故障诊断",
+          "order": 370,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "PortConveyorFluidCouplingMaint",
+          "title": "港口带式输送机液力偶合器维护实训",
+          "order": 380,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ShipLoaderChuteRopeTuning",
+          "title": "装船机溜筒伸缩机构钢丝绳调整",
+          "order": 390,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MarineGeneratorReversePowerSim",
+          "title": "船舶电站发电机逆功率保护测试模拟",
+          "order": 400,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MarineRadarMagnetronRepair",
+          "title": "船用雷达天线收发机磁控管更换教学",
+          "order": 410,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MarineBoilerBurnerIgnitionFailure",
+          "title": "辅锅炉点火失败故障排查",
+          "order": 420,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MarineOilyWaterSeparatorMaint",
+          "title": "分油机排渣与震动故障维护",
+          "order": 430,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MarineSteeringGearHydraulicFault",
+          "title": "舵机液压系统故障排查",
+          "order": 440,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "CentrifugalChillerRefrigerantRecovery",
+          "title": "离心式冷水机组冷媒回收与加注实操",
+          "order": 450,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "LifeboatDavitLimitSwitchSim",
+          "title": "救生艇降放装置限位开关校验实操",
+          "order": 460,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "PortAGVLidarCalibrationEdu",
+          "title": "港口AGV自动导引车激光雷达标定",
+          "order": 470,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ReeferCompressorValveRepairDrill",
+          "title": "船舶冷藏集装箱压缩机阀板检修演练",
+          "order": 480,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ICCPReferenceElectrodeCheckSim",
+          "title": "船体外加电流阴极保护参比电极检查",
+          "order": 490,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ScrewCompressorRotorClearanceSim",
+          "title": "螺杆式空压机转子间隙测量实训",
+          "order": 500,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "IndustrialRobotServoRepair",
+          "title": "工业机器人六轴伺服电机更换教学",
+          "order": 510,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ChillerRefrigerantRecoverySim",
+          "title": "离心式冷水机组冷媒回收与加注实操",
+          "order": 520,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ValvePositionerPIDTuningVR",
+          "title": "智能阀门定位器PID参数整定模拟",
+          "order": 530,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "LubeSystemValveUnblockingDrill",
+          "title": "集中润滑系统分配阀堵塞疏通演练",
+          "order": 540,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "FirePumpPressureSwitchTestSim",
+          "title": "消防稳压泵压力开关动作值校验",
+          "order": 550,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "UPSInverterModuleDiag",
+          "title": "UPS不间断电源逆变模块故障排查",
+          "order": 560,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "OverheadCraneDeflectionMeasurementEdu",
+          "title": "桥式起重机主梁下挠度测量教学",
+          "order": 570,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ForkliftHydraulicValveLeakSim",
+          "title": "厂内叉车液压多路阀内泄检测实训",
+          "order": 580,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "WeldingRobotCollisionSensorResetSim",
+          "title": "焊接机器人焊枪防碰撞传感器复位",
+          "order": 590,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "IndustrialCameraStrobeTuningEdu",
+          "title": "工业视觉检测相机光源频闪调试",
+          "order": 600,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "HighVoltageMotorBearingHeatingSim",
+          "title": "高压电机轴承加热器规范使用实训",
+          "order": 610,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "ElectromagneticFlowmeterElectrodeTestSim",
+          "title": "电磁流量计电极极化电压测量",
+          "order": 620,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "StandbyGeneratorGovernorTuningSim",
+          "title": "备用柴油发电机调速板增益调校",
+          "order": 630,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "GroundingResistanceTestVR",
+          "title": "厂区防雷接地网接地电阻测试模拟",
+          "order": 640,
+          "enabled": true,
+          "children": []
+        },
+        {
+          "viewId": "MaintenanceToolsInsulationTestEdu",
+          "title": "维修工器具绝缘耐压测试规范教学",
+          "order": 650,
+          "enabled": true,
+          "children": []
+        }
+      ]
+    }
+  ]
+}

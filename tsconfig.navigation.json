@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "files": [
+    "constants.tsx",
+    "types.ts",
+    "src/integration/menu.ts",
+    "src/integration/launchOptions.ts",
+    "scripts/generate-scene-library-menu.ts",
+    "scripts/verify-navigation-split.ts"
+  ]
+}

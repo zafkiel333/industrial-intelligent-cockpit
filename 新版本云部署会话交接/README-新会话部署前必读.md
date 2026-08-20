@@ -1,9 +1,10 @@
 # 场景库新版本云部署：新会话接手说明
 
 > 文档用途：把本文件交给一个全新的 AI 会话，使其快速理解本项目的部署目标、服务器现状、用户操作偏好、安全边界和标准发布流程。  
-> 编写日期：2026-08-19  
+> 初次编写：2026-08-19；最近更新：2026-08-20
 > 项目目录：`C:\Users\Administrator\Desktop\NLP_Proj\industrial-intelligent-cockpit`  
 > 重要原则：本文记录的是“最后一次已知状态”，新会话必须先做只读核查，不能把旧状态当成当前事实直接切换生产版本。
+> 进度来源：每次接手还必须读取本文件夹中日期最新的 `云端更新执行记录-*.md`；只有其中有命令输出证据的阶段才算已经完成。
 
 ---
 
@@ -12,6 +13,7 @@
 ```text
 请先完整阅读：
 新版本云部署会话交接/README-新会话部署前必读.md
+以及同一文件夹中日期最新的“云端更新执行记录-*.md”。
 
 然后按照文档接手本项目的新版本部署。请遵守以下交互方式：
 
@@ -24,7 +26,62 @@
 7. 不要部署、登录或修改主平台服务器 8.146.211.204；主平台由另一团队负责。本次只部署场景库服务器 47.122.104.52。
 8. 不要擅自运行 git reset、git clean、git checkout、git stash，不要覆盖或删除我当前未提交的改动。
 9. 发现任何信息和本文不一致时，以现场只读检查结果为准，先解释差异，再继续。
+10. 每完成一个本地发布或云端阶段，立即更新本次“云端更新执行记录”文件；不得把“本地已构建”写成“云端已更新”。
 ```
+
+---
+
+## 1.1 2026-08-20 本次待发布版本：主平台统一导航拆分
+
+本节是本次部署最重要的新范围。当前状态是：**场景库侧开发和本地构建验证已完成，但尚未上传、安装或切换到云端。**
+
+目标效果：
+
+- 主平台中只有“场景库”是一级导航；
+- 本项目原导航栏中的所有项目，整体下沉为主平台“场景库”的下一级及更深层菜单；
+- 由主平台提供统一导航时，本项目只显示右侧业务内容，不显示自己的左侧导航栏；
+- 主平台 iframe 应使用 `?embedded=1&viewId=<页面ID>` 打开指定页面；
+- `embedded=1` 表示集成显示模式，`viewId` 表示目标业务页面；
+- `viewId` 会严格校验。合法值打开对应页面；缺失或非法值回退默认页，并留下可诊断标记/警告，不执行任意 URL 跳转；
+- 用户直接访问 `/cockpit/` 且没有 `embedded=1` 时，仍保留本项目原导航栏，作为独立运行和故障排查入口；
+- 既有“查看模型详情”跨项目通信协议 `scene-library:navigate` 必须继续保留，不能因拆导航而破坏；
+- 主平台菜单代码和主平台部署由对方团队完成，本次只能发布场景库服务器，不能把场景库上线误称为双方联调完成。
+
+本次新增或修改的核心文件：
+
+```text
+App.tsx
+index.tsx
+src/integration/menu.ts
+src/integration/launchOptions.ts
+scripts/generate-scene-library-menu.ts
+scripts/verify-navigation-split.ts
+tsconfig.navigation.json
+package.json
+主平台统一导航拆分方案-20260820/scene-library-menu.manifest.json
+```
+
+当前开发态菜单清单：
+
+```text
+一级菜单节点：20
+总节点：1049
+menuVersion：dev-46e7605-dirty
+menuContentSha256：b7de7be4e41977d0e9fdfc75c204ff93086d4a33b57f9c33e0351cd1fa05b021
+```
+
+开发态清单不能直接当作正式交付版本。正式打包时要使用最终 Release ID 重新生成清单，并记录新版本号和哈希。
+
+本次浏览器验收至少包括：
+
+```text
+/cockpit/                                      独立模式，仍显示本项目导航栏
+/cockpit/?embedded=1&viewId=smart-ops          集成模式，隐藏本项目导航栏并打开一级业务页
+/cockpit/?embedded=1&viewId=eq-0               集成模式，隐藏本项目导航栏并打开叶子页面
+/cockpit/?embedded=1&viewId=<不存在的ID>       安全回退默认页，不白屏、不跳往任意地址
+```
+
+主平台侧最终还要验证：主平台“场景库”菜单层级、iframe URL 参数、菜单点击切页、刷新恢复，以及原模型详情跨项目跳转。主平台若尚未发布其适配代码，场景库侧只能完成独立 URL 验收。
 
 ---
 
@@ -123,7 +180,7 @@ previous → /nlplabProj/scene-library/releases/20260817-154326
 - `www/cockpit` 和 `www/microapps/scene-library` 通过软链接跟随 `current`；
 - 旧版本保留在独立 release 目录中，可快速回滚。
 
-这些只是历史事实。新会话第一轮必须重新核查，因为在 2026-08-19 进行新部署时它们可能已经变化。
+这些只是历史事实。新会话第一轮必须重新核查，因为后续部署或人工操作都可能使其变化。
 
 ---
 
@@ -171,7 +228,7 @@ previous → /nlplabProj/scene-library/releases/20260817-154326
 
 ## 6. 当前本地工作区的特殊风险
 
-编写本文件时，本地工作区存在大量已修改但尚未提交的源码，同时还有未跟踪目录/文件。这很可能就是本次要发布的新版本，但新会话不能自行作出这个决定。
+2026-08-20 最后核对时，本地工作区包含本次导航拆分的已修改和未跟踪文件，尚未形成正式发布提交。较早一次工具核查曾显示 `.claude/` 为未跟踪目录，用户随后亲自执行的 `git status --short` 未再列出它；无论它是否被本机忽略，都与本次功能无关，不得自动纳入发布、删除或修改。新会话不能自行决定提交或清理这些内容。
 
 必须先执行只读检查：
 
@@ -184,11 +241,13 @@ git diff --check
 git diff -- package.json package-lock.json server.ts
 ```
 
-当前最后已知 Git 提交：
+当前最后已知 Git 提交（2026-08-20 本地只读核对结果）：
 
 ```text
-b4ec6eb 页面跳转方法修改完成，现为页内跳转，已经部署并更新
+46e7605c8c6f1102fdeb6aba1a7984b2e1b062ba 外观修改基本完成，准备拆导航栏
 ```
+
+上一个已知线上版本 `20260818-144540` 对应的是更早的代码状态，不能因为当前分支在 `46e7605` 就认为导航拆分已经上线。
 
 处理规则：
 
@@ -207,6 +266,9 @@ b4ec6eb 页面跳转方法修改完成，现为页内跳转，已经部署并更
 
 ```text
 npm run typecheck
+npm run typecheck:navigation
+npm run verify:navigation
+npm run generate:menu-manifest
 npm run build:standalone
 npm run build:microapp
 npm run build:all
@@ -228,15 +290,20 @@ microapp public base:   /microapps/scene-library/
 API base:               /scene-library-api/
 ```
 
-正常情况下可以使用：
+本次导航拆分发布的硬性检查顺序：
 
 ```powershell
 npm ci
-npm run typecheck
+npm run typecheck:navigation
+npm run verify:navigation
 npm run build:all
 ```
 
-但新会话应先检查 `package.json` 和 `package-lock.json` 是否匹配。如果本次只修改了 `package.json` 却未同步锁文件，必须先解释并修正依赖状态，不能直接假定 `npm ci` 一定正确。
+截至 2026-08-20，上述三个导航专项检查/构建已经在本地通过。正式发布前仍需以最终工作区重新执行。
+
+全项目 `npm run typecheck` 当前会被 7 个历史遗留的 `three-types.ts` 非法字符错误阻塞，涉及 `CoolingWaterSystemCleaning`、`DamSeepageMonitoring`、`ExcitationSystemUpgrade`、`GeneratorRotorReplacement`、`GovernorSystemCalibration`、`HydraulicHoistMaintenance`、`HydrologicalStationCalibration`。这些错误不是本次导航拆分引入。发布前仍应运行全量检查并记录原始结果，但不得把历史问题误报成本次回归，也不得为部署导航功能擅自扩大范围修复无关页面。
+
+新会话还应先检查 `package.json` 和 `package-lock.json` 是否匹配。如果本次只修改了 `package.json` 却未同步锁文件，必须先解释并修正依赖状态，不能直接假定 `npm ci` 一定正确。
 
 ---
 
@@ -267,6 +334,16 @@ Get-Content package.json
 ```
 
 如果后端又增加了新的本地模块、配置模板、运行时 JSON 或其他资源，必须加入发布包。
+
+`src/integration/` 下的导航协议源码会编译进两套前端产物，当前不是服务器运行时单独读取的目录。正式发布包以构建后的 `dist-standalone/`、`dist-microapp/` 为准。菜单清单 JSON 是交付主平台团队的协作产物，不应被误当作后端运行依赖；是否同时归档进发布包必须明确记录。
+
+在正式构建前，用最终 Release ID 重新生成主平台菜单清单：
+
+```powershell
+npm run generate:menu-manifest -- --menu-version=$ReleaseId
+```
+
+然后记录清单的 `sourceCommit`、`sourceDirty`、`menuContentSha256` 和文件 SHA-256，并把正式清单交付主平台团队。若代码或菜单再变更，必须生成新的 Release ID 和新清单。
 
 发布包不得包含：
 
@@ -355,8 +432,10 @@ ssh -i "$KeyPath" `
 
 ```text
 npm ci
-npm run typecheck
+npm run typecheck:navigation
+npm run verify:navigation
 npm run build:all
+npm run typecheck（全量诊断；若仍只有本文记录的 7 个历史错误，原样记录）
 ```
 
 构建失败时停在本地解决，绝不上传失败产物。
@@ -373,6 +452,9 @@ npm run build:all
 - API 路径为 `/scene-library-api/`；
 - 不意外泄露本地绝对路径或秘密；
 - 与本次功能有关的关键文本/协议确实进入构建产物。
+- 构建产物包含 `embedded`、`viewId` 页面定位逻辑；
+- 构建产物仍包含 `scene-library:navigate` 模型详情跳转协议；
+- 不能仅凭关键字存在判定成功，还需在切换后完成四个 URL 的浏览器验证。
 
 不要把旧版本固定的 hash 文件名写死，例如不要继续寻找旧的 `index-B7OWG8h6.js`。应从本次 `index.html` 动态读取当前资源名。
 
@@ -526,6 +608,11 @@ standalone 当前 JS = HTTP 200
 - 本次修改的页面和功能正确；
 - 数据上传、模型数据或三维资源按本次变更范围正常；
 - 从主平台进入场景库仍正常；
+- 独立访问 `/cockpit/` 时本项目导航栏仍存在；
+- 使用 `embedded=1&viewId=smart-ops` 时本项目导航栏隐藏，页面内容正确；
+- 使用合法叶子 `viewId` 时能直接打开对应页面；
+- 使用非法 `viewId` 时安全回退且不白屏；
+- 主平台中只有“场景库”是一级入口，本项目原菜单整体位于其下级；
 - 涉及模型详情跳转时，主平台内标签开启和关闭两种状态符合预期；
 - 浏览器强制刷新后仍正常；
 - 控制台没有新增严重错误。
@@ -545,6 +632,8 @@ standalone 当前 JS = HTTP 200
 - 技术验证结果；
 - 业务验证结果；
 - 回滚目标。
+- 正式菜单清单版本、内容哈希、文件哈希以及交付主平台的时间；
+- `新版本云部署会话交接/云端更新执行记录-<日期>-<主题>.md` 中对应阶段的证据。
 
 只有用户确认新版本稳定后，才可以询问是否删除 `/tmp` 中的上传包。不要自动删除旧 release，不要自动清空共享缓存或持久化数据。
 
@@ -624,6 +713,10 @@ service = active
 跨项目门户集成方案/项目集成与跨项目跳转初学者说明-20260818.md
 跨项目门户集成方案/主项目微前端集成与运维交付手册-20260817.md
 跨项目门户集成方案/本项目服务器端前后端部署指导.md
+主平台统一导航拆分方案-20260820/00-方案总览与文档交付清单.md
+主平台统一导航拆分方案-20260820/04-菜单清单与页面定位协议.md
+主平台统一导航拆分方案-20260820/06-修改日志.md
+主平台统一导航拆分方案-20260820/scene-library-menu.manifest.json
 ```
 
 但要特别注意：
@@ -640,7 +733,7 @@ service = active
 
 只有同时满足下面条件，才能告诉用户“本次部署完成”：
 
-- 本地类型检查和两套构建通过；
+- 导航专项类型检查、导航协议验证和两套构建通过；全量类型检查结果已如实记录；
 - 发布包内容和 SHA-256 已核验；
 - 新 release 独立安装成功；
 - `current` 指向新版本；
@@ -650,6 +743,8 @@ service = active
 - 没有改动主平台服务器；
 - 回滚路径仍有效；
 - 发布记录完整；
+- 本次云端更新执行记录已逐阶段补全，能明确区分本地、上传、安装、切换和验收状态；
+- 正式菜单清单已经按最终 Release ID 生成并完成主平台交付记录；
 - 用户明确知道当前线上版本号。
 
 如果只有技术健康检查通过、尚未进行浏览器业务验收，应准确表述为：
@@ -657,4 +752,3 @@ service = active
 ```text
 服务器切换和技术检查已通过，仍等待浏览器业务验收；暂不能宣布全部部署完成。
 ```
-
