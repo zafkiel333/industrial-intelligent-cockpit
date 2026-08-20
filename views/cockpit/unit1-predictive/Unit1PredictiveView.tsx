@@ -125,7 +125,7 @@ export const Unit1PredictiveView: React.FC = () => {
   };
 
   const handleClearData = async () => {
-    if (!window.confirm('确定要清空所有上传的数据文件吗？操作不可逆。')) {
+    if (!window.confirm('确定要清空全部已上传数据吗？清空后无法恢复。')) {
       return;
     }
     try {
@@ -518,7 +518,7 @@ export const Unit1PredictiveView: React.FC = () => {
             </button>
             <h3 className="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
               <Upload className="text-blue-400" />
-              数据入库集成
+              导入运行数据
             </h3>
             
             <div className="space-y-4">
@@ -571,7 +571,7 @@ export const Unit1PredictiveView: React.FC = () => {
                   className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
                 >
                   {uploading ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
-                  开始上传解析
+                  上传并解析
                 </button>
               </div>
               <p className="text-xs text-slate-500 text-center">

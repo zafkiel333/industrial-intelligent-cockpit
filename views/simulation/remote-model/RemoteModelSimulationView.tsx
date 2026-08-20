@@ -341,7 +341,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
 
         {/* 2026-08-09 修复：固定模型与参数卡边界，超量数据仅在组件内部滚动； */}
         <div className="remote-model-showcase-primary-grid grid items-start gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(420px,0.9fr)]">
-          <SciFiCard title="3D 设备数字孪生" subtitle={(displayedModel?.format || bootstrap.model.format).toUpperCase()} noPadding highlight className="remote-model-showcase-viewer-card h-[492px] min-h-0 overflow-hidden">
+          <SciFiCard title="3D 设备数字孪生" subtitle={(displayedModel?.format || bootstrap.model.format).toUpperCase()} subtitleIsCode noPadding highlight className="remote-model-showcase-viewer-card h-[492px] min-h-0 overflow-hidden">
             <RemoteModelViewer
               asset={displayedModel || bootstrap.model}
               fields={dashboard.bindable_fields}

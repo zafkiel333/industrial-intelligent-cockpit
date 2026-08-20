@@ -122,7 +122,7 @@ export const MineProcessDeliveryView: React.FC = () => {
               {/* Script Viewer */}
               <SciFiCard title="逻辑脚本预览" subtitle="PLC" className="h-[200px] border-orange-900/50 bg-[#1a0f0a]/90 pointer-events-auto">
                   <div className="p-2 font-mono text-[10px] text-green-300 bg-black/40 rounded h-full overflow-hidden relative">
-                      <div className="absolute inset-0 p-2 overflow-y-auto custom-scrollbar">
+                      <div className="absolute inset-0 p-2 overflow-y-auto custom-scrollbar" data-localization="preserve">
                           {`IF Shearer_Pos > 120 THEN
   CALL Support_Advance(Group_A)
   SET AFC_Speed = 0.8

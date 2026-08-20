@@ -3,6 +3,7 @@ import React from 'react';
 interface SciFiCardProps {
   title?: string;
   subtitle?: string;
+  subtitleIsCode?: boolean;
   children: React.ReactNode;
   className?: string;
   noPadding?: boolean;
@@ -12,6 +13,7 @@ interface SciFiCardProps {
 export const SciFiCard: React.FC<SciFiCardProps> = ({ 
   title, 
   subtitle,
+  subtitleIsCode = false,
   children, 
   className = '', 
   noPadding = false,
@@ -38,7 +40,10 @@ export const SciFiCard: React.FC<SciFiCardProps> = ({
             </h3>
           </div>
           {subtitle && (
-             <span className="platform-card-subtitle text-[10px] px-1.5 py-0.5 rounded border">
+             <span
+               className="platform-card-subtitle text-[10px] px-1.5 py-0.5 rounded border"
+               data-localization={subtitleIsCode ? 'preserve' : undefined}
+             >
                {subtitle}
              </span>
           )}

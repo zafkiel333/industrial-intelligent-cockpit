@@ -250,33 +250,33 @@ export const MiningEmergencyView: React.FC = () => {
                       <div className="p-3 bg-slate-900/60 border-l-4 border-green-500 rounded flex justify-between items-center">
                           <div>
                               <div className="text-xs font-bold text-white flex items-center gap-2">
-                                  <UserCheck size={14}/> Rescue Team Alpha
+                                  <UserCheck size={14}/> A组救援队
                               </div>
-                              <div className="text-[10px] text-slate-400">Loc: Tunnel Main Junction</div>
+                              <div className="text-[10px] text-slate-400">位置：主隧道交汇处</div>
                           </div>
-                          <div className="text-xs bg-green-900/40 text-green-400 px-2 py-1 rounded border border-green-800">ADVANCING</div>
+                          <div className="text-xs bg-green-900/40 text-green-400 px-2 py-1 rounded border border-green-800">正在前进</div>
                       </div>
 
                       {/* Team B */}
                       <div className="p-3 bg-slate-900/60 border-l-4 border-yellow-500 rounded flex justify-between items-center">
                           <div>
                               <div className="text-xs font-bold text-white flex items-center gap-2">
-                                  <UserCheck size={14}/> Rescue Team Bravo
+                                  <UserCheck size={14}/> B组救援队
                               </div>
-                              <div className="text-[10px] text-slate-400">Loc: Surface Base</div>
+                              <div className="text-[10px] text-slate-400">位置：地面基地</div>
                           </div>
-                          <div className="text-xs bg-yellow-900/40 text-yellow-400 px-2 py-1 rounded border border-yellow-800">STANDBY</div>
+                          <div className="text-xs bg-yellow-900/40 text-yellow-400 px-2 py-1 rounded border border-yellow-800">待命</div>
                       </div>
 
                       {/* Medical */}
                       <div className="p-3 bg-slate-900/60 border-l-4 border-blue-500 rounded flex justify-between items-center">
                           <div>
                               <div className="text-xs font-bold text-white flex items-center gap-2">
-                                  <Truck size={14}/> Medical Unit
+                                  <Truck size={14}/> 医疗救援组
                               </div>
-                              <div className="text-[10px] text-slate-400">Loc: Triage Tent</div>
+                              <div className="text-[10px] text-slate-400">位置：检伤分类帐篷</div>
                           </div>
-                          <div className="text-xs bg-blue-900/40 text-blue-400 px-2 py-1 rounded border border-blue-800">READY</div>
+                          <div className="text-xs bg-blue-900/40 text-blue-400 px-2 py-1 rounded border border-blue-800">就绪</div>
                       </div>
                   </div>
               </SciFiCard>

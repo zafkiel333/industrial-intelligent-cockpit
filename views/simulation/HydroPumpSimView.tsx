@@ -285,7 +285,7 @@ export const HydroPumpSimView: React.FC = () => {
                           <YAxis stroke="#64748b" tick={{fontSize: 10}} domain={[0, 100]} label={{ value: 'H (m)', angle: -90, position: 'insideLeft', fontSize: 10 }} />
                           <Tooltip contentStyle={{backgroundColor: '#000', borderColor: '#0ea5e9'}} />
                           
-                          <Line dataKey="sys" stroke="#ffffff" strokeDasharray="5 5" name="System" dot={false} strokeWidth={2} />
+                          <Line dataKey="sys" stroke="#64748b" strokeDasharray="5 5" name="System" dot={false} strokeWidth={2} />
                           <Line dataKey="h1" stroke="#3b82f6" dot={false} name="1 Pump" strokeWidth={1} />
                           <Line dataKey="h2" stroke="#6366f1" dot={false} name="2 Pumps" strokeWidth={1} />
                           <Line dataKey="h3" stroke="#8b5cf6" dot={false} name="3 Pumps" strokeWidth={1} />

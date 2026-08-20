@@ -178,7 +178,7 @@ export const GlobalFleetCockpitView: React.FC = () => {
           <div className="w-[360px] flex flex-col gap-4 pointer-events-auto">
               
               {/* Selected Ship Detail */}
-              <SciFiCard title="单船实时详情" subtitle={selectedShip.id} className="border-blue-900/50 bg-[#0b1121]/80 backdrop-blur-md">
+              <SciFiCard title="单船实时详情" subtitle={selectedShip.id} subtitleIsCode className="border-blue-900/50 bg-[#0b1121]/80 backdrop-blur-md">
                   <div className="flex flex-col gap-4">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-700">
                           <div>

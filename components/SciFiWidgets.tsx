@@ -139,7 +139,7 @@ export const CameraWidget = ({ name, status }: { name: string; status: 'online' 
     </div>
     <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
       <div className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-red-500 animate-pulse' : 'bg-slate-600'}`} />
-      <span className="text-[10px] text-slate-300 font-mono">REC</span>
+      <span className="text-[10px] text-slate-300 font-mono">录像</span>
     </div>
     {status === 'online' ? (
       <div className="flex-1 flex items-center justify-center relative">
@@ -149,7 +149,7 @@ export const CameraWidget = ({ name, status }: { name: string; status: 'online' 
       </div>
     ) : (
       <div className="flex-1 flex items-center justify-center bg-slate-900">
-        <span className="text-xs text-slate-600 font-mono">NO SIGNAL</span>
+        <span className="text-xs text-slate-600 font-mono">无信号</span>
       </div>
     )}
   </div>

@@ -49,32 +49,50 @@ const NODES_DATA: OrgNode[] = [
   { id: 'cn-bj', label: 'Beijing Sales', type: 'Dept', x: 150, y: 400, parentId: 'cn-main', status: 'Active' },
 ];
 
+const ORG_NODE_DISPLAY_NAME: Record<string, string> = {
+  root: '量子环球集团',
+  apac: '亚太区总部',
+  na: '北美区总部',
+  'cn-main': '量子科技（中国）有限公司',
+  'jp-branch': '量子科技日本公司',
+  'us-tech': '量子科技美国公司',
+  'ca-log': '枫叶物流公司',
+  'cn-sh': '上海研发中心',
+  'cn-bj': '北京销售中心',
+};
+
 const ENTITY_DETAILS: Record<string, EntityDetail> = {
   'root': {
-    id: 'root', name: 'Quantum Global Group',
-    legalRep: 'Robert Chen', capital: '$ 5B', founded: '1985-04-12',
-    address: '100 Tech Plaza, Singapore',
-    shareholders: [{name: 'Public Float', pct: 60}, {name: 'Founders', pct: 30}, {name: 'Institutions', pct: 10}],
-    keyPersonnel: [{role: 'CEO', name: 'R. Chen'}, {role: 'CFO', name: 'S. Williams'}]
+    id: 'root', name: '量子环球集团',
+    legalRep: '陈志远', capital: '50 亿美元', founded: '1985-04-12',
+    address: '新加坡科技广场 100 号',
+    shareholders: [{name: '社会公众股', pct: 60}, {name: '创始人持股', pct: 30}, {name: '机构持股', pct: 10}],
+    keyPersonnel: [{role: '首席执行官', name: '陈志远'}, {role: '首席财务官', name: '苏珊·威廉姆斯'}]
   },
   'cn-main': {
-    id: 'cn-main', name: 'Quantum China Ltd.',
-    legalRep: 'Zhang Wei', capital: '¥ 500M', founded: '2005-09-01',
-    address: '88 Century Ave, Shanghai',
-    shareholders: [{name: 'Quantum Global', pct: 100}],
-    keyPersonnel: [{role: 'GM', name: 'Zhang W.'}, {role: 'CTO', name: 'Li H.'}]
+    id: 'cn-main', name: '量子科技（中国）有限公司',
+    legalRep: '张伟', capital: '5 亿元人民币', founded: '2005-09-01',
+    address: '上海市世纪大道 88 号',
+    shareholders: [{name: '量子环球集团', pct: 100}],
+    keyPersonnel: [{role: '总经理', name: '张伟'}, {role: '首席技术官', name: '李航'}]
   },
   // Fallback for others
   'default': {
-    id: 'unknown', name: 'Entity Details',
-    legalRep: 'N/A', capital: 'N/A', founded: 'N/A',
-    address: 'N/A',
-    shareholders: [{name: 'Parent Co', pct: 100}],
+    id: 'unknown', name: '企业详情',
+    legalRep: '暂无', capital: '暂无', founded: '暂无',
+    address: '暂无',
+    shareholders: [{name: '母公司', pct: 100}],
     keyPersonnel: []
   }
 };
 
 const COLORS = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#f43f5e'];
+const ORG_TYPE_LABEL: Record<OrgNode['type'], string> = {
+  Root: '集团总部',
+  Region: '区域总部',
+  Company: '公司',
+  Dept: '部门',
+};
 
 // --- Components ---
 
@@ -175,10 +193,10 @@ const OrgGraph = ({
               <circle cx="-60" cy="0" r="4" fill={nodeColor} />
               
               <text x="0" y="-5" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" pointerEvents="none">
-                {node.label}
+                {ORG_NODE_DISPLAY_NAME[node.id] ?? node.label}
               </text>
               <text x="0" y="12" textAnchor="middle" fill="#64748b" fontSize="9" pointerEvents="none">
-                {node.type.toUpperCase()}
+                 {ORG_TYPE_LABEL[node.type]}
               </text>
             </g>
           );
@@ -209,7 +227,7 @@ export const CustomerOrgStructureView: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-end border-b border-indigo-900/50 pb-4 bg-gradient-to-r from-[#0f0a29] to-transparent px-2">
         <div>
           <div className="flex items-center gap-2 text-xs text-indigo-400 mb-1 uppercase tracking-wider">
-             <Briefcase size={14} /> Organization Management
+             <Briefcase size={14} /> 组织关系管理
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
              客户组织架构 <span className="text-indigo-500">全景透视</span>
@@ -218,7 +236,7 @@ export const CustomerOrgStructureView: React.FC = () => {
         
         <div className="flex gap-4 mt-4 md:mt-0 items-center">
             <div className="bg-indigo-900/20 px-4 py-1.5 rounded border border-indigo-500/30 flex items-center gap-3">
-               <span className="text-xs text-indigo-300 uppercase">View Mode:</span>
+               <span className="text-xs text-indigo-300 uppercase">视图模式：</span>
                <div className="flex bg-slate-900 rounded p-0.5">
                   <button 
                     onClick={() => setViewMode('mgmt')}
@@ -252,24 +270,24 @@ export const CustomerOrgStructureView: React.FC = () => {
            <SciFiCard title="组织层级筛选" className="border-slate-800">
               <div className="space-y-2">
                  <div className="flex items-center justify-between p-2 bg-slate-800/50 rounded cursor-pointer hover:bg-slate-800 transition-colors">
-                    <span className="text-sm text-slate-200 flex items-center gap-2"><Globe size={14} className="text-indigo-400"/> Regions</span>
+                     <span className="text-sm text-slate-200 flex items-center gap-2"><Globe size={14} className="text-indigo-400"/> 区域总部</span>
                     <span className="text-xs bg-slate-700 px-1.5 rounded text-slate-300">2</span>
                  </div>
                  <div className="flex items-center justify-between p-2 bg-slate-800/50 rounded cursor-pointer hover:bg-slate-800 transition-colors">
-                    <span className="text-sm text-slate-200 flex items-center gap-2"><Building2 size={14} className="text-cyan-400"/> Companies</span>
+                     <span className="text-sm text-slate-200 flex items-center gap-2"><Building2 size={14} className="text-cyan-400"/> 下属公司</span>
                     <span className="text-xs bg-slate-700 px-1.5 rounded text-slate-300">4</span>
                  </div>
                  <div className="flex items-center justify-between p-2 bg-slate-800/50 rounded cursor-pointer hover:bg-slate-800 transition-colors">
-                    <span className="text-sm text-slate-200 flex items-center gap-2"><Users size={14} className="text-emerald-400"/> Depts</span>
+                     <span className="text-sm text-slate-200 flex items-center gap-2"><Users size={14} className="text-emerald-400"/> 业务部门</span>
                     <span className="text-xs bg-slate-700 px-1.5 rounded text-slate-300">15</span>
                  </div>
               </div>
            </SciFiCard>
 
            <div className="mt-auto bg-indigo-900/10 border border-indigo-900/30 p-4 rounded text-center">
-               <div className="text-xs text-indigo-300 uppercase mb-2">Structure Version</div>
-               <div className="text-2xl font-mono font-bold text-white">v24.03</div>
-               <div className="text-[10px] text-slate-500 mt-1">Last Sync: Today 08:30</div>
+               <div className="text-xs text-indigo-300 uppercase mb-2">组织架构版本</div>
+               <div className="text-2xl font-mono font-bold text-white" data-localization="preserve">v24.03</div>
+               <div className="text-[10px] text-slate-500 mt-1">最近同步：今天 08:30</div>
            </div>
         </div>
 
@@ -288,7 +306,7 @@ export const CustomerOrgStructureView: React.FC = () => {
            {/* Timeline Slider (Simulated) */}
            <div className="h-16 bg-slate-900/50 border border-slate-800 rounded flex items-center px-4 gap-4">
                <div className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
-                   <History size={14} /> Timeline
+                    <History size={14} /> 架构沿革
                </div>
                <div className="flex-1 relative h-1 bg-slate-700 rounded cursor-pointer">
                    <div className="absolute top-0 left-0 h-full bg-indigo-500 w-[90%]"></div>
@@ -299,7 +317,7 @@ export const CustomerOrgStructureView: React.FC = () => {
                    <div className="absolute top-3 left-[25%] text-[10px] text-slate-500">2021</div>
                    <div className="absolute top-3 left-[50%] text-[10px] text-slate-500">2022</div>
                    <div className="absolute top-3 left-[75%] text-[10px] text-slate-500">2023</div>
-                   <div className="absolute top-3 right-0 text-[10px] text-slate-500">Now</div>
+                    <div className="absolute top-3 right-0 text-[10px] text-slate-500">当前</div>
                </div>
            </div>
         </div>
@@ -308,7 +326,7 @@ export const CustomerOrgStructureView: React.FC = () => {
         <div className="w-full lg:w-[350px] flex flex-col gap-6 overflow-y-auto pr-1">
            
            {/* Inspector Card */}
-           <SciFiCard title="实体详情档案" subtitle={selectedDetails.id.toUpperCase()} className="border-indigo-900/50">
+           <SciFiCard title="实体详情档案" subtitle={selectedDetails.id.toUpperCase()} subtitleIsCode className="border-indigo-900/50">
                
                {/* Identity Header */}
                <div className="mb-6">
@@ -317,10 +335,10 @@ export const CustomerOrgStructureView: React.FC = () => {
                            <h2 className="text-xl font-bold text-white leading-tight">{selectedDetails.name}</h2>
                            <div className="flex gap-2 mt-2">
                                <span className="px-2 py-0.5 bg-indigo-900/50 text-indigo-300 text-[10px] font-bold rounded border border-indigo-700/50">
-                                   Subsidiary
+                                    子公司
                                </span>
                                <span className="px-2 py-0.5 bg-green-900/30 text-green-400 text-[10px] font-bold rounded border border-green-700/30">
-                                   Active
+                                    正常经营
                                </span>
                            </div>
                        </div>
@@ -350,19 +368,19 @@ export const CustomerOrgStructureView: React.FC = () => {
                    {activeTab === 'basic' && (
                        <div className="space-y-3">
                            <div className="flex justify-between p-2 bg-slate-900/50 rounded border border-slate-800">
-                               <span className="text-xs text-slate-400">Legal Rep</span>
+                                <span className="text-xs text-slate-400">法定代表人</span>
                                <span className="text-sm font-bold text-white">{selectedDetails.legalRep}</span>
                            </div>
                            <div className="flex justify-between p-2 bg-slate-900/50 rounded border border-slate-800">
-                               <span className="text-xs text-slate-400">Reg. Capital</span>
+                                <span className="text-xs text-slate-400">注册资本</span>
                                <span className="text-sm font-mono text-white">{selectedDetails.capital}</span>
                            </div>
                            <div className="flex justify-between p-2 bg-slate-900/50 rounded border border-slate-800">
-                               <span className="text-xs text-slate-400">Founded</span>
+                                <span className="text-xs text-slate-400">成立日期</span>
                                <span className="text-sm font-mono text-white">{selectedDetails.founded}</span>
                            </div>
                            <div className="p-2 bg-slate-900/50 rounded border border-slate-800">
-                               <span className="text-xs text-slate-400 block mb-1">Address</span>
+                                <span className="text-xs text-slate-400 block mb-1">注册地址</span>
                                <span className="text-xs text-slate-300 flex items-start gap-1">
                                    <MapPin size={12} className="mt-0.5 text-indigo-500 shrink-0"/> {selectedDetails.address}
                                </span>

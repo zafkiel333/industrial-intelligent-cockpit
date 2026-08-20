@@ -235,7 +235,7 @@ export const DispatchRulesKbView: React.FC = () => {
         <div className="flex-1 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
            
            {/* Rule Logic Diagram */}
-           <SciFiCard title="规则逻辑视图 (Logic Flow)" subtitle={selectedRule.code} className="border-cyan-900/50 bg-[#0b1221]/50">
+           <SciFiCard title="规则逻辑视图 (Logic Flow)" subtitle={selectedRule.code} subtitleIsCode className="border-cyan-900/50 bg-[#0b1221]/50">
                <div className="flex flex-col items-center py-6 px-4 gap-4">
                    
                    {/* Start Node */}

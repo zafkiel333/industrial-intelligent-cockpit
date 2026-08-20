@@ -10,6 +10,16 @@ const MODEL_LIB_URL = 'https://industrial-intelligent-cockpit.example.com/model-
 import { useScenarioRealData } from '../src/scenarioLib/useScenarioRealData';
 import { ScenarioDataUploadModal } from '../src/scenarioLib/ScenarioDataUploadModal';
 const SCENARIO_ID = 'eq-12';
+const HOIST_MODE_LABEL: Record<'AUTO' | 'MAN' | 'INSPECT', string> = {
+  AUTO: '自动',
+  MAN: '手动',
+  INSPECT: '检修',
+};
+const HOIST_DIRECTION_LABEL: Record<'UP' | 'DOWN' | 'STOP', string> = {
+  UP: '提升',
+  DOWN: '下放',
+  STOP: '停止',
+};
 // 2026-07-14 新增：真实深度-时间运行轨迹 + 真实钢丝绳不平衡系数 + 现场报告导出（场景库测试方案 Phase 4 修正）。
 import { downloadScenarioReport } from '../src/scenarioLib/scenarioFieldReport';
 import {
@@ -47,7 +57,7 @@ export const MineHoistView: React.FC = () => {
   ]);
 
   const handleClear = async () => {
-    if (!window.confirm('确定要清空所有上传的数据文件吗？操作不可逆。')) return;
+    if (!window.confirm('确定要清空全部已上传数据吗？清空后无法恢复。')) return;
     const res = await clearData();
     if (!res.success) alert(res.message || '清空失败');
   };
@@ -127,7 +137,7 @@ export const MineHoistView: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 text-xs text-amber-500 mb-1 uppercase tracking-wider">
              <ChevronsDown size={12} className="animate-bounce" />
-             DEEP SHAFT TRANSPORTATION
+             深井提升运输
           </div>
           <h1 className="text-4xl font-bold text-white tracking-tight flex items-center gap-3">
              <span className="text-amber-500 text-shadow-glow">矿山提升机</span> 智能运维系统
@@ -138,29 +148,29 @@ export const MineHoistView: React.FC = () => {
         {/* Top KPIs */}
         <div className="flex gap-8">
             <div className="flex flex-col items-end">
-                <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">Current Depth</div>
+                 <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">当前提升深度</div>
                 <div className="text-2xl font-mono font-bold text-amber-400">-{hoistStatus.depth.toFixed(1)} <span className="text-sm text-slate-500">m</span></div>
             </div>
             <div className="flex flex-col items-end border-l border-amber-900/40 pl-6">
-                <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">Cage Velocity</div>
+                 <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">罐笼速度</div>
                 <div className="text-2xl font-mono font-bold text-white">{hoistStatus.velocity.toFixed(1)} <span className="text-sm text-slate-500">m/s</span></div>
             </div>
             <div className="flex flex-col items-end border-l border-amber-900/40 pl-6">
-                <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">System Mode</div>
-                <div className="text-2xl font-mono font-bold text-green-500 bg-green-900/20 px-2 rounded border border-green-800/30">{hoistStatus.mode}</div>
+                 <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">运行模式</div>
+                 <div className="text-2xl font-mono font-bold text-green-500 bg-green-900/20 px-2 rounded border border-green-800/30">{HOIST_MODE_LABEL[hoistStatus.mode as keyof typeof HOIST_MODE_LABEL]}</div>
             </div>
             <div className="flex flex-col gap-2 border-l border-amber-900/40 pl-6 justify-center">
                 <button
                   onClick={() => setUploadModalOpen(true)}
                   className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded flex items-center gap-2 transition-colors"
                 >
-                  <Upload size={14} /> 数据入库
+                  <Upload size={14} /> 导入运行数据
                 </button>
                 <button
                   onClick={handleClear}
                   className="text-xs px-3 py-1.5 bg-red-900/80 hover:bg-red-800 text-red-200 rounded flex items-center gap-2 transition-colors"
                 >
-                  <Trash2 size={14} /> 一键清空
+                  <Trash2 size={14} /> 清空数据
                 </button>
             </div>
         </div>
@@ -172,13 +182,13 @@ export const MineHoistView: React.FC = () => {
         <div className="w-full lg:w-1/4 flex flex-col gap-5">
            
            {/* Safety Braking System */}
-           <SciFiCard title="液压制动站监测" subtitle="SAFETY CRITICAL" className="border-amber-900/50 bg-[#160b00]/80">
+           <SciFiCard title="液压制动站监测" subtitle="关键安全参数" className="border-amber-900/50 bg-[#160b00]/80">
               <div className="flex flex-col gap-4">
                  <div className="flex justify-between items-center p-3 bg-white/5 rounded border-l-4 border-amber-600">
                     <div className="flex items-center gap-3">
                         <Gauge size={20} className="text-amber-500" />
                         <div>
-                            <div className="text-xs text-slate-400">OIL PRESSURE (E1)</div>
+                            <div className="text-xs text-slate-400">1号制动油路压力（E1）</div>
                             <div className="text-sm font-bold text-white">{hoistStatus.brakePressure.toFixed(2)} MPa</div>
                         </div>
                     </div>
@@ -189,7 +199,7 @@ export const MineHoistView: React.FC = () => {
                     <div className="flex items-center gap-3">
                         <Gauge size={20} className="text-amber-500" />
                         <div>
-                            <div className="text-xs text-slate-400">OIL PRESSURE (E2)</div>
+                            <div className="text-xs text-slate-400">2号制动油路压力（E2）</div>
                             <div className="text-sm font-bold text-white">{(hoistStatus.brakePressure - 0.1).toFixed(2)} MPa</div>
                         </div>
                     </div>
@@ -198,11 +208,11 @@ export const MineHoistView: React.FC = () => {
 
                  <div className="grid grid-cols-2 gap-2 mt-2">
                      <div className="bg-slate-900/50 p-2 text-center rounded border border-slate-800">
-                         <div className="text-[10px] text-slate-500">Brake Shoe Gap</div>
+                         <div className="text-[10px] text-slate-500">闸瓦间隙</div>
                          <div className="text-green-400 font-mono">1.5 mm</div>
                      </div>
                      <div className="bg-slate-900/50 p-2 text-center rounded border border-slate-800">
-                         <div className="text-[10px] text-slate-500">Disc Temp</div>
+                         <div className="text-[10px] text-slate-500">制动盘温度</div>
                          <div className="text-orange-400 font-mono">65 °C</div>
                      </div>
                  </div>
@@ -226,7 +236,7 @@ export const MineHoistView: React.FC = () => {
                  
                  <div className="space-y-2">
                      <div className="flex justify-between text-xs">
-                         <span className="text-slate-400">Armature Current</span>
+                         <span className="text-slate-400">电枢电流</span>
                          <span className="text-amber-200 font-mono">1250 A</span>
                      </div>
                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -234,7 +244,7 @@ export const MineHoistView: React.FC = () => {
                      </div>
                      
                      <div className="flex justify-between text-xs mt-2">
-                         <span className="text-slate-400">Stator Temp</span>
+                         <span className="text-slate-400">定子温度</span>
                          <span className="text-amber-200 font-mono">72 °C</span>
                      </div>
                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -270,9 +280,9 @@ export const MineHoistView: React.FC = () => {
                      {hoistStatus.direction === 'UP' && <ArrowUp className="text-green-500 animate-bounce" />}
                      {hoistStatus.direction === 'DOWN' && <ArrowDown className="text-amber-500 animate-bounce" />}
                      {hoistStatus.direction === 'STOP' && <Lock className="text-red-500" />}
-                     <span className="text-lg font-bold text-white tracking-widest">{hoistStatus.direction}</span>
+                     <span className="text-lg font-bold text-white tracking-widest">{HOIST_DIRECTION_LABEL[hoistStatus.direction]}</span>
                  </div>
-                 <div className="text-[10px] text-slate-400 font-mono">Payload: {hoistStatus.payload.toFixed(2)} t</div>
+                 <div className="text-[10px] text-slate-400 font-mono">载荷：{hoistStatus.payload.toFixed(2)} t</div>
               </div>
 
               {/* 2026-08-11 优化：提升机模型线框改用统一青蓝色，减少与蓝白界面的色彩冲突； */}
@@ -283,7 +293,7 @@ export const MineHoistView: React.FC = () => {
            </div>
 
            {/* Depth-Time Trajectory（真实数据） */}
-           <SciFiCard title="运行轨迹（深度-时间，真实数据）" subtitle="DEPTH TRACE" className="h-[250px] border-amber-900/50" noPadding>
+           <SciFiCard title="运行轨迹（深度-时间，真实数据）" subtitle="深度轨迹" className="h-[250px] border-amber-900/50" noPadding>
               <div className="w-full h-full p-4">
                  <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={depthTrace}>
@@ -296,7 +306,7 @@ export const MineHoistView: React.FC = () => {
                        </defs>
                        <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" vertical={false} />
                        <XAxis dataKey="time" stroke="#667085" tick={{fontSize: 9}} />
-                       <YAxis reversed stroke="#667085" tick={{fontSize: 9}} label={{ value: 'Depth(m)', angle: -90, position: 'insideLeft', fontSize: 9, fill: '#667085' }} />
+                       <YAxis reversed stroke="#667085" tick={{fontSize: 9}} label={{ value: '深度（m）', angle: -90, position: 'insideLeft', fontSize: 9, fill: '#667085' }} />
                        <Tooltip contentStyle={{backgroundColor: '#ffffff', borderColor: '#d9e2ec', color: '#1f2937'}} />
                        <Area type="monotone" dataKey="depth" name="深度(m)" stroke="#0068b7" strokeWidth={2} fill="url(#colorDepth)" />
                     </AreaChart>
@@ -310,7 +320,7 @@ export const MineHoistView: React.FC = () => {
         <div className="w-full lg:w-1/4 flex flex-col gap-5">
            
            {/* Wire Rope Tension Balance */}
-           <SciFiCard title="钢丝绳张力平衡" subtitle="TENSION (kN)" className="flex-1 border-amber-900/50">
+           <SciFiCard title="钢丝绳张力平衡" subtitle="张力（kN）" className="flex-1 border-amber-900/50">
               <div className="h-48 w-full flex items-end justify-between gap-2 px-2 pb-4 border-b border-slate-800">
                   {ropeTensions.map((rope, i) => (
                       <div key={rope.id} className="flex-1 flex flex-col items-center gap-1 group">
@@ -326,9 +336,9 @@ export const MineHoistView: React.FC = () => {
                   ))}
               </div>
               <div className="mt-2 text-center">
-                  <div className="text-[10px] text-slate-500 uppercase">Imbalance Coefficient</div>
+                  <div className="text-[10px] text-slate-500 uppercase">张力不平衡系数</div>
                   <div className={`text-xl font-mono ${ropeImbalancePct > 5 ? 'text-red-400' : 'text-green-400'}`}>
-                    {ropeImbalancePct.toFixed(1)}% <span className="text-xs text-slate-600">(Limit: 5%)</span>
+                    {ropeImbalancePct.toFixed(1)}% <span className="text-xs text-slate-600">（限值：5%）</span>
                   </div>
               </div>
               <button
@@ -344,19 +354,19 @@ export const MineHoistView: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center gap-2 p-2 bg-green-900/20 rounded border border-green-800/30">
                       <Lock size={12} className="text-green-500" />
-                      <span className="text-[10px] text-green-200">Shaft Gate: CLOSED</span>
+                      <span className="text-[10px] text-green-200">井口安全门：已关闭</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-green-900/20 rounded border border-green-800/30">
                       <Ruler size={12} className="text-green-500" />
-                      <span className="text-[10px] text-green-200">Overwind: OK</span>
+                      <span className="text-[10px] text-green-200">过卷保护：正常</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-green-900/20 rounded border border-green-800/30">
                       <Hammer size={12} className="text-green-500" />
-                      <span className="text-[10px] text-green-200">Slack Rope: OK</span>
+                      <span className="text-[10px] text-green-200">松绳保护：正常</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-green-900/20 rounded border border-green-800/30">
                       <Settings size={12} className="text-green-500" />
-                      <span className="text-[10px] text-green-200">PLC Health: OK</span>
+                      <span className="text-[10px] text-green-200">控制系统：正常</span>
                   </div>
               </div>
            </SciFiCard>
@@ -370,7 +380,7 @@ export const MineHoistView: React.FC = () => {
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         onUploaded={refetch}
-        metricsHint="depth(m) / velocity(m/s) / payload(t) / brakePressure(MPa) / ropeTensionR1~R4(kN)"
+        metricsHint="提升深度（m）/ 罐笼速度（m/s）/ 载荷（t）/ 制动压力（MPa）/ R1～R4钢丝绳张力（kN）"
       />
     </div>
   );

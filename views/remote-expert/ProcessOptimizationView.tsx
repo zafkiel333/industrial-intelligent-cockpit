@@ -324,7 +324,7 @@ export const ProcessOptimizationView: React.FC = () => {
          <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 overflow-y-auto pr-1 custom-scrollbar">
              
              {/* Node Details */}
-             <SciFiCard title="节点诊断 (Diagnosis)" subtitle={activeNode.id} className="border-cyan-900/30">
+             <SciFiCard title="节点诊断 (Diagnosis)" subtitle={activeNode.id} subtitleIsCode className="border-cyan-900/30">
                  <div className="flex flex-col gap-4">
                      <div className="flex justify-between items-center p-2 bg-slate-900/50 rounded border border-slate-700">
                          <div>

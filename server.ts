@@ -2,6 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import multer from "multer";
 import fs from "fs";
+import os from "os";
 import path from "path";
 import { createHash } from "crypto";
 import xlsx from "xlsx";
@@ -35,6 +36,7 @@ const app = express();
 // 2026-08-17 调整：生产环境默认只监听回环地址，并允许部署配置覆盖。
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || (process.env.NODE_ENV === "production" ? "127.0.0.1" : "0.0.0.0");
+const PUBLIC_URL = process.env.SCENE_LIBRARY_PUBLIC_URL || process.env.PUBLIC_URL || "";
 const APP_VERSION = process.env.APP_VERSION || process.env.RELEASE_VERSION || "0.0.0";
 const SCENE_DATA_DIRECTORY = path.resolve(
   process.env.SCENE_DATA_DIRECTORY || path.join(process.cwd(), "src", "data"),
@@ -1302,7 +1304,30 @@ async function startServer() {
   }
 
   app.listen(PORT, HOST, () => {
-    console.log(`Server running on http://${HOST}:${PORT}`);
+    // 2026-08-19 修复：0.0.0.0 是监听地址而不是可直接访问的网址，输出实际可打开的本机与局域网地址。
+    const reachableUrls = new Set<string>([
+      `http://localhost:${PORT}/`,
+      `http://127.0.0.1:${PORT}/`,
+    ]);
+    const listensOnAllInterfaces = HOST === "0.0.0.0" || HOST === "::";
+    if (listensOnAllInterfaces) {
+      for (const addresses of Object.values(os.networkInterfaces())) {
+        for (const address of addresses || []) {
+          if (address.family === "IPv4" && !address.internal) {
+            reachableUrls.add(`http://${address.address}:${PORT}/`);
+          }
+        }
+      }
+    } else if (HOST !== "127.0.0.1" && HOST !== "localhost") {
+      reachableUrls.add(`http://${HOST}:${PORT}/`);
+    }
+    console.log(`Server listening on ${HOST}:${PORT}`);
+    for (const url of reachableUrls) console.log(`Open: ${url}`);
+    if (PUBLIC_URL) {
+      console.log(`Public: ${PUBLIC_URL}`);
+    } else if (process.env.NODE_ENV !== "production") {
+      console.log("Public: set SCENE_LIBRARY_PUBLIC_URL after configuring a tunnel or reverse proxy.");
+    }
     console.log(`Model refresh interval: ${MODEL_REFRESH_INTERVAL_HOURS} hours`);
     console.log(`Press 'q' followed by 'Enter' in the terminal to exit the development server.`);
   });

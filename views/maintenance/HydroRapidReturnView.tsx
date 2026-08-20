@@ -188,7 +188,7 @@ export const HydroRapidReturnView: React.FC = () => {
                           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                           <XAxis dataKey="t" hide />
                           <YAxis hide domain={[-1.5, 1.5]} />
-                          <Line type="monotone" dataKey="grid" stroke="#ffffff" strokeWidth={1} dot={false} name="Grid Phase" isAnimationActive={false} />
+                          <Line type="monotone" dataKey="grid" stroke="#64748b" strokeWidth={1} dot={false} name="Grid Phase" isAnimationActive={false} />
                           <Line type="monotone" dataKey="unit" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Unit Phase" isAnimationActive={false} className="animate-pulse" />
                       </LineChart>
                   </ResponsiveContainer>

@@ -44,9 +44,9 @@ const HYDROGRAPH_DATA = Array.from({length: 48}, (_, i) => {
 
 // Reservoir Status
 const RESERVOIRS = [
-    { name: 'Reservoir A', level: 145.2, limit: 150, capacity: 85, inflow: 1200, outflow: 1000 },
-    { name: 'Reservoir B', level: 88.5, limit: 90, capacity: 92, inflow: 800, outflow: 1200 },
-    { name: 'Reservoir C', level: 210.4, limit: 225, capacity: 65, inflow: 450, outflow: 200 },
+    { name: 'A水库', level: 145.2, limit: 150, capacity: 85, inflow: 1200, outflow: 1000 },
+    { name: 'B水库', level: 88.5, limit: 90, capacity: 92, inflow: 800, outflow: 1200 },
+    { name: 'C水库', level: 210.4, limit: 225, capacity: 65, inflow: 450, outflow: 200 },
 ];
 
 export const FloodControlView: React.FC = () => {
@@ -250,15 +250,15 @@ export const FloodControlView: React.FC = () => {
                               <div className="flex justify-between items-center mb-1">
                                   <span className="text-xs font-bold text-slate-200">{res.name}</span>
                                   <span className={`text-[10px] px-1.5 rounded ${res.capacity > 90 ? 'bg-red-900/30 text-red-400' : 'bg-green-900/30 text-green-400'}`}>
-                                      {res.capacity}% Full
+                                      库容 {res.capacity}%
                                   </span>
                               </div>
                               <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-2">
                                   <div className={`h-full ${res.capacity > 90 ? 'bg-red-500' : 'bg-blue-500'}`} style={{width: `${res.capacity}%`}}></div>
                               </div>
                               <div className="flex justify-between text-[10px] text-slate-500">
-                                  <span>Level: {res.level}m</span>
-                                  <span>In: {res.inflow} / Out: {res.outflow}</span>
+                                  <span>水位：{res.level} m</span>
+                                  <span>入流：{res.inflow} / 出流：{res.outflow}</span>
                               </div>
                           </div>
                       ))}

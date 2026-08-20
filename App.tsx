@@ -1,6 +1,7 @@
 //import React, { useState } from 'react'; /////
 import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Sidebar } from './components/Sidebar';
+import { IndiBMark } from './components/IndiBMark';
 import { SmartOperationsView } from './views/SmartOperationsView';
 // 2026-07-09 新增：场景库测试方案 - 全局场景信息条（场景ID/更新时间/端到端耗时/场景日志），全站统一生效
 import { ScenarioTelemetryProvider } from './src/scenarioLib/ScenarioTelemetryContext';
@@ -1032,7 +1033,7 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
 
   const renderContent = () => {
     //if (!activeItem) return <GenericView title="Loading..." />;
-    if (!activeItem) return <AdvancedGenericView title="Loading..." id="loading" />;
+    if (!activeItem) return <AdvancedGenericView title="加载中…" id="loading" />;
 
     // Smart Ops
     if (activeTabId === 'smart-ops') return <SmartOperationsView />;
@@ -2450,7 +2451,7 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
     // Default catch-all
     if (activeTabId.startsWith('sim-')) {
         const sim = SIMULATION_CHILDREN.find(s => s.id === activeTabId);
-        return <GenericView title={sim ? sim.label : 'Simulation Analysis'} />;
+        return <GenericView title={sim ? sim.label : '仿真分析'} />;
     }
 
     // // Default Fallback
@@ -2491,10 +2492,10 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
           <div className="flex items-center gap-4">
              {/* Logo or Brand Area */}
              <div className="flex items-center gap-2">
-               <div className="platform-brand-mark w-8 h-8 rounded flex items-center justify-center font-bold text-white">IT</div>
+               <IndiBMark size="compact" />
                <div className="leading-tight">
-                 <div className="text-sm font-bold tracking-wider text-slate-800">INDUST TECH</div>
-                 <div className="text-[10px] text-slate-500 tracking-widest uppercase">Intelligent O&amp;M Platform</div>
+                 <div className="text-sm font-bold tracking-wider text-slate-800">工业智能科技</div>
+                 <div className="text-[10px] text-slate-500 tracking-widest">智能运维平台</div>
                </div>
              </div>
           </div>
@@ -2516,7 +2517,8 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
         {/* Dynamic Content Container */}
         {/* 2026-08-12 调整：全量页面启用统一浅色语义映射，保留业务状态色和深色可视化区域； */}
         <div className={`platform-content smart-ops-theme flex-1 overflow-y-auto relative scroll-smooth ${embedded ? 'p-4' : 'p-6'}`}>
-           <div className="h-full max-w-[1920px] mx-auto">
+           {/* 2026-08-19 修复：内容宽度跟随 standalone 窗口或 microapp 宿主容器，不再在超宽屏产生异常留白。 */}
+           <div className="h-full w-full min-w-0">
              {/* 2026-07-09 新增：场景信息条，挂载在页面内容区、renderContent() 之前，随内容区一起滚动 */}
              <ScenarioMetaBar scenarioId={activeTabId} />
              {renderContent()}

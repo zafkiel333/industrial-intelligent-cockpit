@@ -47,7 +47,10 @@ export const ScenarioMetaBar: React.FC<{ scenarioId: string }> = ({ scenarioId }
         {/* 场景名称 + 分类编码(ID)：常显 */}
         <div className="flex flex-col min-w-[160px]">
           <span className="text-base font-bold text-slate-100 tracking-wide">{meta.name}</span>
-          <span className="text-[11px] text-cyan-500/80 font-mono mt-0.5">
+          <span
+            className="text-[11px] text-cyan-500/80 font-mono mt-0.5"
+            data-localization="preserve"
+          >
             <Tag size={10} className="inline -mt-0.5 mr-1" />
             {meta.id}
           </span>

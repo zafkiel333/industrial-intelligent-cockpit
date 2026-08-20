@@ -58,28 +58,28 @@ const CodingVisualizer = ({ code }: { code: string }) => {
         <>
           <div className="flex flex-col items-center gap-2">
              <div className="text-[10px] text-cyan-500 font-bold uppercase tracking-wider">{CODE_SEGMENTS[0].label}</div>
-             <div className="px-3 py-2 bg-cyan-950/40 border border-cyan-500/50 rounded text-xl font-mono text-cyan-300 shadow-[0_0_15px_rgba(14,165,233,0.2)]">
+             <div data-localization="preserve" className="px-3 py-2 bg-cyan-950/40 border border-cyan-500/50 rounded text-xl font-mono text-cyan-300 shadow-[0_0_15px_rgba(14,165,233,0.2)]">
                 {parts[0]}
              </div>
           </div>
           <div className="h-0.5 w-4 bg-slate-700 mt-6"></div>
           <div className="flex flex-col items-center gap-2">
              <div className="text-[10px] text-purple-500 font-bold uppercase tracking-wider">{CODE_SEGMENTS[1].label}</div>
-             <div className="px-3 py-2 bg-purple-950/40 border border-purple-500/50 rounded text-xl font-mono text-purple-300 shadow-[0_0_15px_rgba(139,92,246,0.2)]">
+             <div data-localization="preserve" className="px-3 py-2 bg-purple-950/40 border border-purple-500/50 rounded text-xl font-mono text-purple-300 shadow-[0_0_15px_rgba(139,92,246,0.2)]">
                 {parts[1]}
              </div>
           </div>
           <div className="h-0.5 w-4 bg-slate-700 mt-6"></div>
           <div className="flex flex-col items-center gap-2">
              <div className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">{CODE_SEGMENTS[2].label}</div>
-             <div className="px-3 py-2 bg-amber-950/40 border border-amber-500/50 rounded text-xl font-mono text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+             <div data-localization="preserve" className="px-3 py-2 bg-amber-950/40 border border-amber-500/50 rounded text-xl font-mono text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                 {parts[2]}
              </div>
           </div>
           <div className="h-0.5 w-4 bg-slate-700 mt-6"></div>
           <div className="flex flex-col items-center gap-2">
              <div className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">{CODE_SEGMENTS[3].label}</div>
-             <div className="px-3 py-2 bg-emerald-950/40 border border-emerald-500/50 rounded text-xl font-mono text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+             <div data-localization="preserve" className="px-3 py-2 bg-emerald-950/40 border border-emerald-500/50 rounded text-xl font-mono text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                 {parts[3]}
              </div>
           </div>
@@ -187,7 +187,7 @@ export const CustomerMasterDataView: React.FC = () => {
                                 ${selectedId === row.id ? 'bg-indigo-900/20 border-l-2 border-indigo-500' : 'border-l-2 border-transparent'}
                              `}
                            >
-                              <td className="px-4 py-3 font-mono text-indigo-300 font-bold">{row.id}</td>
+                              <td data-localization="preserve" className="px-4 py-3 font-mono text-indigo-300 font-bold">{row.id}</td>
                               <td className="px-4 py-3 font-bold text-slate-200">{row.name}</td>
                               <td className="px-4 py-3 text-slate-400">
                                  <div className="flex items-center gap-2">
@@ -327,7 +327,7 @@ export const CustomerMasterDataView: React.FC = () => {
                      <div className="h-8 w-8 rounded bg-cyan-900/50 text-cyan-400 flex items-center justify-center font-bold">1</div>
                      <div className="flex-1">
                         <div className="text-xs text-slate-400">Rule Set: Enterprise (CN)</div>
-                        <div className="font-mono text-sm text-cyan-300">Format: [TYPE]-[CTRY]-[IND]-[SEQ]</div>
+                        <div className="font-mono text-sm text-cyan-300" data-localization="preserve">Format: [TYPE]-[CTRY]-[IND]-[SEQ]</div>
                      </div>
                      <div className="text-[10px] bg-green-900/20 text-green-400 px-2 py-1 rounded">Active</div>
                   </div>
@@ -335,7 +335,7 @@ export const CustomerMasterDataView: React.FC = () => {
                      <div className="h-8 w-8 rounded bg-purple-900/50 text-purple-400 flex items-center justify-center font-bold">2</div>
                      <div className="flex-1">
                         <div className="text-xs text-slate-400">Rule Set: Individual (Global)</div>
-                        <div className="font-mono text-sm text-purple-300">Format: IND-[CTRY]-[ID5]-[SEQ]</div>
+                        <div className="font-mono text-sm text-purple-300" data-localization="preserve">Format: IND-[CTRY]-[ID5]-[SEQ]</div>
                      </div>
                      <div className="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded">Draft</div>
                   </div>

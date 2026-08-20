@@ -46,9 +46,9 @@ export const ScenarioDataUploadModal: React.FC<ScenarioDataUploadModalProps> = (
         data = await res.json();
       } catch (e) {
         if (!res.ok) {
-          throw new Error(`请求失败 (HTTP ${res.status}): ${res.statusText}`);
+          throw new Error(`请求失败（状态码 ${res.status}）：${res.statusText}`);
         }
-        throw new Error('服务端返回非JSON格式，请确认您是否启动了Node后端接口服务，而非纯前端静态部署。');
+        throw new Error('服务端返回的数据格式异常，请确认后端接口服务已正常启动，而不是仅启动了静态页面。');
       }
       if (data.success) {
         setUploadMessage({ type: 'success', text: data.message });
@@ -59,9 +59,9 @@ export const ScenarioDataUploadModal: React.FC<ScenarioDataUploadModalProps> = (
       }
     } catch (err: any) {
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
-        setUploadMessage({ type: 'error', text: `上传失败: 网络连接异常或请求被阻断(跨域/接口服务未运行/上传体积过大被Nginx拦截)。请确保使用完整全栈服务启动。` });
+        setUploadMessage({ type: 'error', text: '上传失败：网络连接异常或请求被阻断。请检查接口服务、跨域配置及网关上传大小限制。' });
       } else {
-        setUploadMessage({ type: 'error', text: `上传失败: ${err.message}` });
+        setUploadMessage({ type: 'error', text: `上传失败：${err.message}` });
       }
     } finally {
       setUploading(false);
@@ -82,13 +82,13 @@ export const ScenarioDataUploadModal: React.FC<ScenarioDataUploadModalProps> = (
         </button>
         <h3 className="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
           <Upload className="text-blue-400" />
-          数据入库集成
+          导入运行数据
         </h3>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-slate-400 mb-2">选择本地 Excel 数据文件</label>
-            <p className="text-xs text-slate-500 mb-2">列顺序：时间 + {metricsHint}</p>
+            <label className="block text-sm text-slate-400 mb-2">选择 Excel 数据文件</label>
+            <p className="text-xs text-slate-500 mb-2">数据列格式：首列为时间，其余列依次为 {metricsHint}</p>
             <div className="border-2 border-dashed border-slate-700 hover:border-blue-500/50 rounded-lg p-6 flex flex-col items-center justify-center text-center transition-colors bg-slate-800/50">
               <input
                 type="file"
@@ -105,7 +105,7 @@ export const ScenarioDataUploadModal: React.FC<ScenarioDataUploadModalProps> = (
                 {uploadFiles.length > 0 ? (
                   <span className="text-emerald-400 text-sm font-medium">已选择 {uploadFiles[0].name}</span>
                 ) : (
-                  <span className="text-slate-300 text-sm">点击选择数据表文件 (.xls/.xlsx)</span>
+                  <span className="text-slate-300 text-sm">点击选择数据表文件（.xls 或 .xlsx）</span>
                 )}
               </label>
             </div>
@@ -128,11 +128,11 @@ export const ScenarioDataUploadModal: React.FC<ScenarioDataUploadModalProps> = (
               className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
             >
               {uploading ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
-              开始上传解析
+              {uploading ? '正在上传并解析' : '上传并解析'}
             </button>
           </div>
           <p className="text-xs text-slate-500 text-center">
-            文件将被归档至后端目录 `src/data/{scenarioId}/uploads` 下，与其它场景相互独立
+            导入的数据仅用于当前场景，不会影响其他场景
           </p>
         </div>
       </div>

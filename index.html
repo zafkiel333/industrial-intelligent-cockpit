@@ -10,8 +10,9 @@
       
       body {
         font-family: 'Rajdhani', 'Noto Sans SC', sans-serif;
-        background-color: #020617; /* Slate 950 */
-        color: #e2e8f0;
+        /* 2026-08-19 调整：入口首屏同步使用白色主题，避免样式加载前短暂闪现深色背景。 */
+        background-color: #f7f9fb;
+        color: #172033;
       }
       
       /* Custom Scrollbar for Sci-Fi look */
@@ -20,20 +21,20 @@
         height: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: #0f172a;
+        background: #f4f6f8;
       }
       ::-webkit-scrollbar-thumb {
-        background: #0891b2;
+        background: #c4d0d9;
         border-radius: 3px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #06b6d4;
+        background: #6f8fa5;
       }
 
       .tech-grid-bg {
         background-image: 
-          linear-gradient(rgba(6, 182, 212, 0.05) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+          linear-gradient(rgba(71, 85, 105, 0.055) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(71, 85, 105, 0.055) 1px, transparent 1px);
         background-size: 30px 30px;
       }
       

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { MenuItem } from '../types';
 import { MENU_ITEMS } from '../constants';
-import { Hexagon, ChevronDown, ChevronRight, Circle } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { IndiBMark } from './IndiBMark';
 
 interface SidebarProps {
   activeId: string;
@@ -66,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect, compact = 
           
           <div className="flex items-center gap-2">
             {depth > 0 && <div className="w-1 h-1 rounded-full bg-slate-400"></div>}
-            <span>{item.label}</span>
+            <span data-localization={depth === 0 ? 'preserve' : undefined}>{item.label}</span>
           </div>
 
           <div className="flex items-center">
@@ -104,12 +105,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect, compact = 
     // 2026-08-11 调整：通用侧栏整体切换为浅色企业管理平台样式；
     <div className={`platform-sidebar ${compact ? 'w-56' : 'w-64'} flex-shrink-0 border-r overflow-y-auto h-full backdrop-blur-md flex flex-col z-30`}>
       <div className={`platform-sidebar-brand ${compact ? 'p-4' : 'p-6'} border-b sticky top-0 z-10`}>
-        <h1 className="text-2xl font-bold text-[#0068B7] flex items-center gap-2">
-          <Hexagon className="text-[#0068B7]" size={24} />
+        <h1 className="text-2xl font-bold text-[#0068B7] flex items-center gap-3">
+          <IndiBMark />
           工业智脑
         </h1>
         <div className="flex justify-between items-center mt-1">
-          <p className="text-xs text-slate-500 tracking-[0.2em] uppercase">Industrial Mind</p>
+          <p className="text-xs text-slate-500 tracking-[0.2em]">工业智能中枢</p>
           {/* ADDED: Total count badge */}
           <span className="text-[10px] bg-[#EAF4FB] text-[#0068B7] px-2 py-0.5 rounded border border-[#B9D9EE]" title="总页面数">
             总计: {totalCount}
@@ -122,9 +123,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeId, onSelect, compact = 
       </nav>
       
       <div className="platform-sidebar-footer p-4 text-xs text-slate-500 border-t text-center">
-        <span className="text-emerald-600">●</span> SYSTEM STATUS: ONLINE
+        <span className="text-emerald-600">●</span> 系统状态：在线
         <br />
-        VER: 2.5.0-ALPHA
+        版本：<span data-localization="preserve">2.5.0-ALPHA</span>
       </div>
     </div>
   );

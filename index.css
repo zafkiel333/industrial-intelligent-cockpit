@@ -2093,3 +2093,839 @@ body {
 ) {
   background-color: rgba(76, 29, 149, 0.42) !important;
 }
+
+/* 2026-08-19 调整：第二阶段统一为白色主导主题；所有页面表面、三维视窗、图表浮层和 HUD 使用白底深字，业务色仅保留为低饱和度小面积提示。 */
+:root {
+  --platform-brand: #2f668d;
+  --platform-brand-hover: #245878;
+  --platform-brand-active: #1d4965;
+  --platform-brand-soft: #f1f6f9;
+  --platform-page: #f7f9fb;
+  --platform-surface: #ffffff;
+  --platform-surface-muted: #fafbfc;
+  --platform-chrome: #ffffff;
+  --platform-chrome-strong: #f8fafc;
+  --platform-panel-tint: #fbfcfd;
+  --platform-border: #dbe3e9;
+  --platform-border-strong: #c7d3dc;
+  --platform-text: #172033;
+  --platform-text-secondary: #475569;
+  --platform-text-muted: #64748b;
+  --platform-visual: #ffffff;
+  --platform-visual-border: #d7e0e7;
+  --platform-visual-accent: #4f83a6;
+  --platform-success: #28734a;
+  --platform-warning: #94611b;
+  --platform-danger: #a84242;
+  --platform-shadow: 0 8px 22px rgba(30, 41, 59, 0.065);
+}
+
+body,
+.platform-shell,
+.platform-main,
+.platform-main-smart-ops,
+.platform-main-dark,
+.platform-content {
+  color: var(--platform-text) !important;
+  background-color: var(--platform-page) !important;
+  background-image: none !important;
+}
+
+.platform-header,
+.platform-sidebar,
+.platform-card,
+.platform-card-header {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: var(--platform-border) !important;
+}
+
+.platform-header {
+  box-shadow: 0 2px 12px rgba(30, 41, 59, 0.045);
+}
+
+.platform-sidebar {
+  box-shadow: 4px 0 16px rgba(30, 41, 59, 0.05);
+}
+
+.platform-sidebar-brand,
+.platform-sidebar-footer,
+.platform-nav-children {
+  background: #fafbfc !important;
+  border-color: var(--platform-border) !important;
+}
+
+.platform-nav-item-idle:hover,
+.platform-nav-item-active {
+  color: var(--platform-brand-active) !important;
+  background: #f1f6f9 !important;
+}
+
+.platform-brand-mark {
+  color: #ffffff !important;
+  background: #2f668d !important;
+  box-shadow: 0 3px 10px rgba(47, 102, 141, 0.17);
+}
+
+.platform-icon-button,
+.platform-model-link,
+.platform-card-subtitle,
+.platform-nav-count-idle,
+.platform-nav-count-active {
+  color: var(--platform-brand-active) !important;
+  background: #ffffff !important;
+  border-color: var(--platform-border-strong) !important;
+}
+
+.platform-icon-button:hover,
+.platform-model-link:hover {
+  color: var(--platform-brand-active) !important;
+  background: #f6f9fb !important;
+  border-color: #aebfcb !important;
+}
+
+.smart-ops-theme :is(
+  [class*="bg-slate-"],
+  [class*="bg-gray-"],
+  [class*="bg-zinc-"],
+  [class*="bg-neutral-"],
+  [class*="bg-stone-"],
+  [class*="bg-black"],
+  [class*="bg-white"]
+) {
+  background-color: #ffffff !important;
+}
+
+.smart-ops-theme :is(
+  [class*="bg-cyan-"],
+  [class*="bg-sky-"],
+  [class*="bg-blue-"],
+  [class*="bg-indigo-"],
+  [class*="bg-violet-"],
+  [class*="bg-purple-"]
+) {
+  background-color: #f3f7fa !important;
+}
+
+.smart-ops-theme :is(
+  [class*="bg-green-"],
+  [class*="bg-emerald-"],
+  [class*="bg-teal-"]
+) {
+  background-color: #f3f8f5 !important;
+}
+
+.smart-ops-theme :is(
+  [class*="bg-amber-"],
+  [class*="bg-yellow-"],
+  [class*="bg-orange-"]
+) {
+  background-color: #fdf9f2 !important;
+}
+
+.smart-ops-theme :is(
+  [class*="bg-red-"],
+  [class*="bg-rose-"]
+) {
+  background-color: #fdf6f6 !important;
+}
+
+.smart-ops-theme :is(
+  [class*="bg-gradient-"],
+  [class*="bg-[linear-gradient"],
+  [class*="bg-[radial-gradient"]
+) {
+  background-image: none !important;
+}
+
+.smart-ops-theme :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300, .text-gray-100, .text-gray-200, .text-zinc-100, .text-zinc-200) {
+  color: var(--platform-text) !important;
+}
+
+.smart-ops-theme :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-gray-400, .text-gray-500, .text-zinc-400, .text-zinc-500) {
+  color: var(--platform-text-secondary) !important;
+}
+
+.smart-ops-theme .text-transparent {
+  color: var(--platform-text) !important;
+  -webkit-text-fill-color: var(--platform-text) !important;
+}
+
+.smart-ops-theme :is(input, textarea, select, option),
+.smart-ops-theme [contenteditable="true"] {
+  color: var(--platform-text) !important;
+  background: #ffffff !important;
+  border-color: var(--platform-border-strong) !important;
+  caret-color: var(--platform-brand-active);
+}
+
+.smart-ops-theme :is(input, textarea)::placeholder {
+  color: #758395 !important;
+  opacity: 1;
+}
+
+.smart-ops-theme :is(button, [role="button"]):not(:disabled) {
+  border-color: var(--platform-border-strong);
+}
+
+.smart-ops-theme :is(button, [role="button"]):focus-visible,
+.platform-icon-button:focus-visible,
+.platform-nav-item:focus-visible {
+  outline: 2px solid #6d93ad;
+  outline-offset: 2px;
+}
+
+.smart-ops-theme :is(button, [role="button"]):disabled {
+  color: #8995a3 !important;
+  background-color: #f7f8fa !important;
+  opacity: 0.72;
+}
+
+.smart-ops-theme :is(table, thead, tbody, tr, th, td) {
+  border-color: var(--platform-border) !important;
+}
+
+.smart-ops-theme th {
+  color: #334155 !important;
+  background: #f8fafc !important;
+}
+
+.smart-ops-theme tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* 2026-08-19 调整：三维/画布区域也切换为白色表面，HUD 改为半透明白底深字，避免旧深色例外覆盖新主题。 */
+/* 三维视窗使用下方独立视觉规则，普通内容区不再因包含 Canvas 而继承 HUD 文字颜色。 */
+
+/* 2026-08-19 调整：图表浮层、坐标和交互遮罩统一白底，避免内联深色样式造成局部黑块。 */
+.smart-ops-theme .recharts-default-tooltip {
+  color: var(--platform-text) !important;
+  background: #ffffff !important;
+  border: 1px solid var(--platform-border-strong) !important;
+  box-shadow: 0 8px 20px rgba(30, 41, 59, 0.1) !important;
+}
+
+.smart-ops-theme .recharts-default-tooltip :is(.recharts-tooltip-label, .recharts-tooltip-item, .recharts-tooltip-item > *) {
+  color: var(--platform-text) !important;
+}
+
+.smart-ops-theme .recharts-tooltip-cursor {
+  fill: rgba(71, 85, 105, 0.06) !important;
+  stroke: #b9c6cf !important;
+}
+
+.smart-ops-theme :is(.recharts-cartesian-axis-tick-value, .recharts-polar-angle-axis-tick-value, .recharts-polar-radius-axis-tick-value, .recharts-legend-item-text) {
+  fill: #475569 !important;
+  color: #475569 !important;
+}
+
+.smart-ops-theme :is(.recharts-cartesian-grid line, .recharts-polar-grid-angle line, .recharts-polar-grid-concentric path) {
+  stroke: #dce4ea !important;
+}
+
+.smart-ops-theme .fixed.inset-0:is([class*="bg-black"], [class*="bg-slate-"], [class*="bg-gray-"]) {
+  background-color: rgba(51, 65, 85, 0.18) !important;
+  backdrop-filter: blur(2px);
+}
+
+/* 2026-08-19 优化：仅在进度条和状态点等小面积元素中保留柔和强调色，使白色界面仍具备信息层级。 */
+.smart-ops-theme :is([class*="h-1"], [class*="h-2"], [class*="w-1"], [class*="w-2"]):is([class*="bg-cyan-"], [class*="bg-sky-"], [class*="bg-blue-"]) {
+  background-color: #6f9fbd !important;
+}
+
+.smart-ops-theme :is([class*="h-1"], [class*="h-2"], [class*="w-1"], [class*="w-2"]):is([class*="bg-green-"], [class*="bg-emerald-"], [class*="bg-teal-"]) {
+  background-color: #6b9d7f !important;
+}
+
+.smart-ops-theme :is([class*="h-1"], [class*="h-2"], [class*="w-1"], [class*="w-2"]):is([class*="bg-amber-"], [class*="bg-yellow-"], [class*="bg-orange-"]) {
+  background-color: #b89a68 !important;
+}
+
+.smart-ops-theme :is([class*="h-1"], [class*="h-2"], [class*="w-1"], [class*="w-2"]):is([class*="bg-red-"], [class*="bg-rose-"]) {
+  background-color: #bc7b7b !important;
+}
+
+/* 2026-08-19 修复：补齐白色页面上遗漏的浅色文字工具类，所有色值均满足正文可读对比度。 */
+.smart-ops-theme :is(
+  .text-indigo-50, .text-indigo-100, .text-indigo-200, .text-indigo-300, .text-indigo-400, .text-indigo-500,
+  .text-lime-50, .text-lime-100, .text-lime-200, .text-lime-300, .text-lime-400, .text-lime-500,
+  .text-yellow-50, .text-yellow-100, .text-yellow-200, .text-yellow-300,
+  .text-orange-50, .text-orange-100,
+  .text-teal-50, .text-teal-100, .text-teal-200, .text-teal-300, .text-teal-400,
+  .text-gray-50, .text-gray-100, .text-gray-300,
+  .text-zinc-50, .text-zinc-100, .text-zinc-300,
+  .text-neutral-50, .text-neutral-100,
+  .text-stone-50, .text-stone-100
+) {
+  color: var(--platform-text) !important;
+}
+
+.smart-ops-theme :is(.text-indigo-50, .text-indigo-100, .text-indigo-200, .text-indigo-300, .text-indigo-400, .text-indigo-500) {
+  color: #6750a4 !important;
+}
+
+.smart-ops-theme :is(.text-lime-50, .text-lime-100, .text-lime-200, .text-lime-300, .text-lime-400, .text-lime-500, .text-teal-50, .text-teal-100, .text-teal-200, .text-teal-300, .text-teal-400) {
+  color: var(--platform-success) !important;
+}
+
+.smart-ops-theme :is(.text-yellow-50, .text-yellow-100, .text-yellow-200, .text-yellow-300, .text-orange-50, .text-orange-100) {
+  color: #81551a !important;
+}
+
+/* 小号单位和辅助文字原有 20%～50% 透明度在白底上不足，抬高到可辨识范围；禁用控件不受影响。 */
+.smart-ops-theme :is(span, p, small, label, dt, dd, li, td, th)[class~="opacity-20"],
+.smart-ops-theme :is(span, p, small, label, dt, dd, li, td, th)[class~="opacity-25"],
+.smart-ops-theme :is(span, p, small, label, dt, dd, li, td, th)[class~="opacity-30"],
+.smart-ops-theme :is(span, p, small, label, dt, dd, li, td, th)[class~="opacity-40"],
+.smart-ops-theme :is(span, p, small, label, dt, dd, li, td, th)[class~="opacity-50"] {
+  opacity: 0.8 !important;
+}
+
+/* 2026-08-19 修复：三维模型及其 HUD 恢复协调的深蓝灰视觉面，避免白色模型部件融入页面白底。 */
+/* 三维视窗配色在文件末尾恢复为对话开始前的工业蓝灰方案。 */
+
+/* 白底图表中的参考线及其文字使用中性深灰；数据条、节点内部标签仍保留各自语义色。 */
+.smart-ops-theme .recharts-reference-line line {
+  stroke: #64748b !important;
+}
+
+.smart-ops-theme .recharts-reference-line .recharts-label,
+.smart-ops-theme .recharts-reference-line-label {
+  fill: #334155 !important;
+  color: #334155 !important;
+}
+
+/* 2026-08-19 对比度修复：普通页面按钮按实色、浅色和禁用三种状态统一处理。 */
+.smart-ops-theme :is(button, a, [role="button"]).text-white,
+.smart-ops-theme :is(button, a, [role="button"])[class*="bg-amber-"][class*="text-amber-"],
+.smart-ops-theme :is(button, a, [role="button"])[class*="bg-yellow-"][class*="text-yellow-"],
+.smart-ops-theme :is(button, a, [role="button"])[class*="bg-orange-"][class*="text-orange-"] {
+  color: var(--platform-text) !important;
+  text-shadow: none !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-blue-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-cyan-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-sky-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-indigo-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-violet-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-purple-"]:hover {
+  color: #245878 !important;
+  background-color: #e7f0f5 !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-green-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-emerald-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-teal-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-lime-"]:hover {
+  color: #21603e !important;
+  background-color: #e5f1e9 !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-amber-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-yellow-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-orange-"]:hover {
+  color: #6f4714 !important;
+  background-color: #f4ead9 !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-red-"]:hover,
+.smart-ops-theme :is(button, a, [role="button"])[class*="hover:bg-rose-"]:hover {
+  color: #913737 !important;
+  background-color: #f6e7e7 !important;
+}
+
+/* 实色主操作：背景与文字成对覆盖，避免白色主题只改背景而遗留白字。 */
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-blue-500"], [class~="bg-blue-600"], [class~="bg-blue-700"], [class~="bg-blue-800"],
+  [class~="bg-blue-500/80"], [class~="bg-blue-600/80"], [class~="bg-blue-700/80"], [class~="bg-blue-800/80"],
+  [class~="bg-cyan-500"], [class~="bg-cyan-600"], [class~="bg-cyan-700"], [class~="bg-cyan-800"],
+  [class~="bg-cyan-500/80"], [class~="bg-cyan-600/80"], [class~="bg-cyan-700/80"], [class~="bg-cyan-800/80"],
+  [class~="bg-sky-500"], [class~="bg-sky-600"], [class~="bg-sky-700"], [class~="bg-sky-800"]
+) {
+  color: #ffffff !important;
+  background-color: #2f668d !important;
+  border-color: #245878 !important;
+  text-shadow: none !important;
+  box-shadow: 0 3px 9px rgba(47, 102, 141, 0.16);
+}
+
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-indigo-500"], [class~="bg-indigo-600"], [class~="bg-indigo-700"], [class~="bg-indigo-800"],
+  [class~="bg-violet-500"], [class~="bg-violet-600"], [class~="bg-violet-700"], [class~="bg-violet-800"],
+  [class~="bg-purple-500"], [class~="bg-purple-600"], [class~="bg-purple-700"], [class~="bg-purple-800"]
+) {
+  color: #ffffff !important;
+  background-color: #6750a4 !important;
+  border-color: #58418f !important;
+  text-shadow: none !important;
+  box-shadow: 0 3px 9px rgba(103, 80, 164, 0.15);
+}
+
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-green-500"], [class~="bg-green-600"], [class~="bg-green-700"], [class~="bg-green-800"],
+  [class~="bg-emerald-500"], [class~="bg-emerald-600"], [class~="bg-emerald-700"], [class~="bg-emerald-800"],
+  [class~="bg-teal-500"], [class~="bg-teal-600"], [class~="bg-teal-700"], [class~="bg-teal-800"],
+  [class~="bg-lime-600"], [class~="bg-lime-700"], [class~="bg-lime-800"]
+) {
+  color: #ffffff !important;
+  background-color: #28734a !important;
+  border-color: #21603e !important;
+  text-shadow: none !important;
+  box-shadow: 0 3px 9px rgba(40, 115, 74, 0.14);
+}
+
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-amber-500"], [class~="bg-amber-600"], [class~="bg-amber-700"], [class~="bg-amber-800"],
+  [class~="bg-yellow-600"], [class~="bg-yellow-700"], [class~="bg-yellow-800"],
+  [class~="bg-orange-500"], [class~="bg-orange-600"], [class~="bg-orange-700"], [class~="bg-orange-800"]
+) {
+  color: #ffffff !important;
+  background-color: #81551a !important;
+  border-color: #6f4714 !important;
+  text-shadow: none !important;
+  box-shadow: 0 3px 9px rgba(129, 85, 26, 0.14);
+}
+
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-red-500"], [class~="bg-red-600"], [class~="bg-red-700"], [class~="bg-red-800"], [class~="bg-red-900/80"],
+  [class~="bg-rose-500"], [class~="bg-rose-600"], [class~="bg-rose-700"], [class~="bg-rose-800"]
+) {
+  color: #ffffff !important;
+  background-color: #a84242 !important;
+  border-color: #913737 !important;
+  text-shadow: none !important;
+  box-shadow: 0 3px 9px rgba(168, 66, 66, 0.14);
+}
+
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-blue-500"], [class~="bg-blue-600"], [class~="bg-blue-700"], [class~="bg-blue-800"],
+  [class~="bg-blue-500/80"], [class~="bg-blue-600/80"], [class~="bg-blue-700/80"], [class~="bg-blue-800/80"],
+  [class~="bg-cyan-500"], [class~="bg-cyan-600"], [class~="bg-cyan-700"], [class~="bg-cyan-800"],
+  [class~="bg-cyan-500/80"], [class~="bg-cyan-600/80"], [class~="bg-cyan-700/80"], [class~="bg-cyan-800/80"],
+  [class~="bg-sky-500"], [class~="bg-sky-600"], [class~="bg-sky-700"], [class~="bg-sky-800"]
+):hover {
+  color: #ffffff !important;
+  background-color: #245878 !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-indigo-500"], [class~="bg-indigo-600"], [class~="bg-indigo-700"], [class~="bg-indigo-800"],
+  [class~="bg-violet-500"], [class~="bg-violet-600"], [class~="bg-violet-700"], [class~="bg-violet-800"],
+  [class~="bg-purple-500"], [class~="bg-purple-600"], [class~="bg-purple-700"], [class~="bg-purple-800"]
+):hover {
+  color: #ffffff !important;
+  background-color: #58418f !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-green-500"], [class~="bg-green-600"], [class~="bg-green-700"], [class~="bg-green-800"],
+  [class~="bg-emerald-500"], [class~="bg-emerald-600"], [class~="bg-emerald-700"], [class~="bg-emerald-800"],
+  [class~="bg-teal-500"], [class~="bg-teal-600"], [class~="bg-teal-700"], [class~="bg-teal-800"]
+):hover {
+  color: #ffffff !important;
+  background-color: #21603e !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-amber-500"], [class~="bg-amber-600"], [class~="bg-amber-700"], [class~="bg-amber-800"],
+  [class~="bg-yellow-600"], [class~="bg-yellow-700"], [class~="bg-yellow-800"],
+  [class~="bg-orange-500"], [class~="bg-orange-600"], [class~="bg-orange-700"], [class~="bg-orange-800"]
+):hover {
+  color: #ffffff !important;
+  background-color: #6f4714 !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"]):is(
+  [class~="bg-red-500"], [class~="bg-red-600"], [class~="bg-red-700"], [class~="bg-red-800"], [class~="bg-red-900/80"],
+  [class~="bg-rose-500"], [class~="bg-rose-600"], [class~="bg-rose-700"], [class~="bg-rose-800"]
+):hover {
+  color: #ffffff !important;
+  background-color: #913737 !important;
+}
+
+.smart-ops-theme :is(button, [role="button"]):disabled,
+.smart-ops-theme :is(button, [role="button"])[aria-disabled="true"] {
+  color: #526173 !important;
+  background-color: #edf1f4 !important;
+  border-color: #c7d3dc !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  cursor: not-allowed;
+}
+
+/* 白色主题层级：卡片以中性边框区分，业务色只用于状态和小面积强调。 */
+.platform-card {
+  background-color: #ffffff !important;
+  border-color: #d7e0e7 !important;
+  box-shadow: 0 6px 18px rgba(30, 41, 59, 0.055) !important;
+}
+
+.platform-card:hover {
+  border-color: #c4d1da !important;
+  box-shadow: 0 8px 22px rgba(30, 41, 59, 0.075) !important;
+}
+
+.platform-card-header {
+  background-color: #fbfcfd !important;
+  border-color: #e0e7ec !important;
+}
+
+.platform-meta-bar {
+  background: linear-gradient(100deg, #edf4f8 0%, #f7fafc 58%, #ffffff 100%) !important;
+  border-color: #c8d7e1 !important;
+  border-left: 4px solid var(--platform-brand) !important;
+  box-shadow: 0 6px 18px rgba(47, 102, 141, 0.065) !important;
+}
+
+/* 进度条、柱状条和状态条保留足够饱和度，避免数据图形在白底上消失。 */
+.smart-ops-theme .overflow-hidden > :is([class~="h-full"], [class~="absolute"]):is([class*="bg-blue-"], [class*="bg-cyan-"], [class*="bg-sky-"]),
+.smart-ops-theme :is([class~="absolute"][class~="bottom-0"], [class~="absolute"][class~="left-0"]):is([class*="bg-blue-"], [class*="bg-cyan-"], [class*="bg-sky-"]) {
+  background-color: #3f7fa8 !important;
+}
+
+.smart-ops-theme .overflow-hidden > :is([class~="h-full"], [class~="absolute"]):is([class*="bg-green-"], [class*="bg-emerald-"], [class*="bg-teal-"], [class*="bg-lime-"]),
+.smart-ops-theme :is([class~="absolute"][class~="bottom-0"], [class~="absolute"][class~="left-0"]):is([class*="bg-green-"], [class*="bg-emerald-"], [class*="bg-teal-"], [class*="bg-lime-"]) {
+  background-color: #3f8a5e !important;
+}
+
+.smart-ops-theme .overflow-hidden > :is([class~="h-full"], [class~="absolute"]):is([class*="bg-amber-"], [class*="bg-yellow-"], [class*="bg-orange-"]),
+.smart-ops-theme :is([class~="absolute"][class~="bottom-0"], [class~="absolute"][class~="left-0"]):is([class*="bg-amber-"], [class*="bg-yellow-"], [class*="bg-orange-"]) {
+  background-color: #b27a2e !important;
+}
+
+.smart-ops-theme .overflow-hidden > :is([class~="h-full"], [class~="absolute"]):is([class*="bg-red-"], [class*="bg-rose-"]),
+.smart-ops-theme :is([class~="absolute"][class~="bottom-0"], [class~="absolute"][class~="left-0"]):is([class*="bg-red-"], [class*="bg-rose-"]) {
+  background-color: #b95353 !important;
+}
+
+.smart-ops-theme .overflow-hidden > :is([class~="h-full"], [class~="absolute"]):is([class*="bg-indigo-"], [class*="bg-violet-"], [class*="bg-purple-"]),
+.smart-ops-theme :is([class~="absolute"][class~="bottom-0"], [class~="absolute"][class~="left-0"]):is([class*="bg-indigo-"], [class*="bg-violet-"], [class*="bg-purple-"]) {
+  background-color: #765ab0 !important;
+}
+
+/* 恢复对话开始前的三维视窗：工业蓝灰渐变、弱网格和适度提亮的模型合成。 */
+:root {
+  --platform-visual: #29485e;
+  --platform-visual-border: #7893a6;
+  --platform-visual-accent: #63d4ef;
+}
+
+.industrial-visual-surface,
+.smart-ops-theme :has(> .industrial-visual-surface),
+.smart-ops-theme :where(div, section):has(> canvas),
+.smart-ops-theme :where(div, section)[class*="overflow-hidden"]:has(> div > canvas),
+.remote-model-viewer,
+.unit1-predictive-visual-shell {
+  color: #e2e8f0 !important;
+  background-color: var(--platform-visual) !important;
+  background-image:
+    linear-gradient(rgba(215, 236, 247, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(215, 236, 247, 0.055) 1px, transparent 1px),
+    radial-gradient(circle at 50% 32%, #42667c 0%, #315268 42%, #29485e 70%, #243f53 100%) !important;
+  background-size: 32px 32px, 32px 32px, 100% 100% !important;
+  border-color: var(--platform-visual-border) !important;
+  box-shadow: inset 0 0 50px rgba(12, 31, 45, 0.22), 0 8px 24px rgba(31, 55, 72, 0.12);
+}
+
+.industrial-visual-surface canvas,
+.smart-ops-theme :where(div, section):has(> canvas) > canvas,
+.remote-model-viewer > canvas {
+  background: transparent !important;
+  filter: saturate(1.04) contrast(1.04) brightness(1.06);
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+/* HUD 只作用于三维视窗本身及其直接悬浮层，不能扩散到同一网格中的普通卡片。 */
+.smart-ops-theme .industrial-visual-surface :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300),
+.smart-ops-theme .remote-model-viewer :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300),
+.smart-ops-theme :where(div, section):has(> canvas) > .absolute :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300),
+.smart-ops-theme :where(div, section):has(> .industrial-visual-surface) > .absolute :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300) {
+  color: #e2e8f0 !important;
+}
+
+.smart-ops-theme .industrial-visual-surface :is(.text-slate-400, .text-slate-500, .text-slate-600),
+.smart-ops-theme .remote-model-viewer :is(.text-slate-400, .text-slate-500, .text-slate-600),
+.smart-ops-theme :where(div, section):has(> canvas) > .absolute :is(.text-slate-400, .text-slate-500, .text-slate-600),
+.smart-ops-theme :where(div, section):has(> .industrial-visual-surface) > .absolute :is(.text-slate-400, .text-slate-500, .text-slate-600) {
+  color: #b8c8d2 !important;
+}
+
+.smart-ops-theme :where(div, section):has(> canvas) > .absolute:is([class*="bg-black"], [class*="bg-slate-8"], [class*="bg-slate-9"]),
+.smart-ops-theme :where(div, section):has(> .industrial-visual-surface) > .absolute:is([class*="bg-black"], [class*="bg-slate-8"], [class*="bg-slate-9"]),
+.unit1-predictive-visual-shell .unit1-predictive-hud {
+  color: #e2e8f0 !important;
+  background-color: rgba(28, 54, 72, 0.9) !important;
+  border-color: rgba(148, 183, 204, 0.45) !important;
+  text-shadow: 0 1px 2px rgba(2, 6, 23, 0.5) !important;
+}
+
+/* 2026-08-19 最终对比度防线：浅色页面上的任何文字工具类、内联文字颜色和动态组件内容均以深色为准。
+   该规则放在文件末尾，避免旧页面的高优先级白字/浅色字规则再次覆盖白色主题。 */
+.smart-ops-theme :where(
+  h1, h2, h3, h4, h5, h6,
+  div, section, article, header, footer, main, nav, aside,
+  p, span, label, small, strong, b, em, i,
+  li, dt, dd, th, td, caption, legend,
+  button, a, input, textarea, select, option,
+  [role="button"], [role="tab"], [role="menuitem"], [contenteditable="true"]
+),
+.smart-ops-theme :where([class*="text-"]) {
+  color: var(--platform-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  text-shadow: none !important;
+}
+
+/* 次要信息也使用可读的深灰，不再沿用浅灰字或低透明度。 */
+.smart-ops-theme :where(
+  .text-slate-400, .text-slate-500, .text-slate-600,
+  .text-gray-400, .text-gray-500, .text-gray-600,
+  .text-zinc-400, .text-zinc-500, .text-zinc-600,
+  .text-neutral-400, .text-neutral-500, .text-neutral-600,
+  .text-stone-400, .text-stone-500, .text-stone-600
+) {
+  color: #3f4d60 !important;
+}
+
+.smart-ops-theme :where([class*="text-"]):is(
+  .opacity-5, .opacity-10, .opacity-20, .opacity-25, .opacity-30,
+  .opacity-40, .opacity-50, .opacity-60
+) {
+  opacity: 0.88 !important;
+}
+
+/* 状态色保留业务含义，但统一采用适合白底的深色版本。 */
+.smart-ops-theme :where([class*="text-cyan-"], [class*="text-sky-"], [class*="text-blue-"]) {
+  color: #1d5578 !important;
+}
+
+.smart-ops-theme :where([class*="text-green-"], [class*="text-emerald-"], [class*="text-teal-"], [class*="text-lime-"]) {
+  color: #1f633f !important;
+}
+
+.smart-ops-theme :where([class*="text-amber-"], [class*="text-yellow-"], [class*="text-orange-"]) {
+  color: #70470f !important;
+}
+
+.smart-ops-theme :where([class*="text-red-"], [class*="text-rose-"]) {
+  color: #8c3030 !important;
+}
+
+.smart-ops-theme :where([class*="text-indigo-"], [class*="text-violet-"], [class*="text-purple-"]) {
+  color: #513b82 !important;
+}
+
+/* 按钮全部使用浅色表面配深色文字，常态、悬停和聚焦不再发生白字消失。 */
+.smart-ops-theme :is(button, a, [role="button"], [role="tab"]):is(
+  [class*="bg-cyan-"], [class*="bg-sky-"], [class*="bg-blue-"]
+) {
+  color: #173f5a !important;
+  background-color: #e6f0f5 !important;
+  border-color: #9db9ca !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"], [role="tab"]):is(
+  [class*="bg-green-"], [class*="bg-emerald-"], [class*="bg-teal-"], [class*="bg-lime-"]
+) {
+  color: #194c32 !important;
+  background-color: #e8f3ec !important;
+  border-color: #a8c9b5 !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"], [role="tab"]):is(
+  [class*="bg-amber-"], [class*="bg-yellow-"], [class*="bg-orange-"]
+) {
+  color: #5d3a0c !important;
+  background-color: #f7efe1 !important;
+  border-color: #d8bd8f !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"], [role="tab"]):is(
+  [class*="bg-red-"], [class*="bg-rose-"]
+) {
+  color: #762929 !important;
+  background-color: #f7eaea !important;
+  border-color: #d8aaaa !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"], [role="tab"]):is(
+  [class*="bg-indigo-"], [class*="bg-violet-"], [class*="bg-purple-"]
+) {
+  color: #46326f !important;
+  background-color: #eeeaf6 !important;
+  border-color: #bdb2d5 !important;
+}
+
+.smart-ops-theme :is(button, a, [role="button"], [role="tab"]):hover {
+  color: #172033 !important;
+  filter: brightness(0.97);
+  text-shadow: none !important;
+}
+
+.smart-ops-theme :is(button, [role="button"], [role="tab"]):disabled,
+.smart-ops-theme :is(button, [role="button"], [role="tab"])[aria-disabled="true"] {
+  color: #526173 !important;
+  background-color: #edf1f4 !important;
+  opacity: 1 !important;
+}
+
+/* 图表可读性只作用于坐标、图例和提示文字。
+   不得对全部 Recharts 类整体设置 fill/stroke，否则柱体、面积、雷达图、
+   扇区和波形等数据图形会被统一染成灰色，覆盖组件原有的业务配色。 */
+.smart-ops-theme .recharts-wrapper :is(
+  .recharts-cartesian-axis-tick-value,
+  .recharts-polar-angle-axis-tick-value,
+  .recharts-polar-radius-axis-tick-value
+) {
+  color: #475569 !important;
+  fill: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  text-shadow: none !important;
+}
+
+.smart-ops-theme .recharts-legend-item-text,
+.smart-ops-theme .recharts-default-tooltip .recharts-tooltip-label {
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
+  text-shadow: none !important;
+}
+
+/* 数据图形沿用各页面定义的系列色；这里只优化抗锯齿和坐标边界，不改写数据层的 fill 或 stroke。 */
+.smart-ops-theme .recharts-surface {
+  shape-rendering: geometricPrecision;
+}
+
+.smart-ops-theme :is(.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line) {
+  stroke: #cbd5e1 !important;
+  stroke-width: 1;
+}
+
+/* 品牌标记位于固定深色底上，属于图形标识而非普通正文。 */
+.platform-brand-mark,
+.platform-brand-mark :where(*) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* 深色三维画布仅允许无浅色底的悬浮信息使用浅色字，保证模型视窗自身可读；普通卡片不继承此例外。 */
+.smart-ops-theme .industrial-visual-surface :where([class*="text-"]):not([class*="bg-"]),
+.smart-ops-theme .remote-model-viewer :where([class*="text-"]):not([class*="bg-"]),
+.smart-ops-theme :where(div, section):has(> canvas) > .absolute :where([class*="text-"]):not([class*="bg-"]) {
+  color: #f1f5f9 !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  text-shadow: 0 1px 2px rgba(2, 6, 23, 0.56) !important;
+}
+
+/* 三维 HUD 改为浅色信息牌配深色字，减少深色视窗中的浅色文字使用范围。 */
+.unit1-predictive-visual-shell .unit1-predictive-hud,
+.smart-ops-theme :where(div, section):has(> canvas) > .absolute:is([class*="bg-black"], [class*="bg-slate-8"], [class*="bg-slate-9"]) {
+  color: #172033 !important;
+  background-color: rgba(248, 250, 252, 0.94) !important;
+  border-color: #aebfcb !important;
+  text-shadow: none !important;
+}
+
+.unit1-predictive-visual-shell .unit1-predictive-hud :where([class*="text-"]),
+.smart-ops-theme :where(div, section):has(> canvas) > .absolute:is([class*="bg-black"], [class*="bg-slate-8"], [class*="bg-slate-9"]) :where([class*="text-"]) {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  text-shadow: none !important;
+}
+
+/* IndiB 统一品牌标记：以视觉重心居中的单一 iB 字母组合呈现。 */
+.indib-mark {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(156, 207, 228, 0.72);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 76% 22%, rgba(106, 211, 239, 0.22), transparent 35%),
+    linear-gradient(145deg, #183f59 0%, #245f80 54%, #17425e 100%);
+  box-shadow:
+    0 4px 11px rgba(25, 66, 91, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -7px 15px rgba(4, 31, 47, 0.14);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.indib-mark::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 7px;
+  right: 7px;
+  bottom: 4px;
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, rgba(118, 222, 244, 0.6), transparent);
+}
+
+.indib-mark--compact {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+
+.indib-mark__symbol {
+  display: block;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
+}
+
+.indib-mark--compact .indib-mark__symbol {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+}
+
+.indib-mark__symbol svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.indib-mark__i,
+.indib-mark__b {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.indib-mark__i {
+  stroke: #f7fbfd;
+  stroke-width: 2.15;
+}
+
+.indib-mark__b {
+  stroke: #8ce8fa;
+  stroke-width: 2.05;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.indib-mark__dot {
+  fill: #f7fbfd;
+  filter: drop-shadow(0 0 2px rgba(140, 232, 250, 0.46));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .indib-mark:hover {
+    transform: translateY(-1px);
+    border-color: rgba(164, 221, 240, 0.92);
+    box-shadow:
+      0 6px 14px rgba(25, 66, 91, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.17);
+  }
+}

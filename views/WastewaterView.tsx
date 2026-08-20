@@ -15,6 +15,18 @@ import {
   FlaskConical, Gauge, AlertCircle, TrendingDown 
 } from 'lucide-react';
 
+const EQUIPMENT_DISPLAY_NAMES: Record<string, string> = {
+  'BL-101': 'A号曝气鼓风机',
+  'BL-102': 'B号曝气鼓风机',
+  'RP-201': 'A号污泥回流泵',
+  'MX-301': '缺氧池搅拌器',
+};
+
+const EQUIPMENT_STATUS_NAMES: Record<string, string> = {
+  running: '运行中',
+  standby: '待机',
+};
+
 export const WastewaterView: React.FC = () => {
   // --- STATE ---
   const [processData, setProcessData] = useState({
@@ -86,7 +98,7 @@ export const WastewaterView: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 text-xs text-blue-400 mb-1 uppercase tracking-wider">
              <Recycle size={12} className="animate-spin" style={{animationDuration: '10s'}} />
-             BIO-REACTORS & PURIFICATION
+             生物反应与深度净化
           </div>
           <h1 className="text-4xl font-bold text-white tracking-tight flex items-center gap-3">
              <span className="text-blue-400 text-shadow-glow">污水处理</span> 智能运维驾驶舱
@@ -97,15 +109,15 @@ export const WastewaterView: React.FC = () => {
         {/* Top KPIs */}
         <div className="flex gap-8">
             <div className="flex flex-col items-end">
-                <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">Daily Treatment</div>
+                <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">日处理量</div>
                 <div className="text-2xl font-mono font-bold text-blue-300">58,400 <span className="text-sm text-slate-500">m³</span></div>
             </div>
             <div className="flex flex-col items-end border-l border-blue-900/40 pl-6">
-                <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">Avg Removal Eff</div>
+                <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">平均去除率</div>
                 <div className="text-2xl font-mono font-bold text-green-400">96.2 <span className="text-sm text-slate-500">%</span></div>
             </div>
             <div className="flex flex-col items-end border-l border-blue-900/40 pl-6">
-                <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">Energy Intensity</div>
+                <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">单位水量能耗</div>
                 <div className="text-2xl font-mono font-bold text-yellow-400">{processData.energyIntensity.toFixed(2)} <span className="text-sm text-slate-500">kWh/m³</span></div>
             </div>
         </div>
@@ -117,7 +129,7 @@ export const WastewaterView: React.FC = () => {
         <div className="w-full lg:w-1/4 flex flex-col gap-5">
            
            {/* Pollutant Removal Chart */}
-           <SciFiCard title="污染物去除效率对比" subtitle="IN vs OUT" className="flex-1 border-blue-900/50">
+           <SciFiCard title="污染物去除效果对比" subtitle="进出水对比" className="flex-1 border-blue-900/50">
               <div className="h-full w-full min-h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={pollutants} layout="vertical" margin={{top: 5, right: 30, left: 20, bottom: 5}}>
@@ -129,9 +141,9 @@ export const WastewaterView: React.FC = () => {
                         contentStyle={{backgroundColor: '#0f172a', borderColor: '#3b82f6', color: '#e2e8f0'}} 
                       />
                       <Legend verticalAlign="top" height={36} wrapperStyle={{fontSize: '10px'}}/>
-                      <Bar dataKey="in" name="Influent (进水)" fill="#334155" barSize={12} radius={[0, 4, 4, 0]} />
-                      <Bar dataKey="out" name="Effluent (出水)" fill="#10b981" barSize={12} radius={[0, 4, 4, 0]} />
-                      <Bar dataKey="limit" name="Limit (标准)" fill="#ef4444" barSize={2} radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="in" name="进水浓度" fill="#334155" barSize={12} radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="out" name="出水浓度" fill="#10b981" barSize={12} radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="limit" name="排放限值" fill="#ef4444" barSize={2} radius={[0, 4, 4, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -146,15 +158,15 @@ export const WastewaterView: React.FC = () => {
                           <FlaskConical size={14} className="text-yellow-500" />
                       </div>
                       <div className="text-2xl font-mono font-bold text-white">{processData.mlss.toFixed(0)}</div>
-                      <div className="text-[10px] text-slate-500">mg/L (Normal)</div>
+                      <div className="text-[10px] text-slate-500">mg/L（正常范围）</div>
                   </div>
                   <div className="bg-slate-900/50 p-3 rounded border border-slate-700">
                       <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs text-slate-400">Sludge Vol (SVI)</span>
+                          <span className="text-xs text-slate-400">污泥体积指数（SVI）</span>
                           <Filter size={14} className="text-amber-500" />
                       </div>
                       <div className="text-2xl font-mono font-bold text-white">{processData.svi.toFixed(0)}</div>
-                      <div className="text-[10px] text-slate-500">mL/g (Good Settling)</div>
+                      <div className="text-[10px] text-slate-500">mL/g（沉降性能良好）</div>
                   </div>
                </div>
            </SciFiCard>
@@ -169,12 +181,12 @@ export const WastewaterView: React.FC = () => {
               {/* HUD Overlay */}
               <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
                  <div className="bg-black/60 p-2 rounded border border-blue-500/30 backdrop-blur">
-                    <div className="text-[10px] text-blue-400 mb-1 uppercase font-bold">Aeration Tank DO Control</div>
+                    <div className="text-[10px] text-blue-400 mb-1 uppercase font-bold">曝气池溶解氧控制</div>
                     <div className="flex items-center gap-3">
                         <Wind size={20} className="text-blue-200" />
                         <div>
                             <div className="text-2xl font-bold text-white leading-none">{processData.doLevel.toFixed(2)}</div>
-                            <div className="text-[10px] text-slate-400">mg/L (Target: 2.0-3.0)</div>
+                            <div className="text-[10px] text-slate-400">mg/L（目标：2.0–3.0）</div>
                         </div>
                     </div>
                     <div className="w-full h-1.5 bg-slate-800 rounded-full mt-2 overflow-hidden">
@@ -186,7 +198,7 @@ export const WastewaterView: React.FC = () => {
               <div className="absolute top-4 right-4 z-10">
                  <div className="flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded border border-slate-600">
                     <Activity className="text-green-500 animate-pulse" size={14} />
-                    <span className="text-xs text-white font-mono">BIO-PROCESS ACTIVE</span>
+                    <span className="text-xs text-white font-mono">生化处理运行中</span>
                  </div>
               </div>
 
@@ -198,7 +210,7 @@ export const WastewaterView: React.FC = () => {
            </div>
 
            {/* Trend Chart (DO & Airflow) */}
-           <SciFiCard title="曝气控制回路分析" subtitle="DO vs AIRFLOW" className="h-[250px] border-blue-900/50" noPadding>
+           <SciFiCard title="曝气控制回路分析" subtitle="溶解氧与曝气量对比" className="h-[250px] border-blue-900/50" noPadding>
               <div className="w-full h-full p-4">
                  <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={trendData}>
@@ -210,8 +222,8 @@ export const WastewaterView: React.FC = () => {
                        </defs>
                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                        <XAxis dataKey="time" stroke="#64748b" tick={{fontSize: 10}} />
-                       <YAxis yAxisId="left" stroke="#64748b" tick={{fontSize: 10}} label={{ value: 'DO (mg/L)', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#64748b' }} />
-                       <YAxis yAxisId="right" orientation="right" stroke="#64748b" tick={{fontSize: 10}} label={{ value: 'Airflow (m³/h)', angle: 90, position: 'insideRight', fontSize: 10, fill: '#64748b' }} />
+                       <YAxis yAxisId="left" stroke="#64748b" tick={{fontSize: 10}} label={{ value: '溶解氧（mg/L）', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#64748b' }} />
+                       <YAxis yAxisId="right" orientation="right" stroke="#64748b" tick={{fontSize: 10}} label={{ value: '曝气量（m³/h）', angle: 90, position: 'insideRight', fontSize: 10, fill: '#64748b' }} />
                        <Tooltip contentStyle={{backgroundColor: '#020617', borderColor: '#3b82f6', color: '#fff'}} />
                        <Area yAxisId="right" type="monotone" dataKey="airflow" fill="url(#colorAir)" stroke="#3b82f6" strokeWidth={2} />
                        <Line yAxisId="left" type="monotone" dataKey="do" stroke="#10b981" strokeWidth={2} dot={false} />
@@ -231,9 +243,9 @@ export const WastewaterView: React.FC = () => {
                  {equipment.map(eq => (
                     <div key={eq.id} className="flex flex-col bg-slate-900/40 p-2 rounded border border-slate-800">
                         <div className="flex justify-between items-center mb-2">
-                           <span className="text-xs text-white font-bold">{eq.name}</span>
+                           <span className="text-xs text-white font-bold">{EQUIPMENT_DISPLAY_NAMES[eq.id] ?? eq.name}</span>
                            <span className={`text-[10px] px-1.5 rounded uppercase ${eq.status === 'running' ? 'bg-green-900/30 text-green-400' : 'bg-slate-700 text-slate-400'}`}>
-                              {eq.status}
+                              {EQUIPMENT_STATUS_NAMES[eq.status] ?? eq.status}
                            </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -248,20 +260,20 @@ export const WastewaterView: React.FC = () => {
            </SciFiCard>
 
            {/* Energy Consumption */}
-           <SciFiCard title="能耗分析" subtitle="REAL-TIME" className="border-blue-900/50">
+           <SciFiCard title="能耗分析" subtitle="实时数据" className="border-blue-900/50">
               <div className="space-y-4">
                  <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                        <Zap size={18} className="text-yellow-400" />
-                       <div className="text-xs text-slate-300">Total Power</div>
+                       <div className="text-xs text-slate-300">总功率</div>
                     </div>
                     <div className="text-xl font-bold text-white font-mono">485 <span className="text-xs text-slate-500">kW</span></div>
                  </div>
 
                  <div className="p-3 bg-blue-900/10 rounded border border-blue-800/30">
                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-400">Carbon Footprint</span>
-                        <span className="text-green-400">-12% vs Avg</span>
+                        <span className="text-slate-400">碳排放量</span>
+                        <span className="text-green-400">较平均值低12%</span>
                      </div>
                      <div className="text-lg font-bold text-slate-200">142.5 <span className="text-xs font-normal">kgCO₂/h</span></div>
                  </div>
@@ -277,7 +289,7 @@ export const WastewaterView: React.FC = () => {
                        <div className="absolute bottom-0 left-1/2 w-1 h-8 bg-red-500 origin-bottom transform -translate-x-1/2 rotate-[-20deg]"></div>
                    </div>
                    <div className="text-2xl font-bold text-white mt-[-10px]">85%</div>
-                   <div className="text-[10px] text-slate-500 uppercase tracking-widest">Return Ratio</div>
+                   <div className="text-[10px] text-slate-500 uppercase tracking-widest">当前回流比</div>
                </div>
            </SciFiCard>
 

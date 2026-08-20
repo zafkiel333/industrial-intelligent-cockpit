@@ -77,7 +77,7 @@ const DamGalleryMicroseism: React.FC = () => {
       : `最新事件能量 ML ${eventEnergy.toFixed(1)}、结构稳定性指数 ${stabilityIndex.toFixed(2)}，均在安全范围内，廊道结构状态平稳。`;
 
   const handleClear = async () => {
-    if (!window.confirm('确定要清空所有上传的数据文件吗？操作不可逆。')) return;
+    if (!window.confirm('确定要清空全部已上传数据吗？清空后无法恢复。')) return;
     const res = await clearData();
     if (!res.success) alert(res.message || '清空失败');
   };

@@ -26,7 +26,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
-    // 动态背景色
+    // 2026-08-19 调整：恢复按天气类型区分的深色环境，避免白色降雪和模型部件融入背景；
     const getBgColor = () => {
         switch(weatherType) {
             case 'typhoon': return 0x0f172a; // Dark Blue

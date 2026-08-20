@@ -242,7 +242,7 @@ export const CustomerTrialEquipmentView: React.FC = () => {
         <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
            
            {/* Active Trial Dashboard */}
-           <SciFiCard title="试用全景监控 (Trial Monitor)" subtitle={activeTrial.id} className="border-cyan-900/50 bg-[#080b14]" noPadding>
+           <SciFiCard title="试用全景监控 (Trial Monitor)" subtitle={activeTrial.id} subtitleIsCode className="border-cyan-900/50 bg-[#080b14]" noPadding>
                <div className="flex flex-col h-full p-5 gap-6">
                    
                    {/* Top Info */}

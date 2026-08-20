@@ -100,7 +100,7 @@ export const PenstockWeldFatigueView: React.FC = () => {
     : PARIS_LAW_DATA.map((d) => ({ cycles: d.cycles, damage: Number(Math.min(1, Number(d.length) / 100).toFixed(4)), limit: 1 }));
 
   const handleClear = async () => {
-    if (!window.confirm('确定要清空所有上传的数据文件吗？操作不可逆。')) return;
+    if (!window.confirm('确定要清空全部已上传数据吗？清空后无法恢复。')) return;
     const res = await clearData();
     if (!res.success) alert(res.message || '清空失败');
   };

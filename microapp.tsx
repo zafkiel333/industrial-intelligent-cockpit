@@ -5,6 +5,7 @@ import { App } from './App';
 import './index.css';
 import { setApiBase } from './src/integration/apiClient';
 import { DEFAULT_VIEW_ID, isKnownViewId } from './src/integration/menu';
+import { installChineseUiLocalization } from './src/localization/chineseUi';
 
 const APP_NAME = 'industrial-intelligent-cockpit';
 
@@ -23,6 +24,7 @@ export interface SceneLibraryHostProps {
 let reactRoot: Root | null = null;
 let rootElement: HTMLElement | null = null;
 let currentProps: SceneLibraryHostProps | null = null;
+let stopChineseUiLocalization: (() => void) | null = null;
 
 function safeReport(props: SceneLibraryHostProps, state: string, message?: string): void {
   try {
@@ -97,6 +99,7 @@ export async function mount(props: SceneLibraryHostProps): Promise<void> {
     rootElement.style.height = '100%';
     rootElement.style.overflow = 'hidden';
     reactRoot = createRoot(rootElement);
+    stopChineseUiLocalization = installChineseUiLocalization(rootElement, { localizeCanvas: true });
     render(props);
     safeReport(props, 'ready');
   } catch (error) {
@@ -116,6 +119,8 @@ export async function update(nextProps: Partial<SceneLibraryHostProps>): Promise
 
 export async function unmount(): Promise<void> {
   reactRoot?.unmount();
+  stopChineseUiLocalization?.();
+  stopChineseUiLocalization = null;
   reactRoot = null;
   if (rootElement) {
     rootElement.replaceChildren();

@@ -36,9 +36,9 @@ const DMA_STATUS = [
 ];
 
 const ALERTS = [
-    { time: '10:24:32', type: 'Pipe Burst', loc: 'Node-452 (Main St)', level: 'High' },
-    { time: '10:15:10', type: 'Pressure Low', loc: 'DMA-03 Sensor', level: 'Med' },
-    { time: '09:48:22', type: 'Pump Trip', loc: 'Station B #2', level: 'High' },
+    { time: '10:24:32', type: '管道爆裂', loc: 'Node-452（主街道）', level: 'High' },
+    { time: '10:15:10', type: '压力偏低', loc: 'DMA-03传感器', level: 'Med' },
+    { time: '09:48:22', type: '水泵跳闸', loc: 'B站2号设备', level: 'High' },
 ];
 
 export const SmartWaterCockpitView: React.FC = () => {
@@ -210,7 +210,7 @@ export const SmartWaterCockpitView: React.FC = () => {
                               <Tooltip contentStyle={{backgroundColor: '#020617', borderColor: '#06b6d4'}} />
                               <Legend verticalAlign="top" height={36} wrapperStyle={{fontSize: '10px'}}/>
                               <Area yAxisId="left" type="monotone" dataKey="supply" name="Supply (m³/h)" stroke="#06b6d4" fill="url(#supplyGrad)" />
-                              <Line yAxisId="left" type="monotone" dataKey="demand" name="Demand (m³/h)" stroke="#ffffff" strokeWidth={1} dot={false} strokeDasharray="5 5" />
+                              <Line yAxisId="left" type="monotone" dataKey="demand" name="Demand (m³/h)" stroke="#64748b" strokeWidth={1} dot={false} strokeDasharray="5 5" />
                               <Line yAxisId="right" type="monotone" dataKey="pressure" name="Pressure (MPa)" stroke="#f59e0b" strokeWidth={2} dot={false} />
                           </ComposedChart>
                       </ResponsiveContainer>
