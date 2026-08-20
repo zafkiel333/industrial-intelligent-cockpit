@@ -1,0 +1,70 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
+const projectRoot = process.cwd();
+const insecureMainOrigin = 'http://8.146.211.204:3100';
+const secureMainOrigin = 'https://8.146.211.204:3100';
+
+function read(relativePath: string): string {
+  return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8');
+}
+
+function listSourceFiles(relativeDirectory: string): string[] {
+  const absoluteDirectory = path.join(projectRoot, relativeDirectory);
+  return fs.readdirSync(absoluteDirectory, { withFileTypes: true }).flatMap((entry) => {
+    const relativePath = path.join(relativeDirectory, entry.name);
+    if (entry.isDirectory()) return listSourceFiles(relativePath);
+    return /\.(?:ts|tsx)$/.test(entry.name) ? [relativePath] : [];
+  });
+}
+
+function assert(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new Error(message);
+}
+
+const scopedRuntimeFiles = [
+  'server.ts',
+  'src/integration/hostModelNavigation.ts',
+  ...listSourceFiles('src/remoteModelShowcase'),
+  ...listSourceFiles('components/remote-model-showcase'),
+  ...listSourceFiles('views/simulation/remote-model'),
+];
+
+for (const relativePath of scopedRuntimeFiles) {
+  const source = read(relativePath);
+  assert(
+    !source.includes(insecureMainOrigin),
+    `${relativePath} still contains the insecure main-platform origin`,
+  );
+}
+
+const serverSource = read('server.ts');
+assert(
+  serverSource.includes(`${secureMainOrigin}/three-model-api`),
+  'server.ts does not default to the HTTPS three-model-api endpoint',
+);
+
+const catalogSource = read('src/remoteModelShowcase/modelCatalog.ts');
+const expectedModelIds = [2326, 2328, 2316, 2310];
+for (const modelId of expectedModelIds) {
+  assert(
+    catalogSource.includes(`sourceDetailUrl: '${secureMainOrigin}/three-model/detail?id=${modelId}'`),
+    `model ${modelId} does not use the approved HTTPS detail URL`,
+  );
+}
+assert(
+  (catalogSource.match(/sourceDetailUrl:\s*['"]/g) || []).length === expectedModelIds.length,
+  'the external-model catalog contains an unexpected number of detail URLs',
+);
+
+const remoteModelUiFiles = [
+  ...listSourceFiles('components/remote-model-showcase'),
+  ...listSourceFiles('views/simulation/remote-model'),
+];
+for (const relativePath of remoteModelUiFiles) {
+  const source = read(relativePath);
+  assert(!/target\s*=\s*["']_blank["']/.test(source), `${relativePath} still opens a browser tab`);
+  assert(!/window\.open\s*\(/.test(source), `${relativePath} still calls window.open`);
+}
+
+console.log(`HTTPS_INTEGRATION_VERIFY_OK models=${expectedModelIds.length} files=${scopedRuntimeFiles.length}`);

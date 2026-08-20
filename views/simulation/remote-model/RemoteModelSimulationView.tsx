@@ -211,11 +211,19 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
             <button type="button" onClick={() => window.location.reload()} className="border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-xs text-cyan-200 hover:bg-cyan-500/20">
               重新建立连接
             </button>
-            {/* 2026-08-10 新增：即使本地链路异常也允许人工打开外部项目来源模型页排查； */}
-            <a href={config.sourceDetailUrl} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 border border-slate-600 bg-slate-900/70 px-4 py-2 text-xs text-slate-300 hover:border-cyan-500/50 hover:text-cyan-200">
-              查看资源详情<ExternalLink size={13} />
-            </a>
+            {/* 2026-08-20 修复：初始化失败时也必须复用主平台导航协议，不得退回浏览器新标签页。 */}
+            <button
+              type="button"
+              onClick={() => void handleOpenModelDetail()}
+              disabled={modelDetailOpening}
+              className="inline-flex items-center gap-1.5 border border-slate-600 bg-slate-900/70 px-4 py-2 text-xs text-slate-300 hover:border-cyan-500/50 hover:text-cyan-200 disabled:cursor-wait disabled:opacity-60"
+            >
+              {modelDetailOpening ? '正在打开…' : '查看资源详情'}<ExternalLink size={13} />
+            </button>
           </div>
+          {modelNavigationError && (
+            <p className="mt-3 text-xs leading-5 text-rose-300" role="alert">{modelNavigationError}</p>
+          )}
         </div>
       </div>
     );

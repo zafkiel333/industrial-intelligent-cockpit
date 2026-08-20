@@ -9,11 +9,11 @@
 ## 1. 上游服务
 
 ```text
-人工参考页（业务代码禁止请求）: http://8.146.211.204:3100/three-model/detail?id=<modelId>
-唯一业务数据源 API Base:       http://8.146.211.204:3100/three-model-api
+人工参考页（业务代码禁止请求）: https://8.146.211.204:3100/three-model/detail?id=<modelId>
+唯一业务数据源 API Base:       https://8.146.211.204:3100/three-model-api
 ```
 
-四个详情页最初用于需求阶段人工识别模型 ID，现作为页面“查看资源详情”按钮的人工追溯入口。用户点击后由浏览器在新标签页打开；本项目业务代码不会请求详情页、解析 HTML 或从 DOM 抓取数据。模型信息、模型文件、运行数据、工况和一致性校验仍全部来自 `/three-model-api/api/...`。
+四个详情页最初用于需求阶段人工识别模型 ID，现作为页面“查看资源详情”按钮的人工追溯入口。嵌入主平台时由受控消息交给主平台路由，独立访问时在当前浏览器标签同页进入；本项目业务代码不会请求详情页、解析 HTML 或从 DOM 抓取数据。模型信息、模型文件、运行数据、工况和一致性校验仍全部来自 `/three-model-api/api/...`。
 
 上游 API 无需 JWT。虽然文档说明 CORS 已放行，本项目仍计划通过自身后端代理，原因是：统一错误处理、避免 HTTPS 混合内容、保护模型文件 key、支持缓存和避免形成不受控的跨域依赖。
 
@@ -264,7 +264,7 @@ Accept: application/json
 ### 4.7 环境变量与默认配置
 
 ```dotenv
-VISUAL_MODEL_API_BASE_URL=http://8.146.211.204:3100/three-model-api
+VISUAL_MODEL_API_BASE_URL=https://8.146.211.204:3100/three-model-api
 MODEL_BINARY_REFRESH_HOURS=36
 # 可选：MODEL_CACHE_DIRECTORY=/可写的持久目录/model-showcase
 ```
@@ -520,7 +520,7 @@ Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等�
 6. 前端不得在每次 Dashboard 轮询时重新请求模型文件；
 7. 如果上游中文出现乱码，应检查上游响应头 charset；本项目代理统一以 UTF-8 JSON 返回；
 8. 诊断输出由本项目模拟智能诊断服务构造，用于仿真展示，不等同于生产设备的真实预测模型结论。
-9. “查看资源详情”使用 HTTP 外部地址并打开新标签页，只用于人工追溯；详情页失效不会影响 API、缓存、3D 或诊断功能。
+9. “查看资源详情”必须使用 HTTPS 固定可信地址；嵌入主平台时交给主平台导航，独立访问时在当前浏览器标签同页进入。详情页失效不会影响 API、缓存、3D 或诊断功能。
 10. `/connection` 的通道观测是当前进程状态，但模型版本与时间会从持久清单恢复；模型到期时该接口可异步触发一次后台更新。
 11. 部署时不能只替换 `dist`：本次同时修改了 `server.ts`，并需保证 `.runtime-cache/model-showcase` 或 `MODEL_CACHE_DIRECTORY` 指向的目录可持续写入。
 
@@ -561,7 +561,7 @@ Windows PowerShell 可用 `Invoke-RestMethod`/`Invoke-WebRequest` 执行同等�
 ## 14. 2026-08-10 设备资源协同联调结果
 
 - 四页面均接入“资源来源：ICES-Union 3d2.0”“接入服务：模型数据安全接入”、三节点资源协同卡和状态抽屉；
-- “查看资源详情”按钮按场景打开模型 2326、2328、2316、2310 的固定详情页，使用 `target="_blank"` 与 `rel="noreferrer noopener"`；
+- “查看资源详情”按钮按场景定位模型 2326、2328、2316、2310：嵌入主平台时使用 `scene-library:navigate` 交由主平台内标签开关处理，独立访问时在当前浏览器标签同页进入；正常内容和初始化错误状态均不得使用 `target="_blank"`；
 - 独立 3108 测试实例依次完成四场景 `bootstrap`、`model`、`diagnosis` 和 `connection` 请求；
 - 四个模型 ID、来源详情 URL 全部匹配，模型字节数仍为 7,661,788、13,082,652、3,777,248、6,175,120；
 - 四场景模型通道显示运行期缓存可用，Dashboard 和本地诊断通道显示连接成功；

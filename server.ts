@@ -462,7 +462,7 @@ app.get("/api/scenarios/:scenarioId/data", (req, res) => {
 // -----------------------------------------------------------------------------
 
 const VISUAL_MODEL_API_BASE_URL = (process.env.VISUAL_MODEL_API_BASE_URL
-  || "http://8.146.211.204:3100/three-model-api").replace(/\/$/, "");
+  || "https://8.146.211.204:3100/three-model-api").replace(/\/$/, "");
 const MODEL_METADATA_TTL_MS = 5 * 60 * 1000;
 const MAX_MODEL_FILE_BYTES = 50 * 1024 * 1024;
 const MODEL_DOWNLOAD_TIMEOUT_MS = 30_000;

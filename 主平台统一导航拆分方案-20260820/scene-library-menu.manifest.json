@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.0",
-  "menuVersion": "dev-46e7605-dirty",
-  "generatedAt": "2026-08-20T08:54:24.642Z",
-  "sourceCommit": "46e7605c8c6f1102fdeb6aba1a7984b2e1b062ba",
-  "sourceDirty": true,
+  "menuVersion": "20260820-173922",
+  "generatedAt": "2026-08-20T09:39:23.087Z",
+  "sourceCommit": "018f89a254f3093fb6d8e2f0221782a91e334282",
+  "sourceDirty": false,
   "defaultViewId": "smart-ops",
   "menuContentSha256": "b7de7be4e41977d0e9fdfc75c204ff93086d4a33b57f9c33e0351cd1fa05b021",
   "totalNodeCount": 1049,

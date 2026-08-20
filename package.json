@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:navigation": "tsc -p tsconfig.navigation.json",
     "verify:navigation": "node scripts/run-tsx.mjs scripts/verify-navigation-split.ts",
+    "verify:https-integration": "node scripts/run-tsx.mjs scripts/verify-https-integration.ts",
     "generate:menu-manifest": "node scripts/run-tsx.mjs scripts/generate-scene-library-menu.ts",
     "start": "cross-env NODE_ENV=production node scripts/run-tsx.mjs server.ts",
     "preview": "vite preview"

@@ -83,6 +83,8 @@ menuContentSha256：b7de7be4e41977d0e9fdfc75c204ff93086d4a33b57f9c33e0351cd1fa05
 
 主平台侧最终还要验证：主平台“场景库”菜单层级、iframe URL 参数、菜单点击切页、刷新恢复，以及原模型详情跨项目跳转。主平台若尚未发布其适配代码，场景库侧只能完成独立 URL 验收。
 
+2026-08-20 实际部署后的联合验收状态：场景库 Release `20260820-173922` 已上线且独立版正常，但主平台合并页验收失败。截图显示主平台只呈现部分类目/子项、部分导航映射错误，并且部分 iframe 中再次出现了场景库浅色 Sidebar。正式 manifest 是场景库开发完成后生成的，早于开发的第一次方案交付不能替代正式清单交付；下一会话必须确认主平台团队是否实际取得并递归导入 `menuVersion=20260820-173922` 的 1049 节点清单。同时必须检查 iframe 最终 `src` 是否始终包含 `embedded=1` 和当前节点 `viewId`。在这两项及联合验收完成前，不得宣布双平台导航拆分完成。
+
 ---
 
 ## 2. 用户真正想要的协作方式
@@ -125,7 +127,8 @@ menuContentSha256：b7de7be4e41977d0e9fdfc75c204ff93086d4a33b57f9c33e0351cd1fa05
 |---|---|
 | 场景库云服务器 | `47.122.104.52` |
 | SSH 用户 | `root` |
-| 公网 Nginx 入口 | `http://47.122.104.52:8081` |
+| 主平台嵌入用 HTTPS 入口 | `https://47.122.104.52` |
+| 兼容保留的 HTTP 入口 | `http://47.122.104.52:8081` |
 | 独立版入口 | `/cockpit/` |
 | 微应用入口 | `/microapps/scene-library/` |
 | 微应用 JS | `/microapps/scene-library/scene-library.js` |
@@ -140,7 +143,7 @@ menuContentSha256：b7de7be4e41977d0e9fdfc75c204ff93086d4a33b57f9c33e0351cd1fa05
 主平台地址：
 
 ```text
-http://8.146.211.204:3100
+https://8.146.211.204:3100
 ```
 
 主平台由另一团队开发和部署。没有明确新增授权时，新会话不得：
@@ -311,7 +314,7 @@ npm run build:all
 
 当前代码相较上次部署出现了新的运行依赖：
 
-- `package.json` 的启动命令使用 `scripts/run-tsx.mjs`；
+- `package.json` 的本地 `dev`/`start` 脚本使用 `scripts/run-tsx.mjs`，但 2026-08-20 现场核对确认生产 systemd 不调用 npm 脚本，而是直接执行 `node_modules/tsx/dist/cli.mjs server.ts`；
 - `server.ts` 会导入 `src/remoteModelShowcase/` 下的模块。
 
 所以，发布包至少需要重新核对：
@@ -336,6 +339,8 @@ Get-Content package.json
 如果后端又增加了新的本地模块、配置模板、运行时 JSON 或其他资源，必须加入发布包。
 
 `src/integration/` 下的导航协议源码会编译进两套前端产物，当前不是服务器运行时单独读取的目录。正式发布包以构建后的 `dist-standalone/`、`dist-microapp/` 为准。菜单清单 JSON 是交付主平台团队的协作产物，不应被误当作后端运行依赖；是否同时归档进发布包必须明确记录。
+
+云端切换前的独立端口启动检查必须先读取 `systemctl show scene-library.service --property=ExecStart`，然后复用现场真实启动方式。当前真实命令是 `/usr/bin/node <current>/node_modules/tsx/dist/cli.mjs <current>/server.ts`。不要在 Linux 冒烟检查中改用 `scripts/run-tsx.mjs`：该脚本是为部分 Windows/受限账户环境增加的兼容入口，其 `tsx/esm/api` 调用在现场 Node `v22.23.2` 下会给 `node:` 内置模块附加 namespace 查询参数并失败；这不代表 systemd 所用的 tsx CLI 入口失败。
 
 在正式构建前，用最终 Release ID 重新生成主平台菜单清单：
 
@@ -586,10 +591,11 @@ previous → 切换前的真实 OLD_RELEASE
 scene-library.service = active
 内部 health.version = 新 Release ID
 公开 health.version = 新 Release ID
-/cockpit/ = HTTP 200
-standalone 当前 JS = HTTP 200
-/microapps/scene-library/ = HTTP 200
-/microapps/scene-library/scene-library.js = HTTP 200
+https://47.122.104.52/cockpit/ = HTTP 状态码 200
+standalone 当前 JS（HTTPS）= HTTP 状态码 200
+https://47.122.104.52/microapps/scene-library/ = HTTP 状态码 200
+https://47.122.104.52/microapps/scene-library/scene-library.js = HTTP 状态码 200
+http://47.122.104.52:8081/cockpit/ = HTTP 状态码 200（兼容入口）
 ```
 
 还要检查：
