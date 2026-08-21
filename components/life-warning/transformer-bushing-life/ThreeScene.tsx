@@ -23,8 +23,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
     }
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a1128); // Deep tech blue
-    scene.fog = new THREE.FogExp2(0x0a1128, 0.015);
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
+    scene.fog = new THREE.FogExp2(0x315268, 0.015);
 
     const canvasWidth = mountRef.current.clientWidth || 1;
     const canvasHeight = mountRef.current.clientHeight || 1;

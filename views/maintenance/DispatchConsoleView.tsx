@@ -174,8 +174,8 @@ export const DispatchConsoleView: React.FC = () => {
                 <ModelLibraryLink url={MODEL_LIB_URL} />
               </div>
 
-              {/* 背景装饰线 */}
-              <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-cyan-950/10 to-transparent pointer-events-none"></div>
+              {/* 2026-08-21：移除会被主平台浅色主题转为不透明色块的下半区装饰遮罩。 */}
+
            </div>
 
            {/* 底部 AI 推荐 */}

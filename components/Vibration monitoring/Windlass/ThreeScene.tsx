@@ -21,8 +21,8 @@ export const ThreeScene: React.FC<{ state: WindlassState }> = ({ state }) => {
     if (existingCanvas) containerRef.current.removeChild(existingCanvas);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x020617);
-    scene.fog = new THREE.FogExp2(0x020617, 0.01);
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
+    scene.fog = new THREE.FogExp2(0x315268, 0.01);
 
     const camera = new THREE.PerspectiveCamera(
       45,

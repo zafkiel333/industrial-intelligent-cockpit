@@ -68,7 +68,7 @@ export const ThreeScene: React.FC<HydroTurbineOverhaulProps> = ({ speed = 0, sta
     // --- Scene Setup ---
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = new THREE.Color(0x000000); // Black background
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
 
     const camera = new THREE.PerspectiveCamera(75, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
     cameraRef.current = camera;

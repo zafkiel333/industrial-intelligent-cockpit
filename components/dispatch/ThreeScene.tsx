@@ -10,28 +10,42 @@ export const DispatchThreeScene: React.FC<DispatchThreeProps> = ({
   workloadHeat = 0.5 
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const activeMachineIdRef = useRef(activeMachineId);
+  const onMachineClickRef = useRef(onMachineClick);
 
   useEffect(() => {
-    if (!mountRef.current) return;
+    activeMachineIdRef.current = activeMachineId;
+  }, [activeMachineId]);
 
-    const width = mountRef.current.clientWidth;
-    const height = mountRef.current.clientHeight;
+  useEffect(() => {
+    onMachineClickRef.current = onMachineClick;
+  }, [onMachineClick]);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return;
+
+    const initialWidth = Math.max(mount.clientWidth, 1);
+    const initialHeight = Math.max(mount.clientHeight, 1);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(50, initialWidth / initialHeight, 0.1, 1000);
     camera.position.set(10, 8, 12);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(initialWidth, initialHeight, false);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     //2026.02.04,修复了复数个3d建模的问题，原因是有多个canvas，需要在进入前清空
     // 新增：清空挂载节点，避免多canvas
-    const existingCanvas = mountRef.current.querySelector('canvas');
+    const existingCanvas = mount.querySelector('canvas');
     if (existingCanvas) {
-      mountRef.current.removeChild(existingCanvas);
+      mount.removeChild(existingCanvas);
     }
-    mountRef.current.appendChild(renderer.domElement);
+    renderer.domElement.style.display = 'block';
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    mount.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -119,28 +133,29 @@ export const DispatchThreeScene: React.FC<DispatchThreeProps> = ({
     const mouse = new THREE.Vector2();
 
     const handleClick = (event: MouseEvent) => {
-      const rect = mountRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      mouse.x = ((event.clientX - rect.left) / width) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / height) * 2 + 1;
+      const rect = mount.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2) return;
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(machineMeshes);
       if (intersects.length > 0) {
         const id = intersects[0].object.userData.id;
-        onMachineClick?.(id);
+        onMachineClickRef.current?.(id);
       }
     };
-    mountRef.current.addEventListener('click', handleClick);
+    mount.addEventListener('click', handleClick);
 
     let frame = 0;
+    let animationId = 0;
     const animate = () => {
-      requestAnimationFrame(animate);
+      animationId = requestAnimationFrame(animate);
       frame += 0.02;
 
       // Animate active machine
       machineMeshes.forEach(m => {
-          if (m.userData.id === activeMachineId) {
+          if (m.userData.id === activeMachineIdRef.current) {
               m.scale.setScalar(1 + Math.sin(frame * 4) * 0.1);
               (m.material as THREE.MeshPhongMaterial).emissiveIntensity = 1;
           } else {
@@ -163,22 +178,40 @@ export const DispatchThreeScene: React.FC<DispatchThreeProps> = ({
     animate();
 
     const handleResize = () => {
-      const w = mountRef.current?.clientWidth || width;
-      const h = mountRef.current?.clientHeight || height;
-      camera.aspect = w / h;
+      const rect = mount.getBoundingClientRect();
+      const width = Math.round(rect.width);
+      const height = Math.round(rect.height);
+      if (width < 2 || height < 2) return;
+
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(width, height, false);
     };
+
+    // 2026-08-21：主平台侧边栏和内标签页会直接改变微应用容器尺寸，并不触发 window.resize。
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(mount);
     window.addEventListener('resize', handleResize);
+    handleResize();
 
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
-      if (mountRef.current) {
-          mountRef.current.removeEventListener('click', handleClick);
-          mountRef.current.removeChild(renderer.domElement);
+      cancelAnimationFrame(animationId);
+      controls.dispose();
+      mount.removeEventListener('click', handleClick);
+      if (mount.contains(renderer.domElement)) {
+        mount.removeChild(renderer.domElement);
       }
+      scene.traverse(object => {
+        if (!(object instanceof THREE.Mesh || object instanceof THREE.Line)) return;
+        object.geometry?.dispose();
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach(material => material.dispose());
+      });
+      renderer.dispose();
     };
-  }, [activeMachineId, onMachineClick]);
+  }, []);
 
   return <div ref={mountRef} className="w-full h-full cursor-pointer" />;
 };

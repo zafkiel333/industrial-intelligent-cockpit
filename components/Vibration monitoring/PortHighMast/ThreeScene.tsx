@@ -22,7 +22,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
     existingCanvases.forEach(canvas => canvas.remove());
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x02050a);
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
 
     const camera = new THREE.PerspectiveCamera(
       45,

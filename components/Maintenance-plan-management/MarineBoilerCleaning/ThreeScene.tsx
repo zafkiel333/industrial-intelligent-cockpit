@@ -23,7 +23,7 @@ export const ThreeScene: React.FC<MarineBoilerCleaningProps> = (props) => {
     const height = mountRef.current.clientHeight || 1;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a0a0a); // Dark engine room
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(20, 15, 25);
@@ -118,7 +118,7 @@ export const ThreeScene: React.FC<MarineBoilerCleaningProps> = (props) => {
 
       if (!isCleaning) {
         // Normal operation: Hot, pulsating flame
-        scene.background = new THREE.Color(0x1a0a0a);
+        scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
         fluidMat.color.setHex(0xff5500); // Fire
         fluid.scale.set(1 + Math.sin(time * 10) * 0.1, 1 + Math.sin(time * 15) * 0.2, 1 + Math.sin(time * 10) * 0.1);
         
@@ -130,7 +130,7 @@ export const ThreeScene: React.FC<MarineBoilerCleaningProps> = (props) => {
         shell.scale.setScalar(1 + (pressure / 100) * 0.02);
       } else {
         // Cleaning mode: Cool, chemical circulation
-        scene.background = new THREE.Color(0x0a1a1a);
+        scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
         fluidMat.color.setHex(0x00ffaa); // Chemical fluid
         fluid.scale.set(1.5, 1.5, 1.5); // Fill bottom
         

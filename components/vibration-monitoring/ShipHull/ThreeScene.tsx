@@ -7,7 +7,7 @@ export const ThreeScene: React.FC = () => {
     if (!containerRef.current) return;
     const existingCanvas = containerRef.current.querySelector('canvas');
     if (existingCanvas) containerRef.current.removeChild(existingCanvas);
-    const scene = new THREE.Scene(); scene.background = new THREE.Color(0x020617);
+    const scene = new THREE.Scene(); scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
     const camera = new THREE.PerspectiveCamera(75, containerRef.current.clientWidth / containerRef.current.clientHeight, 0.1, 1000);
     camera.position.z = 50;
     const renderer = new THREE.WebGLRenderer({ antialias: true });

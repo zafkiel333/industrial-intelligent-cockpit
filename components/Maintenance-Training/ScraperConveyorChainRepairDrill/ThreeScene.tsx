@@ -22,7 +22,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
     }
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#18181b'); // zinc-900
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
 
     const canvasWidth = mountRef.current.clientWidth || 1;
     const canvasHeight = mountRef.current.clientHeight || 1;

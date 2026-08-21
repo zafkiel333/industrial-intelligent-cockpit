@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
+import { CV_MONITORING_IMAGES } from '@/src/assets/cvMonitoringImages';
 import { ThreeScene } from '@/components/computer-visual-inspection/SolarPanelHotspot/ThreeScene';
 // 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
 import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
@@ -101,10 +102,9 @@ const SolarPanelHotspotView: React.FC = () => {
         <div className="col-span-4 flex flex-col space-y-4">
           <SciFiCard title="无人机红外实时流" className="flex-1 relative overflow-hidden">
             <img 
-              src="https://picsum.photos/seed/solar/800/600" 
-              alt="Solar Thermal" 
+              src={CV_MONITORING_IMAGES.solarPanel}
+              alt="光伏阵列无人机巡检画面"
               className="w-full h-full object-cover opacity-60 hue-rotate-180"
-              referrerPolicy="no-referrer"
             />
             {/* Detection Overlays */}
             <div className="absolute top-1/4 left-1/3 w-24 h-24 border-2 border-red-500/60 bg-red-500/10 rounded-sm">

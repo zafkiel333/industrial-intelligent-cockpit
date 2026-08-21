@@ -23,7 +23,7 @@ export const ThreeScene: React.FC<HullAntiFoulingPaintProps> = (props) => {
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a1a); // Dry dock dark background
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(30, 15, 40);

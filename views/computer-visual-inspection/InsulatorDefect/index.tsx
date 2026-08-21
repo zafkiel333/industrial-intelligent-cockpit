@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
+import { CV_MONITORING_IMAGES } from '@/src/assets/cvMonitoringImages';
 import { ThreeScene } from '@/components/computer-visual-inspection/InsulatorDefect/ThreeScene';
 // 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
 import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
@@ -104,16 +105,15 @@ const InsulatorDefectView: React.FC = () => {
         <div className="col-span-4 flex flex-col space-y-4">
           <SciFiCard title="视觉识别实时流" className="flex-1 relative overflow-hidden">
             <img 
-              src="https://picsum.photos/seed/insulator/800/600" 
-              alt="Insulator Visual" 
+              src={CV_MONITORING_IMAGES.transmissionInsulator}
+              alt="输电线路绝缘子串巡检画面"
               className="w-full h-full object-cover opacity-60"
-              referrerPolicy="no-referrer"
             />
             {/* Detection Overlays */}
-            <div className="absolute top-1/3 left-1/4 w-32 h-16 border-2 border-red-500/60 bg-red-500/10 rounded-sm">
+            <div className="absolute top-[52%] left-[42%] w-24 h-12 border-2 border-red-500/60 bg-red-500/10 rounded-sm">
               <div className="absolute -top-6 left-0 bg-red-500 text-white text-[8px] px-1 font-bold">DEFECT: FLASHOVER (85%)</div>
             </div>
-            <div className="absolute bottom-1/4 right-1/3 w-24 h-12 border-2 border-yellow-500/60 bg-yellow-500/10 rounded-sm">
+            <div className="absolute top-[56%] right-[18%] w-20 h-10 border-2 border-yellow-500/60 bg-yellow-500/10 rounded-sm">
               <div className="absolute -top-6 left-0 bg-yellow-500 text-white text-[8px] px-1 font-bold">DEFECT: CONTAM (62%)</div>
             </div>
             

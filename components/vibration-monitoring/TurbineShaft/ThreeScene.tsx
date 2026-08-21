@@ -20,7 +20,7 @@ export const ThreeScene: React.FC = () => {
     const height = containerRef.current.clientHeight;
 
     const scene = new THREE.Scene();
-    scene.background = null; // Transparent background for better integration
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(40, 40, 40);

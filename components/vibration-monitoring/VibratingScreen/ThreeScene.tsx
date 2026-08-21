@@ -25,7 +25,7 @@ export const ThreeScene: React.FC = () => {
 
     // Scene Setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x020617);
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
 
     // Camera Setup
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);

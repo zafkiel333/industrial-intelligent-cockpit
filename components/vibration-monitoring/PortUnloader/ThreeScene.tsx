@@ -25,10 +25,10 @@ export const ThreeScene: React.FC<{ state: UnloaderState }> = ({ state }) => {
     // Scene Setup
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = new THREE.Color(0x020617);
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
     
     // Fog for depth
-    scene.fog = new THREE.FogExp2(0x020617, 0.015);
+    scene.fog = new THREE.FogExp2(0x315268, 0.015);
 
     const camera = new THREE.PerspectiveCamera(
       60,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
+import { CV_MONITORING_IMAGES } from '@/src/assets/cvMonitoringImages';
 import { ThreeScene } from '@/components/computer-visual-inspection/BeltForeignObject/ThreeScene';
 // 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
 import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
@@ -223,7 +224,11 @@ const BeltForeignObjectView: React.FC = () => {
                     <span className="text-[8px] text-slate-500 font-mono">{obj.confidence.toFixed(2)}</span>
                   </div>
                   <div className="aspect-video bg-slate-800 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                    <img src={`https://picsum.photos/seed/${obj.id}/200/120`} alt="Detection" className="w-full h-full object-cover opacity-50" />
+                    <img
+                      src={CV_MONITORING_IMAGES.conveyorForeignObject}
+                      alt="输送带异物检测画面"
+                      className="w-full h-full object-cover opacity-50"
+                    />
                   </div>
                   <div className="text-[10px] text-slate-400 flex items-center gap-2">
                     <Clock size={10} /> {new Date().toLocaleTimeString()}

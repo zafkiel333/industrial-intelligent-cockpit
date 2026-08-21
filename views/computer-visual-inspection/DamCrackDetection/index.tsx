@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
+import { CV_MONITORING_IMAGES } from '@/src/assets/cvMonitoringImages';
 import { ThreeScene } from '@/components/computer-visual-inspection/DamCrackDetection/ThreeScene';
 // 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
 import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
@@ -143,10 +144,9 @@ const DamCrackDetectionView: React.FC = () => {
           <div className="h-48 grid grid-cols-3 gap-4">
             <SciFiCard title="实时图像流" className="relative overflow-hidden">
               <img 
-                src="https://picsum.photos/seed/dam1/400/300" 
-                alt="Visual Feed" 
+                src={CV_MONITORING_IMAGES.damConcreteCrack}
+                alt="大坝混凝土裂缝可见光巡检画面"
                 className="w-full h-full object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-700"
-                referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent"></div>
               <div className="absolute bottom-2 left-2 flex items-center gap-2">
@@ -156,10 +156,9 @@ const DamCrackDetectionView: React.FC = () => {
             </SciFiCard>
             <SciFiCard title="红外热感图" className="relative overflow-hidden">
               <img 
-                src="https://picsum.photos/seed/dam2/400/300?blur=2" 
-                alt="Thermal Feed" 
+                src={CV_MONITORING_IMAGES.damConcreteCrack}
+                alt="大坝混凝土裂缝热感巡检画面"
                 className="w-full h-full object-cover opacity-60 hue-rotate-180"
-                referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent"></div>
               <div className="absolute bottom-2 left-2 flex items-center gap-2">

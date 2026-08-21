@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
+import { CV_MONITORING_IMAGES } from '@/src/assets/cvMonitoringImages';
 import { ThreeScene } from '@/components/computer-visual-inspection/TransformerLeak/ThreeScene';
 // 2026-07-09 新增：模型库跳转链接（场景库测试方案 8.4）
 import { ModelLibraryLink } from '@/src/scenarioLib/ModelLibraryLink';
@@ -104,19 +105,17 @@ const TransformerLeakView: React.FC = () => {
             <div className="grid grid-cols-2 h-full gap-1">
               <div className="relative">
                 <img 
-                  src="https://picsum.photos/seed/trans1/600/400" 
-                  alt="Visual" 
+                  src={CV_MONITORING_IMAGES.transformerOilLeak}
+                  alt="油浸式变压器可见光巡检画面"
                   className="w-full h-full object-cover opacity-60"
-                  referrerPolicy="no-referrer"
                 />
                 <div className="absolute top-2 left-2 px-2 py-0.5 bg-slate-950/80 text-[8px] font-mono text-slate-400 rounded">可见光摄像头_01</div>
               </div>
               <div className="relative">
                 <img 
-                  src="https://picsum.photos/seed/trans2/600/400?blur=2" 
-                  alt="Thermal" 
+                  src={CV_MONITORING_IMAGES.transformerOilLeak}
+                  alt="油浸式变压器热成像巡检画面"
                   className="w-full h-full object-cover opacity-60 hue-rotate-180"
-                  referrerPolicy="no-referrer"
                 />
                 <div className="absolute top-2 left-2 px-2 py-0.5 bg-slate-950/80 text-[8px] font-mono text-slate-400 rounded">热成像摄像头_01</div>
               </div>

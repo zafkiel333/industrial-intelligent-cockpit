@@ -24,8 +24,8 @@ export const ThreeScene: React.FC<PropellerPolishingProps> = (props) => {
 
     const scene = new THREE.Scene();
     // Underwater blue fog
-    scene.fog = new THREE.FogExp2(0x002244, 0.03);
-    scene.background = new THREE.Color(0x001122);
+    scene.fog = new THREE.FogExp2(0x315268, 0.03);
+    scene.background = new THREE.Color(0x315268); // 2026-08-21：统一为工业蓝灰三维视窗背景
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(0, 0, 25);
