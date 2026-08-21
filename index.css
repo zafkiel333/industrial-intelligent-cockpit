@@ -2006,30 +2006,6 @@ body {
   color: #c4b5fd !important;
 }
 
-/* 2026-08-12 修复：1号机组柱状模型的当前检视和时间轴使用确定性 HUD 配色，避免结构变化再次漏配； */
-.unit1-predictive-visual-shell .unit1-predictive-hud {
-  color: #f8fafc !important;
-  background-color: rgba(20, 43, 59, 0.94) !important;
-  border-color: rgba(169, 189, 202, 0.62) !important;
-  text-shadow: 0 1px 2px rgba(2, 6, 23, 0.52);
-}
-
-.unit1-predictive-visual-shell .unit1-predictive-hud :is(.text-slate-300, .text-slate-400, .text-slate-500) {
-  color: #cbd5e1 !important;
-}
-
-.unit1-predictive-visual-shell .unit1-predictive-hud :is(.text-cyan-400, .text-sky-400, .text-blue-400) {
-  color: #7dd3fc !important;
-}
-
-.unit1-predictive-visual-shell .unit1-predictive-hud :is(.text-amber-400, .text-amber-500, .text-amber-600\/80) {
-  color: #fcd34d !important;
-}
-
-.unit1-predictive-visual-shell .unit1-predictive-hud input[type="range"] {
-  background-color: #526f82 !important;
-}
-
 /* 2026-08-12 修复：深色视觉区的业务标签同步恢复深色半透明底，避免高明度状态字与全局浅化背景再次同色； */
 .smart-ops-theme .industrial-visual-surface :is(
   [class^="bg-cyan-8"], [class*=" bg-cyan-8"], [class^="bg-cyan-9"], [class*=" bg-cyan-9"],
@@ -2654,8 +2630,7 @@ body,
 }
 
 .smart-ops-theme :where(div, section):has(> canvas) > .absolute:is([class*="bg-black"], [class*="bg-slate-8"], [class*="bg-slate-9"]),
-.smart-ops-theme :where(div, section):has(> .industrial-visual-surface) > .absolute:is([class*="bg-black"], [class*="bg-slate-8"], [class*="bg-slate-9"]),
-.unit1-predictive-visual-shell .unit1-predictive-hud {
+.smart-ops-theme :where(div, section):has(> .industrial-visual-surface) > .absolute:is([class*="bg-black"], [class*="bg-slate-8"], [class*="bg-slate-9"]) {
   color: #e2e8f0 !important;
   background-color: rgba(28, 54, 72, 0.9) !important;
   border-color: rgba(148, 183, 204, 0.45) !important;
@@ -2819,7 +2794,6 @@ body,
 }
 
 /* 三维 HUD 改为浅色信息牌配深色字，减少深色视窗中的浅色文字使用范围。 */
-.unit1-predictive-visual-shell .unit1-predictive-hud,
 .smart-ops-theme :where(div, section):has(> canvas) > .absolute:is([class*="bg-black"], [class*="bg-slate-8"], [class*="bg-slate-9"]) {
   color: #172033 !important;
   background-color: rgba(248, 250, 252, 0.94) !important;
@@ -2827,7 +2801,6 @@ body,
   text-shadow: none !important;
 }
 
-.unit1-predictive-visual-shell .unit1-predictive-hud :where([class*="text-"]),
 .smart-ops-theme :where(div, section):has(> canvas) > .absolute:is([class*="bg-black"], [class*="bg-slate-8"], [class*="bg-slate-9"]) :where([class*="text-"]) {
   color: #172033 !important;
   -webkit-text-fill-color: #172033 !important;
@@ -2930,42 +2903,55 @@ body,
   }
 }
 
-/* 2026-08-21 修复：1号机组 3D 的检视与时间轴浮层使用独立浅色信息牌。
-   规则放在主题文件末尾并使用专用类，避免旧深色 HUD 和全局 Canvas 规则因加载顺序重新覆盖。 */
+/* 2026-08-21 二次修复：彻底移除旧 HUD/深色工具类后，以专用类定义单层、不透明的浅色信息牌。
+   面板及全部后代文字先统一固定为深色，再单独区分历史/预测状态，避免文字因继承色再次“隐身”。 */
 .smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-panel,
 .smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel {
   color: #20384a !important;
   -webkit-text-fill-color: #20384a !important;
-  background: rgba(241, 247, 250, 0.96) !important;
+  background: #f1f7fa !important;
   border-color: #9fb8c7 !important;
-  box-shadow:
-    0 9px 24px rgba(28, 65, 88, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 5px 14px rgba(28, 65, 88, 0.13) !important;
   text-shadow: none !important;
-  backdrop-filter: blur(8px);
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
 }
 
-.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-panel :where([class*="text-"]),
-.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel :where([class*="text-"]) {
-  color: #526b7c !important;
-  -webkit-text-fill-color: #526b7c !important;
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-panel *,
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel * {
+  color: #20384a !important;
+  -webkit-text-fill-color: #20384a !important;
   text-shadow: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
 }
 
-.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-panel :is(.text-blue-400, .text-sky-400),
-.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel :is(.text-blue-400, .text-sky-400) {
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-label,
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-help,
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-start {
+  color: #496578 !important;
+  -webkit-text-fill-color: #496578 !important;
+}
+
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-time[data-mode="history"] {
   color: #075985 !important;
   -webkit-text-fill-color: #075985 !important;
 }
 
-.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-panel :is(.text-amber-400, .text-amber-500, .text-amber-600\/80),
-.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel :is(.text-amber-400, .text-amber-500, .text-amber-600\/80) {
-  color: #985b12 !important;
-  -webkit-text-fill-color: #985b12 !important;
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-time[data-mode="prediction"],
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-end {
+  color: #8a4b08 !important;
+  -webkit-text-fill-color: #8a4b08 !important;
 }
 
-.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel input[type="range"] {
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-range {
   background-color: #bfd1dc !important;
+}
+
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-current {
+  color: #29475b !important;
+  -webkit-text-fill-color: #29475b !important;
 }
 
 .smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-counter[data-mode="history"] {

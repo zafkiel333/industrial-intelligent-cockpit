@@ -342,19 +342,25 @@ export const Unit1PredictiveView: React.FC = () => {
         <div className="unit1-predictive-visual-shell xl:w-1/3 border border-slate-800 rounded-lg overflow-hidden relative shadow-lg min-h-[300px] xl:min-h-0">
            <Unit1ThreeScene padsTemp={currentData.pads} isPrediction={isPrediction} globalMin={globalTempInfo.min} globalMax={globalTempInfo.max} />
            <div className="absolute top-4 left-4 right-4 flex justify-between pointer-events-none">
-              <div className="unit1-predictive-hud unit1-predictive-inspection-panel bg-slate-900/80 px-3 py-1 rounded border border-slate-700 text-xs shadow flex items-center gap-2">
-                当前检视: <span className={isPrediction ? 'text-amber-400 font-mono' : 'text-blue-400 font-mono'}>{timeLabel}</span>
+              <div className="unit1-predictive-inspection-panel px-3 py-1 rounded border text-xs flex items-center gap-2">
+                <span className="unit1-predictive-inspection-label">当前检视:</span>
+                <span
+                  className="unit1-predictive-inspection-time font-mono"
+                  data-mode={isPrediction ? 'prediction' : 'history'}
+                >
+                  {timeLabel}
+                </span>
              </div>
              <div className="pointer-events-auto">
                <ModelLibraryLink url={MODEL_LIB_URL} />
              </div>
            </div>
            
-           <div className="unit1-predictive-hud unit1-predictive-timeline-panel absolute bottom-4 left-4 right-4 bg-slate-900/90 p-3 rounded border border-slate-700/50 shadow-xl pointer-events-auto">
+           <div className="unit1-predictive-timeline-panel absolute bottom-4 left-4 right-4 p-3 rounded border pointer-events-auto">
               <div className="flex justify-between items-center mb-3">
-                 <span className="text-[10px] text-slate-400 tracking-wider">时间轴: 拖拉以穿越历史与预测域</span>
+                 <span className="unit1-predictive-timeline-help text-[10px] tracking-wider">时间轴: 拖拉以穿越历史与预测域</span>
                  <span
-                   className={`unit1-predictive-timeline-counter text-[10px] font-mono px-2 py-0.5 rounded ${isPrediction ? 'bg-amber-900/50 text-amber-500 border border-amber-700/50' : 'bg-blue-900/50 text-blue-400 border border-blue-700/50'}`}
+                   className="unit1-predictive-timeline-counter text-[10px] font-mono px-2 py-0.5 rounded border"
                    data-mode={isPrediction ? 'prediction' : 'history'}
                  >
                     {scrubberIndex} / {unifiedData.length - 1}
@@ -366,12 +372,12 @@ export const Unit1PredictiveView: React.FC = () => {
                 max={unifiedData.length - 1} 
                 value={scrubberIndex} 
                 onChange={(e) => setScrubberIndex(parseInt(e.target.value))}
-                className="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                className="unit1-predictive-timeline-range w-full accent-blue-500 h-1.5 rounded-lg appearance-none cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] text-slate-500 mt-2 font-mono">
-                 <span>历史起</span>
-                 <span className="text-slate-300">当前计算 ({historyDividerIndex})</span>
-                 <span className="text-amber-600/80">预测末</span>
+              <div className="unit1-predictive-timeline-scale flex justify-between text-[10px] mt-2 font-mono">
+                 <span className="unit1-predictive-timeline-start">历史起</span>
+                 <span className="unit1-predictive-timeline-current">当前计算 ({historyDividerIndex})</span>
+                 <span className="unit1-predictive-timeline-end">预测末</span>
               </div>
            </div>
         </div>
