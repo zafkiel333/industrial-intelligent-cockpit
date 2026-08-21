@@ -2967,3 +2967,89 @@ body,
   background-color: #fff1d8 !important;
   border-color: #d9ac66 !important;
 }
+
+/* 2026-08-21：运维知识管理按钮对比度修复。
+   该规则必须置于 Canvas/HUD 通用规则之后，避免深色视窗的浅色文字规则覆盖已经浅色化的按钮。 */
+.smart-ops-theme.knowledge-management-theme button {
+  color: #20384a !important;
+  -webkit-text-fill-color: #20384a !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.smart-ops-theme.knowledge-management-theme button * {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+  text-shadow: none !important;
+}
+
+/* 三维视窗控制条中未带背景工具类的“未选中”按钮也提供独立浅色底，
+   防止它们继承控制条的深色底后形成深字深底。 */
+.smart-ops-theme.knowledge-management-theme :where(div, section):has(> div > canvas) > .absolute button:not([class*="bg-"]) {
+  color: #29475b !important;
+  -webkit-text-fill-color: #29475b !important;
+  background-color: #edf3f6 !important;
+  border-color: #a7bdca !important;
+}
+
+.smart-ops-theme.knowledge-management-theme button:is(
+  [class*="bg-cyan-"],
+  [class*="bg-sky-"],
+  [class*="bg-blue-"]
+) {
+  color: #173f5a !important;
+  -webkit-text-fill-color: #173f5a !important;
+  background-color: #dcecf4 !important;
+  border-color: #8fb1c4 !important;
+}
+
+.smart-ops-theme.knowledge-management-theme button:is(
+  [class*="bg-slate-"],
+  [class*="bg-gray-"],
+  [class*="bg-zinc-"]
+) {
+  color: #20384a !important;
+  -webkit-text-fill-color: #20384a !important;
+  background-color: #e7eef2 !important;
+  border-color: #9fb8c7 !important;
+}
+
+.smart-ops-theme.knowledge-management-theme button:is(
+  [class*="bg-red-"],
+  [class*="bg-rose-"]
+) {
+  color: #762929 !important;
+  -webkit-text-fill-color: #762929 !important;
+  background-color: #f4e4e4 !important;
+  border-color: #d7a3a3 !important;
+}
+
+.smart-ops-theme.knowledge-management-theme button:not(:disabled):not([aria-disabled="true"]):hover {
+  color: #173f5a !important;
+  -webkit-text-fill-color: #173f5a !important;
+  background-color: #cfe1ea !important;
+  border-color: #789fb4 !important;
+  filter: none !important;
+}
+
+.smart-ops-theme.knowledge-management-theme button:is(
+  [class*="bg-red-"],
+  [class*="bg-rose-"]
+):not(:disabled):hover {
+  color: #652222 !important;
+  -webkit-text-fill-color: #652222 !important;
+  background-color: #ecd5d5 !important;
+  border-color: #c88e8e !important;
+}
+
+.smart-ops-theme.knowledge-management-theme button:disabled,
+.smart-ops-theme.knowledge-management-theme button[aria-disabled="true"] {
+  color: #445568 !important;
+  -webkit-text-fill-color: #445568 !important;
+  background-color: #e7edf1 !important;
+  border-color: #b6c5ce !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+}

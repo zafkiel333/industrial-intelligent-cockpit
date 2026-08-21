@@ -90,12 +90,12 @@ export const animateWeatherScene = (
           }
           animatables.rainParticles.geometry.attributes.position.needsUpdate = true;
       }
-      scene.fog = new THREE.FogExp2(0x1e293b, 0.05);
+      scene.fog = new THREE.FogExp2(0xe8f1f6, 0.05);
       break;
 
     case 'FOG':
       if (animatables.rainParticles) animatables.rainParticles.visible = false;
-      scene.fog = new THREE.FogExp2(0x64748b, 0.15);
+      scene.fog = new THREE.FogExp2(0xe8f1f6, 0.15);
       break;
 
     case 'STORM':
@@ -103,12 +103,12 @@ export const animateWeatherScene = (
       // High wind effect: Shaking the crane
       animatables.craneGroup.position.x = Math.sin(time * 15) * 0.1;
       animatables.craneGroup.rotation.z = Math.sin(time * 12) * 0.02;
-      scene.fog = new THREE.FogExp2(0x0f172a, 0.08);
+      scene.fog = new THREE.FogExp2(0xe8f1f6, 0.08);
       break;
 
     case 'NIGHT':
       if (animatables.rainParticles) animatables.rainParticles.visible = false;
-      scene.fog = new THREE.FogExp2(0x020617, 0.02);
+      scene.fog = new THREE.FogExp2(0xe8f1f6, 0.02);
       if (animatables.statusLight) {
           animatables.statusLight.intensity = 5 + Math.sin(time * 5) * 2;
       }

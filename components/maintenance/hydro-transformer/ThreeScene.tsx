@@ -37,8 +37,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ phase, isHeatmapMode }) 
 
       // Scene
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0f0a1e);
-      scene.fog = new THREE.FogExp2(0x0f0a1e, 0.02);
+      scene.background = new THREE.Color(0xe8f1f6); // 2026-08-21：模拟维修三维视窗统一使用浅色工业蓝灰背景
+      scene.fog = new THREE.FogExp2(0xe8f1f6, 0.02);
 
       // Camera
       const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);

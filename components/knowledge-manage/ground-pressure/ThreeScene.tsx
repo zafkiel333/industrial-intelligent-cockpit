@@ -20,8 +20,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ state }) => {
     const height = mountRef.current.clientHeight;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000); // Pitch black for underground
-    scene.fog = new THREE.FogExp2(0x000000, 0.05); // Heavy fog
+    scene.background = new THREE.Color(0xe8f1f6); // 2026-08-21：运维知识管理三维视窗统一使用浅色工业蓝灰背景
+    scene.fog = new THREE.FogExp2(0xe8f1f6, 0.05); // Heavy fog
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(0, 2, 15); // Looking down the tunnel

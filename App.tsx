@@ -2504,7 +2504,7 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
 
         {/* Dynamic Content Container */}
         {/* 2026-08-12 调整：全量页面启用统一浅色语义映射，保留业务状态色和深色可视化区域； */}
-        <div className={`platform-content smart-ops-theme flex-1 overflow-y-auto relative scroll-smooth ${embedded ? 'p-4' : 'p-6'}`}>
+        <div className={`platform-content smart-ops-theme ${activeTabId === 'ops-knowledge' || activeTabId.startsWith('km-') ? 'knowledge-management-theme' : ''} flex-1 overflow-y-auto relative scroll-smooth ${embedded ? 'p-4' : 'p-6'}`}>
            {/* 2026-08-19 修复：内容宽度跟随 standalone 窗口或 microapp 宿主容器，不再在超宽屏产生异常留白。 */}
            <div className="h-full w-full min-w-0">
              {/* 2026-07-09 新增：场景信息条，挂载在页面内容区、renderContent() 之前，随内容区一起滚动 */}

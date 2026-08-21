@@ -14,6 +14,8 @@
     "verify:navigation": "node scripts/run-tsx.mjs scripts/verify-navigation-split.ts",
     "verify:https-integration": "node scripts/run-tsx.mjs scripts/verify-https-integration.ts",
     "verify:scene-backgrounds": "node scripts/run-tsx.mjs scripts/verify-scene-backgrounds.ts",
+    "verify:simulated-maintenance-backgrounds": "node scripts/run-tsx.mjs scripts/verify-simulated-maintenance-backgrounds.ts",
+    "verify:knowledge-management-visuals": "node scripts/run-tsx.mjs scripts/verify-knowledge-management-visuals.ts",
     "verify:maintenance-planning": "node scripts/run-tsx.mjs scripts/verify-maintenance-planning-redesign.ts",
     "verify:life-warning": "node scripts/run-tsx.mjs scripts/verify-life-warning-redesign.ts",
     "verify:cv-images": "node scripts/run-tsx.mjs scripts/verify-cv-monitoring-images.ts",
