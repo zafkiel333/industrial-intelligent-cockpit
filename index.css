@@ -2929,3 +2929,55 @@ body,
       inset 0 1px 0 rgba(255, 255, 255, 0.17);
   }
 }
+
+/* 2026-08-21 修复：1号机组 3D 的检视与时间轴浮层使用独立浅色信息牌。
+   规则放在主题文件末尾并使用专用类，避免旧深色 HUD 和全局 Canvas 规则因加载顺序重新覆盖。 */
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-panel,
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel {
+  color: #20384a !important;
+  -webkit-text-fill-color: #20384a !important;
+  background: rgba(241, 247, 250, 0.96) !important;
+  border-color: #9fb8c7 !important;
+  box-shadow:
+    0 9px 24px rgba(28, 65, 88, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+  text-shadow: none !important;
+  backdrop-filter: blur(8px);
+}
+
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-panel :where([class*="text-"]),
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel :where([class*="text-"]) {
+  color: #526b7c !important;
+  -webkit-text-fill-color: #526b7c !important;
+  text-shadow: none !important;
+}
+
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-panel :is(.text-blue-400, .text-sky-400),
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel :is(.text-blue-400, .text-sky-400) {
+  color: #075985 !important;
+  -webkit-text-fill-color: #075985 !important;
+}
+
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-inspection-panel :is(.text-amber-400, .text-amber-500, .text-amber-600\/80),
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel :is(.text-amber-400, .text-amber-500, .text-amber-600\/80) {
+  color: #985b12 !important;
+  -webkit-text-fill-color: #985b12 !important;
+}
+
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-panel input[type="range"] {
+  background-color: #bfd1dc !important;
+}
+
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-counter[data-mode="history"] {
+  color: #075985 !important;
+  -webkit-text-fill-color: #075985 !important;
+  background-color: #e1f1f8 !important;
+  border-color: #84b9d2 !important;
+}
+
+.smart-ops-theme .unit1-predictive-visual-shell .unit1-predictive-timeline-counter[data-mode="prediction"] {
+  color: #8a4b08 !important;
+  -webkit-text-fill-color: #8a4b08 !important;
+  background-color: #fff1d8 !important;
+  border-color: #d9ac66 !important;
+}
