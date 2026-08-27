@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { MENU_ITEMS, MODEL_ENABLED_CHILD_ORDER } from '../constants';
 import { MODEL_SHOWCASE_CATALOG } from '../src/remoteModelShowcase/modelCatalog';
 import { PAGE_MODEL_BINDINGS } from '../src/remoteModelShowcase/pageModelBindings';
@@ -17,6 +18,10 @@ assert(new Set(PAGE_MODEL_BINDINGS.map((item) => item.modelId)).size === 99, 'mo
 assert(!PAGE_MODEL_BINDINGS.some((item) => item.viewId === 'eq-18'), 'eq-18 must never be model-enabled');
 assert(PAGE_MODEL_BINDINGS.some((item) => item.viewId === 'eq-unit1-model' && item.modelId === 6691), 'independent unit-1 model page is missing');
 assert(PAGE_MODEL_BINDINGS.every((item) => Number.parseFloat(item.fileSize) <= 50), 'a selected model exceeds the 50 MiB BFF limit');
+
+const modelEnabledPageFrameSource = readFileSync('components/remote-model-showcase/ModelEnabledPageFrame.tsx', 'utf8');
+assert(!modelEnabledPageFrameSource.includes('原业务页'), 'model-enabled pages must not expose the legacy business-page entry');
+assert(!modelEnabledPageFrameSource.includes('role="tablist"'), 'model-enabled pages must not expose a model/business mode switch');
 
 const allItems = flatten(MENU_ITEMS);
 const allIds = new Set(allItems.map((item) => item.id));
@@ -49,4 +54,4 @@ assert(
   'the first four simulation sample pages must keep their positions',
 );
 
-console.log(`MODEL_LIBRARY_EXPANSION_VERIFY_OK bindings=${PAGE_MODEL_BINDINGS.length} showcasePages=${Object.keys(MODEL_SHOWCASE_CATALOG).length} menuNodes=${allItems.length}`);
+console.log(`MODEL_LIBRARY_EXPANSION_VERIFY_OK bindings=${PAGE_MODEL_BINDINGS.length} showcasePages=${Object.keys(MODEL_SHOWCASE_CATALOG).length} menuNodes=${allItems.length} legacySwitch=hidden`);
