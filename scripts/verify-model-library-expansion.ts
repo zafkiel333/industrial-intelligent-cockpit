@@ -23,6 +23,11 @@ const modelEnabledPageFrameSource = readFileSync('components/remote-model-showca
 assert(!modelEnabledPageFrameSource.includes('原业务页'), 'model-enabled pages must not expose the legacy business-page entry');
 assert(!modelEnabledPageFrameSource.includes('role="tablist"'), 'model-enabled pages must not expose a model/business mode switch');
 
+const modelViewerSource = readFileSync('components/remote-model-showcase/RemoteModelViewer.tsx', 'utf8');
+assert(modelViewerSource.includes('new AbortController()'), 'model downloads must support cancellation');
+assert(modelViewerSource.includes('pendingForAsset'), 'metadata/content version changes must reuse an in-flight model request');
+assert(modelViewerSource.includes("phase: 'downloading'"), 'model viewer must expose byte download progress');
+
 const allItems = flatten(MENU_ITEMS);
 const allIds = new Set(allItems.map((item) => item.id));
 PAGE_MODEL_BINDINGS.forEach((binding) => assert(allIds.has(binding.viewId), `menu page missing: ${binding.viewId}`));

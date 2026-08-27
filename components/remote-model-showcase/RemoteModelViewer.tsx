@@ -19,8 +19,40 @@ interface RemoteModelViewerProps {
 
 type ModelLoadFailureStage = 'request' | 'parse';
 
-// 2026-08-12 调整：缓存键同时包含本地路由和内容版本，版本变化后绝不复用旧 ArrayBuffer；
-const modelBufferCache = new Map<string, Promise<ArrayBuffer>>();
+type ModelLoadPhase = 'preparing' | 'downloading' | 'parsing' | 'ready';
+
+interface ModelLoadProgress {
+  phase: ModelLoadPhase;
+  percent: number;
+  receivedBytes: number;
+  expectedBytes: number;
+}
+
+interface ModelBufferResult {
+  buffer: ArrayBuffer;
+  responseVersion: string | null;
+}
+
+interface SharedModelBufferTask {
+  assetUrl: string;
+  controller: AbortController;
+  promise: Promise<ModelBufferResult>;
+  keys: Set<string>;
+  subscribers: Set<(progress: ModelLoadProgress) => void>;
+  progress: ModelLoadProgress;
+  settled: boolean;
+  succeeded: boolean;
+  abortMessage: string | null;
+  abortTimer: number | null;
+  lastAccessedAt: number;
+}
+
+// 2026-08-27 优化：同一模型下载任务共享字节进度；版本轮询或组件重挂载不再重复拉取大文件。
+const modelBufferTasks = new Map<string, SharedModelBufferTask>();
+const allModelBufferTasks = new Set<SharedModelBufferTask>();
+const MAX_RESOLVED_MODEL_BUFFERS = 3;
+const MODEL_PREPARE_TIMEOUT_MS = 75_000;
+const MODEL_STREAM_STALL_TIMEOUT_MS = 30_000;
 
 function modelCacheKey(asset: ModelAssetDescriptor): string {
   return `${asset.localAssetUrl}::${asset.version}`;
@@ -30,6 +62,67 @@ function versionedModelUrl(asset: ModelAssetDescriptor): string {
   const url = new URL(apiUrl(asset.localAssetUrl), window.location.origin);
   url.searchParams.set('v', asset.version);
   return `${url.pathname}${url.search}`;
+}
+
+function taskKey(assetUrl: string, version: string): string {
+  return `${assetUrl}::${version}`;
+}
+
+function publishProgress(task: SharedModelBufferTask, progress: ModelLoadProgress): void {
+  task.progress = progress;
+  task.subscribers.forEach((subscriber) => subscriber(progress));
+}
+
+function removeTask(task: SharedModelBufferTask): void {
+  task.keys.forEach((key) => {
+    if (modelBufferTasks.get(key) === task) modelBufferTasks.delete(key);
+  });
+  allModelBufferTasks.delete(task);
+}
+
+function registerTaskAlias(task: SharedModelBufferTask, key: string): void {
+  const existing = modelBufferTasks.get(key);
+  if (existing && existing !== task && !existing.settled) return;
+  modelBufferTasks.set(key, task);
+  task.keys.add(key);
+}
+
+function pruneResolvedTasks(): void {
+  const removable = [...allModelBufferTasks]
+    .filter((task) => task.settled && task.succeeded && task.subscribers.size === 0)
+    .sort((left, right) => left.lastAccessedAt - right.lastAccessedAt);
+  while (removable.length > MAX_RESOLVED_MODEL_BUFFERS) {
+    const oldest = removable.shift();
+    if (oldest) removeTask(oldest);
+  }
+}
+
+function subscribeToTask(
+  task: SharedModelBufferTask,
+  subscriber: (progress: ModelLoadProgress) => void,
+): () => void {
+  task.lastAccessedAt = Date.now();
+  if (task.abortTimer !== null) {
+    window.clearTimeout(task.abortTimer);
+    task.abortTimer = null;
+  }
+  task.subscribers.add(subscriber);
+  subscriber(task.progress);
+  return () => {
+    task.subscribers.delete(subscriber);
+    if (!task.settled && task.subscribers.size === 0 && task.abortTimer === null) {
+      // React 会先清理旧 effect 再挂载新 effect；延迟到下一任务可避免版本别名切换误取消同一下载。
+      task.abortTimer = window.setTimeout(() => {
+        task.abortTimer = null;
+        if (!task.settled && task.subscribers.size === 0) {
+          task.abortMessage = '页面已切换，已取消旧模型下载。';
+          task.controller.abort();
+          removeTask(task);
+        }
+      }, 0);
+    }
+    pruneResolvedTasks();
+  };
 }
 
 async function responseError(response: Response): Promise<Error> {
@@ -76,44 +169,98 @@ function validateModelBuffer(asset: ModelAssetDescriptor, buffer: ArrayBuffer): 
   }
 }
 
-async function fetchModelBuffer(
-  asset: ModelAssetDescriptor,
-  onProgress: (progress: number) => void,
-): Promise<ArrayBuffer> {
+function formatModelBytes(bytes: number): string {
+  if (!bytes) return '0 MB';
+  return `${(bytes / 1024 / 1024).toFixed(bytes >= 10 * 1024 * 1024 ? 1 : 2)} MB`;
+}
+
+function getModelBufferTask(asset: ModelAssetDescriptor): SharedModelBufferTask {
   const cacheKey = modelCacheKey(asset);
-  const cached = modelBufferCache.get(cacheKey);
+  const cached = modelBufferTasks.get(cacheKey);
   if (cached) {
-    const buffer = await cached;
-    onProgress(100);
-    return buffer;
+    cached.lastAccessedAt = Date.now();
+    return cached;
   }
 
-  const request = (async () => {
-    // 2026-08-12 调整：版本化 URL 配合 no-store，避免浏览器在服务端版本变化后返回旧响应；
+  // 首次下载期间，连接轮询可能把元数据指纹切为内容哈希；同一路由的未完成任务必须继续复用。
+  const pendingForAsset = [...allModelBufferTasks].find((task) => task.assetUrl === asset.localAssetUrl && !task.settled);
+  if (pendingForAsset) {
+    registerTaskAlias(pendingForAsset, cacheKey);
+    pendingForAsset.lastAccessedAt = Date.now();
+    return pendingForAsset;
+  }
+
+  const controller = new AbortController();
+  const task: SharedModelBufferTask = {
+    assetUrl: asset.localAssetUrl,
+    controller,
+    promise: Promise.resolve({ buffer: new ArrayBuffer(0), responseVersion: null }),
+    keys: new Set([cacheKey]),
+    subscribers: new Set(),
+    progress: { phase: 'preparing', percent: 0, receivedBytes: 0, expectedBytes: asset.fileSize || 0 },
+    settled: false,
+    succeeded: false,
+    abortMessage: null,
+    abortTimer: null,
+    lastAccessedAt: Date.now(),
+  };
+  modelBufferTasks.set(cacheKey, task);
+  allModelBufferTasks.add(task);
+
+  task.promise = (async () => {
+    const prepareTimer = window.setTimeout(() => {
+      task.abortMessage = '模型资源准备超过 75 秒，请检查上游模型服务。';
+      controller.abort();
+    }, MODEL_PREPARE_TIMEOUT_MS);
+    // 2026-08-27 调整：版本化 URL 允许浏览器复用已验证响应；服务端内容变化会生成新版本 URL。
     const response = await fetch(versionedModelUrl(asset), {
-      cache: 'no-store',
+      cache: 'default',
+      signal: controller.signal,
       headers: { Accept: 'application/octet-stream' },
-    });
+    }).finally(() => window.clearTimeout(prepareTimer));
     if (!response.ok) throw await responseError(response);
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('application/json')) throw await responseError(response);
 
     const expectedBytes = Number(response.headers.get('content-length') || asset.fileSize || 0);
+    const responseVersion = response.headers.get('x-model-version')?.replace(/^"|"$/g, '') || null;
+    if (responseVersion) registerTaskAlias(task, taskKey(asset.localAssetUrl, responseVersion));
+    publishProgress(task, { phase: 'downloading', percent: 0, receivedBytes: 0, expectedBytes });
     if (!response.body) {
       const buffer = await response.arrayBuffer();
       validateModelBuffer(asset, buffer);
-      return buffer;
+      publishProgress(task, { phase: 'parsing', percent: 98, receivedBytes: buffer.byteLength, expectedBytes: expectedBytes || buffer.byteLength });
+      return { buffer, responseVersion };
     }
 
     const reader = response.body.getReader();
     const chunks: Uint8Array[] = [];
     let received = 0;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      received += value.byteLength;
-      if (expectedBytes > 0) onProgress(Math.min(96, Math.round(received / expectedBytes * 100)));
+    let stallTimer: number | null = null;
+    const armStallTimer = () => {
+      if (stallTimer !== null) window.clearTimeout(stallTimer);
+      stallTimer = window.setTimeout(() => {
+        task.abortMessage = '模型下载连续 30 秒未收到数据，已停止本次请求。';
+        controller.abort();
+      }, MODEL_STREAM_STALL_TIMEOUT_MS);
+    };
+    armStallTimer();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        armStallTimer();
+        chunks.push(value);
+        received += value.byteLength;
+        publishProgress(task, {
+          phase: 'downloading',
+          percent: expectedBytes > 0 ? Math.min(96, Math.round(received / expectedBytes * 100)) : 0,
+          receivedBytes: received,
+          expectedBytes,
+        });
+      }
+    } finally {
+      if (stallTimer !== null) window.clearTimeout(stallTimer);
     }
     const merged = new Uint8Array(received);
     let offset = 0;
@@ -122,16 +269,22 @@ async function fetchModelBuffer(
       offset += chunk.byteLength;
     });
     validateModelBuffer(asset, merged.buffer);
-    return merged.buffer;
-  })();
-
-  modelBufferCache.set(cacheKey, request);
-  try {
-    return await request;
-  } catch (error) {
-    modelBufferCache.delete(cacheKey);
+    publishProgress(task, { phase: 'parsing', percent: 98, receivedBytes: received, expectedBytes: expectedBytes || received });
+    return { buffer: merged.buffer, responseVersion };
+  })().then((result) => {
+    task.settled = true;
+    task.succeeded = true;
+    task.lastAccessedAt = Date.now();
+    pruneResolvedTasks();
+    return result;
+  }).catch((error) => {
+    task.settled = true;
+    removeTask(task);
+    if (task.abortMessage) throw new Error(task.abortMessage);
     throw error;
-  }
+  });
+
+  return task;
 }
 
 function disposeMaterial(material: THREE.Material): void {
@@ -173,7 +326,12 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
   const installModelRef = useRef<((object: THREE.Object3D) => void) | null>(null);
   const resetViewRef = useRef<() => void>(() => undefined);
   const loadGenerationRef = useRef(0);
-  const [progress, setProgress] = useState(0);
+  const [loadProgress, setLoadProgress] = useState<ModelLoadProgress>({
+    phase: 'preparing',
+    percent: 0,
+    receivedBytes: 0,
+    expectedBytes: asset.fileSize || 0,
+  });
   const [loadError, setLoadError] = useState<string | null>(null);
   const [failureStage, setFailureStage] = useState<ModelLoadFailureStage | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -384,9 +542,14 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
     let candidateObject: THREE.Object3D | null = null;
     const retainingPrevious = Boolean(rootRef.current);
     setUpdatingModel(retainingPrevious);
-    setProgress(0);
+    setLoadProgress({ phase: 'preparing', percent: 0, receivedBytes: 0, expectedBytes: asset.fileSize || 0 });
     setLoadError(null);
     setFailureStage(null);
+
+    const task = getModelBufferTask(asset);
+    const unsubscribe = subscribeToTask(task, (nextProgress) => {
+      if (loadGenerationRef.current === generation) setLoadProgress(nextProgress);
+    });
 
     const fail = (error: unknown, stage: ModelLoadFailureStage) => {
       console.error('[model-showcase] 3D model load failed:', error);
@@ -397,18 +560,24 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
     };
 
     void (async () => {
-      let buffer: ArrayBuffer;
+      let result: ModelBufferResult;
       try {
-        buffer = await fetchModelBuffer(asset, (nextProgress) => {
-          if (loadGenerationRef.current === generation) setProgress(nextProgress);
-        });
+        result = await task.promise;
       } catch (error) {
         fail(error, 'request');
         return;
       }
       if (loadGenerationRef.current !== generation) return;
       try {
-        candidateObject = await parseModel(asset, buffer);
+        setLoadProgress({
+          phase: 'parsing',
+          percent: 98,
+          receivedBytes: result.buffer.byteLength,
+          expectedBytes: result.buffer.byteLength,
+        });
+        // 先让浏览器绘制“解析中”，再执行 FBXLoader 的同步解析，避免下载完成后界面看似冻结。
+        await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+        candidateObject = await parseModel(asset, result.buffer);
         if (loadGenerationRef.current !== generation || !installModelRef.current) {
           disposeObject(candidateObject);
           candidateObject = null;
@@ -416,16 +585,16 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
         }
         installModelRef.current(candidateObject);
         candidateObject = null;
-        activeVersionRef.current = asset.version;
+        activeVersionRef.current = result.responseVersion || asset.version;
         setHasRenderableModel(true);
         setUpdatingModel(false);
         setLoadError(null);
-        setProgress(100);
-        // 2026-08-12 新增：新版本切换成功后释放同一路由的旧 ArrayBuffer 缓存；
-        const activeKey = modelCacheKey(asset);
-        for (const key of modelBufferCache.keys()) {
-          if (key.startsWith(`${asset.localAssetUrl}::`) && key !== activeKey) modelBufferCache.delete(key);
-        }
+        setLoadProgress({
+          phase: 'ready',
+          percent: 100,
+          receivedBytes: result.buffer.byteLength,
+          expectedBytes: result.buffer.byteLength,
+        });
       } catch (error) {
         if (candidateObject) disposeObject(candidateObject);
         candidateObject = null;
@@ -434,6 +603,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
     })();
 
     return () => {
+      unsubscribe();
       if (loadGenerationRef.current === generation) loadGenerationRef.current += 1;
       if (candidateObject) disposeObject(candidateObject);
     };
@@ -441,13 +611,31 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
 
   return (
     <div className="remote-model-viewer industrial-visual-surface relative h-full min-h-0 max-h-full overflow-hidden bg-[#29485e] [contain:layout_paint]" ref={containerRef}>
-      {progress < 100 && !loadError && !hasRenderableModel && (
+      {loadProgress.phase !== 'ready' && !loadError && !hasRenderableModel && (
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#07111f]/90">
-          <div className="mb-3 text-xs tracking-[0.28em] text-cyan-300">正在通过 API 加载模型</div>
-          <div className="h-1.5 w-48 overflow-hidden rounded bg-slate-800">
-            <div className="h-full bg-cyan-400 transition-all" style={{ width: `${progress}%` }} />
+          <div className="mb-3 text-xs tracking-[0.2em] text-cyan-300">
+            {loadProgress.phase === 'preparing'
+              ? '正在准备模型资源'
+              : loadProgress.phase === 'parsing'
+                ? '模型已下载，正在解析三维结构'
+                : '正在下载三维模型'}
           </div>
-          <div className="mt-2 font-mono text-xs text-slate-400">{progress}%</div>
+          <div className="h-1.5 w-48 overflow-hidden rounded bg-slate-800">
+            <div
+              className={`h-full bg-cyan-400 transition-all ${loadProgress.phase === 'preparing' ? 'animate-pulse' : ''}`}
+              style={{ width: loadProgress.phase === 'preparing' ? '28%' : `${loadProgress.percent}%` }}
+            />
+          </div>
+          <div className="mt-2 font-mono text-xs text-slate-400">
+            {loadProgress.phase === 'preparing'
+              ? '正在建立安全缓存与下载通道'
+              : loadProgress.phase === 'parsing'
+                ? '98% · 请稍候'
+                : `${loadProgress.percent}% · ${formatModelBytes(loadProgress.receivedBytes)} / ${formatModelBytes(loadProgress.expectedBytes)}`}
+          </div>
+          {loadProgress.phase === 'preparing' && (
+            <div className="mt-2 text-[10px] text-slate-500">首次访问可能需要从模型资源平台准备文件</div>
+          )}
         </div>
       )}
       {updatingModel && !loadError && hasRenderableModel && (

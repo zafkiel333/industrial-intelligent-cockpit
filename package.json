@@ -13,6 +13,7 @@
     "typecheck:navigation": "tsc -p tsconfig.navigation.json",
     "verify:navigation": "node scripts/run-tsx.mjs scripts/verify-navigation-split.ts",
     "verify:model-library": "node scripts/run-tsx.mjs scripts/verify-model-library-expansion.ts",
+    "verify:model-loading": "node scripts/run-tsx.mjs scripts/verify-model-loading-optimization.ts",
     "verify:model-library-live": "node scripts/run-tsx.mjs scripts/verify-live-model-library.ts",
     "verify:https-integration": "node scripts/run-tsx.mjs scripts/verify-https-integration.ts",
     "verify:scene-backgrounds": "node scripts/run-tsx.mjs scripts/verify-scene-backgrounds.ts",

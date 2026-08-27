@@ -1168,8 +1168,8 @@ app.get("/api/model-showcase/:sceneId/model", showcaseRoute(async (req, res) => 
   res.setHeader("Content-Type", model.contentType || "application/octet-stream");
   res.setHeader("Content-Length", String(model.buffer.byteLength));
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(model.fileName)}`);
-  // 2026-08-12 调整：版本参数由前端显式控制，响应本身不允许浏览器复用错误版本的二进制；
-  res.setHeader("Cache-Control", "private, no-store");
+  // 2026-08-27 优化：模型 URL 带内容版本，允许浏览器持久复用同一版本，避免刷新后重复传输大文件；
+  res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
   res.setHeader("ETag", `"${model.version}"`);
   res.setHeader("Last-Modified", new Date(model.updatedAt).toUTCString());
   res.setHeader("X-Model-Runtime-Cache", wasCached ? "HIT" : "MISS");
