@@ -1,5 +1,7 @@
-// 2026-08-09 新增：集中维护四个外部模型场景、指标映射、图表分组和故障知识；
-import type { ModelShowcaseSceneId, RiskDirection } from './types';
+// 2026-08-09 新增：集中维护外部模型场景、指标映射、图表分组和故障知识；
+import { PAGE_MODEL_BINDINGS } from './pageModelBindings';
+import type { PageModelBinding } from './pageModelBindings';
+import type { ExistingModelShowcaseSceneId, ModelShowcaseSceneId, RiskDirection } from './types';
 
 export interface ShowcaseFieldConfig {
   label: string;
@@ -29,7 +31,7 @@ export interface ModelShowcaseConfig {
   sourceAssetLabel: string;
   // 2026-08-10 新增：固定来源模型人工追溯地址，不允许前端拼接或接收任意外部 URL；
   sourceDetailUrl: string;
-  domain: 'hydro' | 'pump' | 'crane' | 'vehicle';
+  domain: 'hydro' | 'pump' | 'crane' | 'vehicle' | 'industrial';
   accent: string;
   fields: Record<string, ShowcaseFieldConfig>;
   chartGroups: ShowcaseChartGroup[];
@@ -41,7 +43,7 @@ export interface ModelShowcaseConfig {
   };
 }
 
-export const MODEL_SHOWCASE_CATALOG: Record<ModelShowcaseSceneId, ModelShowcaseConfig> = {
+const EXISTING_MODEL_SHOWCASE_CATALOG: Record<ExistingModelShowcaseSceneId, ModelShowcaseConfig> = {
   'sim-visual-hydro-turbine': {
     sceneId: 'sim-visual-hydro-turbine',
     modelId: 2326,
@@ -169,6 +171,52 @@ export const MODEL_SHOWCASE_CATALOG: Record<ModelShowcaseSceneId, ModelShowcaseC
     ],
     viewer: { autoRotateSpeed: 0.38 },
   },
+};
+
+const GENERIC_FIELDS: Record<string, ShowcaseFieldConfig> = {
+  rpm: { label: '运行转速', riskDirection: 'high', weight: 0.16 },
+  temperature: { label: '设备温度', riskDirection: 'high', weight: 0.2 },
+  vibration: { label: '设备振动', riskDirection: 'high', weight: 0.2 },
+  pressure: { label: '系统压力', riskDirection: 'both', weight: 0.15 },
+  flow_rate: { label: '介质流量', riskDirection: 'both', weight: 0.14 },
+  power_output: { label: '输出功率', riskDirection: 'both', weight: 0.15 },
+};
+
+function createExpandedConfig(binding: PageModelBinding): ModelShowcaseConfig {
+  const detail = binding.note || binding.adaptation;
+  return {
+    sceneId: binding.viewId as ModelShowcaseSceneId,
+    modelId: binding.modelId,
+    title: `${binding.pageTitle} · 三维模型展示`,
+    englishTitle: `Industrial Model Showcase · ${binding.modelName}`,
+    description: detail,
+    expectedRemoteName: binding.modelName,
+    sourceAssetLabel: `远端模型：${binding.modelName}`,
+    sourceDetailUrl: `https://8.146.211.204:3100/three-model/detail?id=${binding.modelId}`,
+    domain: 'industrial',
+    accent: binding.grade === 'A' ? '#22d3ee' : binding.grade === 'B' ? '#38bdf8' : '#a78bfa',
+    fields: GENERIC_FIELDS,
+    chartGroups: [
+      { title: '转速 / 输出', fields: ['rpm', 'power_output'] },
+      { title: '压力 / 流量', fields: ['pressure', 'flow_rate'] },
+      { title: '温度 / 振动', fields: ['temperature', 'vibration'] },
+    ],
+    faultProfiles: [
+      { code: 'OPERATING_DEVIATION', name: '运行参数偏离', fields: ['rpm', 'pressure', 'flow_rate', 'power_output'], recommendation: '复核当前工况、控制设定值及上下游系统状态。' },
+      { code: 'THERMAL_ANOMALY', name: '温升异常风险', fields: ['temperature', 'power_output'], recommendation: '检查散热、润滑、负载与环境温度，必要时安排现场测温。' },
+      { code: 'MECHANICAL_ANOMALY', name: '机械状态异常', fields: ['vibration', 'rpm'], recommendation: '复核紧固、对中、轴承与传动部件，并结合频谱确认异常来源。' },
+    ],
+    viewer: { autoRotateSpeed: 0.4 },
+  };
+}
+
+const EXPANDED_MODEL_SHOWCASE_CATALOG = Object.fromEntries(
+  PAGE_MODEL_BINDINGS.map((binding) => [binding.viewId, createExpandedConfig(binding)]),
+) as Record<(typeof PAGE_MODEL_BINDINGS)[number]['viewId'], ModelShowcaseConfig>;
+
+export const MODEL_SHOWCASE_CATALOG: Record<ModelShowcaseSceneId, ModelShowcaseConfig> = {
+  ...EXISTING_MODEL_SHOWCASE_CATALOG,
+  ...EXPANDED_MODEL_SHOWCASE_CATALOG,
 };
 
 export const MODEL_SHOWCASE_SCENE_IDS = Object.keys(MODEL_SHOWCASE_CATALOG) as ModelShowcaseSceneId[];

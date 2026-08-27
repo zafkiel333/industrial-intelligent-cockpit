@@ -1236,10 +1236,11 @@ app.post("/api/model-showcase/:sceneId/data-sync", showcaseRoute(async (req, res
   if (!(["normal", "high_load", "fault"] as string[]).includes(scenario) || !rawValues || typeof rawValues !== "object") {
     throw new UpstreamApiError("scenario and actual_values are required", 400, "INVALID_SYNC_PAYLOAD", false);
   }
-  const allowedFields = new Set(Object.keys(config.fields));
+  // 扩展模型的字段集合由主项目 Dashboard 决定。场景与模型 ID 仍由本地白名单固定，
+  // 此处只放行有限数量、名称安全的数值字段，以兼容不同设备的 4～6 个遥测点。
   const actualValues = Object.fromEntries(
     Object.entries(rawValues)
-      .filter(([key, value]) => allowedFields.has(key) && typeof value === "number" && Number.isFinite(value))
+      .filter(([key, value]) => /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(key) && typeof value === "number" && Number.isFinite(value))
       .slice(0, 20),
   );
   if (Object.keys(actualValues).length === 0) {

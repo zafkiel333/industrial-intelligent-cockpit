@@ -101,6 +101,29 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
     () => history.map((point) => ({ label: point.label, time: point.time, ...point.values })),
     [history],
   );
+  const fieldLabels = useMemo(
+    () => Object.fromEntries((dashboard?.bindable_fields || []).map((field) => [field.field, field.label])),
+    [dashboard],
+  );
+  const chartGroups = useMemo(() => {
+    if (!dashboard) return config.chartGroups;
+    const available = new Set(dashboard.bindable_fields.map((field) => field.field));
+    const configured = config.chartGroups
+      .map((group) => ({ ...group, fields: group.fields.filter((field) => available.has(field)) }))
+      .filter((group) => group.fields.length > 0);
+    const configuredFields = new Set(configured.flatMap((group) => group.fields));
+    if (configuredFields.size === available.size) {
+      return configured;
+    }
+    const fields = dashboard.bindable_fields.map((field) => field.field);
+    return Array.from({ length: Math.ceil(fields.length / 2) }, (_, index) => {
+      const groupFields = fields.slice(index * 2, index * 2 + 2);
+      return {
+        title: groupFields.map((field) => fieldLabels[field] || field).join(' / '),
+        fields: groupFields,
+      };
+    });
+  }, [config.chartGroups, dashboard, fieldLabels]);
   const online = !error && dashboard?.twin_status.status?.toUpperCase() === 'ONLINE';
   const modelRefresh = connection.snapshot?.modelRefresh;
   // 2026-08-12 新增：连接快照中的活动版本优先于初始化描述，版本变化会驱动视窗获取新的二进制；
@@ -372,7 +395,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
         </div>
 
         <div className="mt-4 grid gap-4 xl:grid-cols-3">
-          {config.chartGroups.map((group, groupIndex) => (
+          {chartGroups.map((group, groupIndex) => (
             <SciFiCard key={group.title} title={group.title} subtitle={`${history.length} SAMPLES`} className="remote-model-showcase-chart-card min-h-[272px]">
               <div className="h-[215px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -391,7 +414,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
                         yAxisId={field}
                         type="monotone"
                         dataKey={field}
-                        name={config.fields[field]?.label || field}
+                        name={fieldLabels[field] || config.fields[field]?.label || field}
                         stroke={chartColors[(groupIndex + index) % chartColors.length]}
                         dot={false}
                         strokeWidth={1.8}

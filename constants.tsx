@@ -29,6 +29,7 @@ const SMART_OPS_CHILDREN: MenuItem[] = [
   { id: 'eq-16', label: '选矿设备智能运维' },
   { id: 'eq-17', label: '制砂机智能运维' },
   { id: 'eq-18', label: '1号机组异常预测分析' },
+  { id: 'eq-unit1-model', label: '1号水轮发电机组模型展示' },
 ];
 
 // Knowledge Base Children
@@ -893,7 +894,34 @@ export const MAINTENANCE_TRAINING_CHILDREN: MenuItem[] = [
 ];
 
 
-export const MENU_ITEMS: MenuItem[] = [
+// 2026-08-27 新增：接入主项目模型库的页面在各栏目中前置；未列出的页面保持原相对顺序。
+// 两个硬约束：仿真前四页固定；eq-18 固定在智能运维第 19 位，独立模型页紧随其后。
+export const MODEL_ENABLED_CHILD_ORDER: Partial<Record<string, readonly string[]>> = {
+  'smart-ops': ['eq-0', 'eq-1', 'eq-2', 'eq-3', 'eq-4', 'eq-5', 'eq-7', 'eq-8', 'eq-9', 'eq-10', 'eq-12', 'eq-14', 'eq-6', 'eq-11', 'eq-13', 'eq-15', 'eq-16', 'eq-17', 'eq-18', 'eq-unit1-model'],
+  cockpit: ['cp-dam-safety', 'cp-ocean-fleet'],
+  'index-analysis': ['ia-turbine-wear', 'ia-ship-eeoi', 'ia-ship-cii'],
+  'digital-delivery': ['dd-hydro-bim', 'dd-ship-lifecycle'],
+  simulation: ['sim-visual-hydro-turbine', 'sim-visual-wastewater-pump', 'sim-visual-bridge-crane', 'sim-visual-haul-truck', 'sim-mine-truck', 'sim-mine-equip', 'sim-mine-coop', 'sim-hydro-gate', 'sim-hydro-turb', 'sim-hydro-trans', 'sim-hydro-pump', 'sim-port-motion', 'sim-port-berth', 'sim-port-dredge'],
+  'predictive-maintenance': ['pm-hydro-0', 'pm-hydro-1', 'pm-hydro-3', 'pm-hydro-4', 'pm-hydro-5', 'pm-hydro-6', 'pm-hydro-13', 'pm-hydro-15', 'pm-hydro-19', 'pm-hydro-26', 'pm-hydro-30', 'pm-hydro-31', 'pm-mining-5', 'pm-mining-10', 'pm-pmOther-64'],
+  'mock-maintenance': ['mm-17'],
+  'maintenance-plan': ['mpm-0', 'mpm-4', 'mpm-8', 'mpm-17', 'mpm-26', 'mpm-27', 'mpm-40', 'mpm-48', 'mpm-60', 'mpm-64'],
+  'life-warning': ['turbine-blade-erosion', 'cooling-pump-bearing-life', 'drainage-motor-winding-life', 'underground-loader-gear-life', 'ship-steering-pump-life', 'central-air-conditioning-compressor-life', 'fire-fighting-pump-seal-life'],
+  'cv-monitor': ['cv-turbine-cavitation', 'cv-transformer-leak', 'cv-excavator-bucket', 'cv-truck-tire', 'cv-hull-damage', 'cv-berthing-distance', 'cv-ship-propeller', 'cv-pump-seal-leak', 'cv-robot-joint-wear', 'cv-flange-bolt-loosening', 'cv-cooling-tower-fan', 'cv-valve-position'],
+  'vibration-monitor': ['vibe-MineVentilator', 'vibe-PortTugboat', 'vibe-PortOilPump', 'vibe-ShipCraneVibration', 'vibe-ShipCompressor', 'vibe-ShipPump', 'vibe-PortSubstation', 'vibe-ShipAirConditioning', 'vibe-PortFirePump'],
+  'maintenance-training': ['TurbineRunnerHoistingTraining', 'InletValveHydraulicRepairSim', 'SpillwayGateHoistStdOps', 'GISBreakerTestingSim', 'DraftTubePumpSealRepair', 'SubmersiblePumpMotorDryingSim', 'QuayCraneHoistGearboxRepairEdu', 'RTGTravelMotorSyncTuningSim', 'MarineRadarMagnetronRepair', 'LifeboatDavitLimitSwitchSim', 'IndustrialRobotServoRepair', 'ChillerRefrigerantRecoverySim', 'ValvePositionerPIDTuningVR', 'OverheadCraneDeflectionMeasurementEdu', 'ForkliftHydraulicValveLeakSim'],
+};
+
+function prioritizeMenuChildren(items: MenuItem[], orderedIds: readonly string[]): MenuItem[] {
+  const remaining = [...items];
+  const prioritized = orderedIds.map((id) => {
+    const index = remaining.findIndex((item) => item.id === id);
+    if (index < 0) throw new Error(`[menu] configured model page is missing: ${id}`);
+    return remaining.splice(index, 1)[0];
+  });
+  return [...prioritized, ...remaining];
+}
+
+const BASE_MENU_ITEMS: MenuItem[] = [
   { 
     id: 'smart-ops', 
     label: '工业智能运维',
@@ -1238,3 +1266,9 @@ export const MENU_ITEMS: MenuItem[] = [
     children: MAINTENANCE_TRAINING_CHILDREN
   },
 ];
+
+export const MENU_ITEMS: MenuItem[] = BASE_MENU_ITEMS.map((section) => {
+  const orderedIds = MODEL_ENABLED_CHILD_ORDER[section.id];
+  if (!orderedIds || !section.children) return section;
+  return { ...section, children: prioritizeMenuChildren(section.children, orderedIds) };
+});

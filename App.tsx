@@ -130,6 +130,7 @@ import {
   BridgeCraneDigitalTwinView,
   HaulTruckDigitalTwinView,
 } from './views/simulation/remote-model';
+import { ModelEnabledPageFrame } from './components/remote-model-showcase/ModelEnabledPageFrame';
 import { MineVentilationSimView } from './views/simulation/MineVentilationSimView';
 import { MineRoofStabilitySimView } from './views/simulation/MineRoofStabilitySimView';
 import { MineBlastSimView } from './views/simulation/MineBlastSimView';
@@ -1025,6 +1026,8 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
 
     // Smart Ops
     if (activeTabId === 'smart-ops') return <SmartOperationsView />;
+    // 2026-08-27 新增：1号机组模型使用独立页面，禁止进入 eq-18 的数据展示逻辑。
+    if (activeTabId === 'eq-unit1-model') return null;
     if (activeTabId.startsWith('eq-')) {
         const id = parseInt(activeTabId.split('-')[1]);
         // const titles = [
@@ -2509,7 +2512,9 @@ export const App: React.FC<AppProps> = ({ embedded = false, viewId, onNavigate }
            <div className="h-full w-full min-w-0">
              {/* 2026-07-09 新增：场景信息条，挂载在页面内容区、renderContent() 之前，随内容区一起滚动 */}
              <ScenarioMetaBar scenarioId={activeTabId} />
-             {renderContent()}
+             <ModelEnabledPageFrame viewId={activeTabId}>
+               {renderContent()}
+             </ModelEnabledPageFrame>
            </div>
         </div>
 

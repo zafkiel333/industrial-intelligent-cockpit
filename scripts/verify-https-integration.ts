@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { MODEL_SHOWCASE_CATALOG } from '../src/remoteModelShowcase/modelCatalog';
 
 const projectRoot = process.cwd();
 const insecureMainOrigin = 'http://8.146.211.204:3100';
@@ -44,19 +45,16 @@ assert(
   'server.ts does not default to the HTTPS three-model-api endpoint',
 );
 
-const catalogSource = read('src/remoteModelShowcase/modelCatalog.ts');
 const hostNavigationSource = read('src/integration/hostModelNavigation.ts');
-const expectedModelIds = [2326, 2328, 2316, 2310];
-for (const modelId of expectedModelIds) {
+const catalogEntries = Object.values(MODEL_SHOWCASE_CATALOG);
+assert(catalogEntries.length === 103, `expected 103 model showcase pages, got ${catalogEntries.length}`);
+assert(new Set(catalogEntries.map((item) => item.modelId)).size === 103, 'model showcase IDs must be unique');
+for (const config of catalogEntries) {
   assert(
-    catalogSource.includes(`sourceDetailUrl: '${secureMainOrigin}/three-model/detail?id=${modelId}'`),
-    `model ${modelId} does not use the approved HTTPS detail URL`,
+    config.sourceDetailUrl === `${secureMainOrigin}/three-model/detail?id=${config.modelId}`,
+    `model ${config.modelId} does not use the approved HTTPS detail URL`,
   );
 }
-assert(
-  (catalogSource.match(/sourceDetailUrl:\s*['"]/g) || []).length === expectedModelIds.length,
-  'the external-model catalog contains an unexpected number of detail URLs',
-);
 assert(
   hostNavigationSource.includes("target: {\n      path: MODEL_DETAIL_PATH"),
   'host navigation must send the approved route instead of a full external URL',
@@ -81,4 +79,4 @@ for (const relativePath of remoteModelUiFiles) {
   assert(!/window\.open\s*\(/.test(source), `${relativePath} still calls window.open`);
 }
 
-console.log(`HTTPS_INTEGRATION_VERIFY_OK models=${expectedModelIds.length} files=${scopedRuntimeFiles.length}`);
+console.log(`HTTPS_INTEGRATION_VERIFY_OK models=${catalogEntries.length} files=${scopedRuntimeFiles.length}`);

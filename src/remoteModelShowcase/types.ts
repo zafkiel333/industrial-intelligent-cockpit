@@ -1,9 +1,14 @@
 // 2026-08-09 新增：定义外部模型 BFF、遥测、诊断、预测和一致性校验共享类型；
-export type ModelShowcaseSceneId =
+import type { PageModelBindingViewId } from './pageModelBindings';
+
+export type ExistingModelShowcaseSceneId =
   | 'sim-visual-hydro-turbine'
   | 'sim-visual-wastewater-pump'
   | 'sim-visual-bridge-crane'
   | 'sim-visual-haul-truck';
+
+// 2026-08-27 扩展：保留四个既有样例，并纳入 99 个经审核的页面—模型绑定。
+export type ModelShowcaseSceneId = ExistingModelShowcaseSceneId | PageModelBindingViewId;
 
 export type RemoteScenarioType = 'normal' | 'high_load' | 'fault';
 export type RemoteDataMode = 'dashboard' | RemoteScenarioType;

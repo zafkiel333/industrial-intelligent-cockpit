@@ -139,12 +139,30 @@ export function runDiagnosis(sceneId: ModelShowcaseSceneId): DiagnosisResult | n
     weightedRisk += analysis.risk * fieldConfig.weight;
     totalWeight += fieldConfig.weight;
   });
+  // 扩展模型的 Dashboard 字段由主项目动态返回；若字段名不在通用模板中，
+  // 仍按实时字段等权计算，避免 99 个新增页面被误判为 100 分健康。
+  const configCoversAllFields = Array.from(analyses.keys()).every((key) => Boolean(config.fields[key]));
+  if ((!configCoversAllFields || totalWeight === 0) && analyses.size > 0) {
+    weightedRisk = 0;
+    totalWeight = 0;
+    analyses.forEach((analysis) => {
+      weightedRisk += analysis.risk;
+      totalWeight += 1;
+    });
+  }
   const overallRisk = clamp(totalWeight ? weightedRisk / totalWeight : 0);
   const healthScore = Math.round(clamp(100 - overallRisk));
   const riskLevel = riskLevelFor(overallRisk, lastRiskLevels.get(sceneId));
   lastRiskLevels.set(sceneId, riskLevel);
 
-  const predictions = config.faultProfiles.map((profile) => {
+  const effectiveProfiles = configCoversAllFields ? config.faultProfiles : [{
+    code: 'LIVE_TELEMETRY_ANOMALY',
+    name: '实时运行参数异常',
+    fields: latest.fields.map((field) => field.field),
+    recommendation: '结合实时参数偏离程度复核设备工况，并按风险贡献最高的测点安排现场检查。',
+  }];
+
+  const predictions = effectiveProfiles.map((profile) => {
     const profileAnalyses = profile.fields.map((field) => analyses.get(field)).filter((item): item is FieldAnalysis => Boolean(item));
     const averageRisk = profileAnalyses.length
       ? profileAnalyses.reduce((sum, item) => sum + item.risk, 0) / profileAnalyses.length
