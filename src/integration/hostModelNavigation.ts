@@ -1,4 +1,5 @@
-// 2026-08-18 新增：四个外部模型仿真页与 iframe 宿主之间的受控模型详情导航协议。
+// 2026-08-18 新增：外部模型展示页与 iframe 宿主之间的受控模型详情导航协议。
+import { MODEL_SHOWCASE_CATALOG } from '../remoteModelShowcase/modelCatalog';
 
 const NAVIGATE_REQUEST_TYPE = 'scene-library:navigate' as const;
 const NAVIGATE_RESULT_TYPE = 'scene-library:navigate-result' as const;
@@ -6,12 +7,10 @@ const PROTOCOL_VERSION = '1.0' as const;
 const MODEL_DETAIL_PATH = '/three-model/detail' as const;
 const NAVIGATION_TIMEOUT_MS = 5000;
 
-const ALLOWED_MODELS = new Map<number, string>([
-  [2326, '水轮机总成'],
-  [2328, '污水泵KCM100HD'],
-  [2316, '桥式起重机'],
-  [2310, '拖车牵引车'],
-]);
+// 2026-08-27 扩展：白名单直接来自已审核目录，避免新增模型页与详情按钮形成两套配置。
+const ALLOWED_MODELS = new Map<number, string>(
+  Object.values(MODEL_SHOWCASE_CATALOG).map((config) => [config.modelId, config.expectedRemoteName]),
+);
 
 type HostNavigationMode = 'multi-tab' | 'same-page';
 
@@ -96,7 +95,7 @@ function isNavigationResult(value: unknown): value is SceneLibraryNavigateResult
 
 /**
  * iframe 中请求主平台执行 router.push；独立访问时在当前浏览器标签直接进入模型详情页。
- * 该函数只接受仿真分析前四页的固定模型 ID、名称和 /three-model/detail 地址。
+ * 该函数只接受本地审核目录中的固定模型 ID、名称和 /three-model/detail 地址。
  */
 export function openHostModelDetail(target: HostModelNavigationTarget): Promise<HostModelNavigationResult> {
   const detailTarget = validateTarget(target);
