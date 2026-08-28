@@ -23,6 +23,7 @@
     "verify:life-warning": "node scripts/run-tsx.mjs scripts/verify-life-warning-redesign.ts",
     "verify:cv-images": "node scripts/run-tsx.mjs scripts/verify-cv-monitoring-images.ts",
     "generate:menu-manifest": "node scripts/run-tsx.mjs scripts/generate-scene-library-menu.ts",
+    "generate:host-navigation-delivery": "node scripts/run-tsx.mjs scripts/generate-host-navigation-delivery.ts",
     "start": "cross-env NODE_ENV=production node scripts/run-tsx.mjs server.ts",
     "preview": "vite preview"
   },

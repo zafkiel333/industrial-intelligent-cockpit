@@ -1,0 +1,525 @@
+{
+  "schemaVersion": "1.0",
+  "deliveryVersion": "20260828",
+  "sceneLibraryRelease": "20260827-155745",
+  "runtimeSourceCommit": "6253a659b19b5539243320b4d1a4dce579d46092",
+  "detailPath": "/three-model/detail",
+  "totalModelCount": 103,
+  "items": [
+    {
+      "modelId": 2276,
+      "modelName": "机械臂",
+      "sceneId": "cv-robot-joint-wear"
+    },
+    {
+      "modelId": 2281,
+      "modelName": "机械臂工作站",
+      "sceneId": "IndustrialRobotServoRepair"
+    },
+    {
+      "modelId": 2285,
+      "modelName": "冲击式水轮机",
+      "sceneId": "pm-hydro-5"
+    },
+    {
+      "modelId": 2286,
+      "modelName": "冲击式水轮机叶片",
+      "sceneId": "turbine-blade-erosion"
+    },
+    {
+      "modelId": 2287,
+      "modelName": "冲击式水轮机转轮",
+      "sceneId": "cv-turbine-cavitation"
+    },
+    {
+      "modelId": 2289,
+      "modelName": "冷却塔",
+      "sceneId": "cv-cooling-tower-fan"
+    },
+    {
+      "modelId": 2292,
+      "modelName": "压缩机组",
+      "sceneId": "vibe-ShipCompressor"
+    },
+    {
+      "modelId": 2293,
+      "modelName": "叉车",
+      "sceneId": "ForkliftHydraulicValveLeakSim"
+    },
+    {
+      "modelId": 2296,
+      "modelName": "变压器装置",
+      "sceneId": "pm-hydro-19"
+    },
+    {
+      "modelId": 2302,
+      "modelName": "大坝水电站",
+      "sceneId": "dd-hydro-bim"
+    },
+    {
+      "modelId": 2303,
+      "modelName": "工业变压器",
+      "sceneId": "vibe-PortSubstation"
+    },
+    {
+      "modelId": 2304,
+      "modelName": "工业污水处理设备",
+      "sceneId": "eq-5"
+    },
+    {
+      "modelId": 2306,
+      "modelName": "弗朗西斯水轮机转轮",
+      "sceneId": "TurbineRunnerHoistingTraining"
+    },
+    {
+      "modelId": 2308,
+      "modelName": "抓斗桥式起重机",
+      "sceneId": "eq-9"
+    },
+    {
+      "modelId": 2310,
+      "modelName": "拖车牵引车",
+      "sceneId": "sim-visual-haul-truck"
+    },
+    {
+      "modelId": 2315,
+      "modelName": "桥式起重机",
+      "sceneId": "OverheadCraneDeflectionMeasurementEdu"
+    },
+    {
+      "modelId": 2316,
+      "modelName": "桥式起重机",
+      "sceneId": "sim-visual-bridge-crane"
+    },
+    {
+      "modelId": 2318,
+      "modelName": "液压站",
+      "sceneId": "eq-12"
+    },
+    {
+      "modelId": 2319,
+      "modelName": "水坝泄洪闸",
+      "sceneId": "pm-hydro-26"
+    },
+    {
+      "modelId": 2322,
+      "modelName": "液压泵",
+      "sceneId": "ship-steering-pump-life"
+    },
+    {
+      "modelId": 2324,
+      "modelName": "水泵站",
+      "sceneId": "eq-3"
+    },
+    {
+      "modelId": 2326,
+      "modelName": "水轮机总成",
+      "sceneId": "sim-visual-hydro-turbine"
+    },
+    {
+      "modelId": 2328,
+      "modelName": "污水泵KCM100HD",
+      "sceneId": "sim-visual-wastewater-pump"
+    },
+    {
+      "modelId": 2329,
+      "modelName": "污水泵叶轮",
+      "sceneId": "pm-hydro-31"
+    },
+    {
+      "modelId": 2335,
+      "modelName": "液压起重机",
+      "sceneId": "vibe-ShipCraneVibration"
+    },
+    {
+      "modelId": 2336,
+      "modelName": "液压阀",
+      "sceneId": "mpm-8"
+    },
+    {
+      "modelId": 2337,
+      "modelName": "混凝土水坝结构",
+      "sceneId": "cp-dam-safety"
+    },
+    {
+      "modelId": 2338,
+      "modelName": "混流式水轮机",
+      "sceneId": "ia-turbine-wear"
+    },
+    {
+      "modelId": 2339,
+      "modelName": "混流式水轮机蜗壳",
+      "sceneId": "sim-hydro-turb"
+    },
+    {
+      "modelId": 2343,
+      "modelName": "电机电动机",
+      "sceneId": "drainage-motor-winding-life"
+    },
+    {
+      "modelId": 2346,
+      "modelName": "电线杆变压器",
+      "sceneId": "cv-transformer-leak"
+    },
+    {
+      "modelId": 2349,
+      "modelName": "离心泵",
+      "sceneId": "vibe-ShipPump"
+    },
+    {
+      "modelId": 2352,
+      "modelName": "箱式变压器",
+      "sceneId": "mpm-4"
+    },
+    {
+      "modelId": 2353,
+      "modelName": "脉冲式水轮机",
+      "sceneId": "eq-0"
+    },
+    {
+      "modelId": 2354,
+      "modelName": "船用螺旋桨",
+      "sceneId": "cv-ship-propeller"
+    },
+    {
+      "modelId": 2356,
+      "modelName": "船用雷达卫星通信天线",
+      "sceneId": "mpm-48"
+    },
+    {
+      "modelId": 2357,
+      "modelName": "船舶码头",
+      "sceneId": "eq-8"
+    },
+    {
+      "modelId": 2362,
+      "modelName": "超大型远航货轮集装箱轮船",
+      "sceneId": "ia-ship-eeoi"
+    },
+    {
+      "modelId": 2364,
+      "modelName": "输电塔",
+      "sceneId": "eq-2"
+    },
+    {
+      "modelId": 2367,
+      "modelName": "门座起重机",
+      "sceneId": "pm-pmOther-64"
+    },
+    {
+      "modelId": 2368,
+      "modelName": "门式启闭机",
+      "sceneId": "SpillwayGateHoistStdOps"
+    },
+    {
+      "modelId": 2370,
+      "modelName": "门式起重机",
+      "sceneId": "QuayCraneHoistGearboxRepairEdu"
+    },
+    {
+      "modelId": 2371,
+      "modelName": "门式起重机",
+      "sceneId": "RTGTravelMotorSyncTuningSim"
+    },
+    {
+      "modelId": 2373,
+      "modelName": "集装箱式远航跨洋货轮",
+      "sceneId": "ia-ship-cii"
+    },
+    {
+      "modelId": 2374,
+      "modelName": "集装箱船",
+      "sceneId": "eq-7"
+    },
+    {
+      "modelId": 2375,
+      "modelName": "高压电力变压器",
+      "sceneId": "pm-hydro-15"
+    },
+    {
+      "modelId": 5283,
+      "modelName": "船用雷达",
+      "sceneId": "MarineRadarMagnetronRepair"
+    },
+    {
+      "modelId": 5339,
+      "modelName": "吊艇架模型",
+      "sceneId": "LifeboatDavitLimitSwitchSim"
+    },
+    {
+      "modelId": 5462,
+      "modelName": "吸入式挖泥船",
+      "sceneId": "sim-port-dredge"
+    },
+    {
+      "modelId": 5466,
+      "modelName": "太阳能浮标设计模型",
+      "sceneId": "eq-10"
+    },
+    {
+      "modelId": 5492,
+      "modelName": "拖船设计三维模型",
+      "sceneId": "sim-port-berth"
+    },
+    {
+      "modelId": 5548,
+      "modelName": "船体建造放样模型",
+      "sceneId": "cv-hull-damage"
+    },
+    {
+      "modelId": 5552,
+      "modelName": "货船设计模型",
+      "sceneId": "cv-berthing-distance"
+    },
+    {
+      "modelId": 5561,
+      "modelName": "迷你遥控拖船",
+      "sceneId": "vibe-PortTugboat"
+    },
+    {
+      "modelId": 5571,
+      "modelName": "重型运输船",
+      "sceneId": "cp-ocean-fleet"
+    },
+    {
+      "modelId": 6633,
+      "modelName": "断路器",
+      "sceneId": "GISBreakerTestingSim"
+    },
+    {
+      "modelId": 6637,
+      "modelName": "六角头法兰面螺栓",
+      "sceneId": "cv-flange-bolt-loosening"
+    },
+    {
+      "modelId": 6639,
+      "modelName": "三体式高速竞速帆船",
+      "sceneId": "sim-port-motion"
+    },
+    {
+      "modelId": 6648,
+      "modelName": "水坝泄洪闸",
+      "sceneId": "sim-hydro-gate"
+    },
+    {
+      "modelId": 6649,
+      "modelName": "游轮船模型",
+      "sceneId": "dd-ship-lifecycle"
+    },
+    {
+      "modelId": 6691,
+      "modelName": "1号水轮发电机组",
+      "sceneId": "eq-unit1-model"
+    },
+    {
+      "modelId": 6692,
+      "modelName": "2号水轮发电机组",
+      "sceneId": "pm-hydro-0"
+    },
+    {
+      "modelId": 6693,
+      "modelName": "3号水轮发电机组",
+      "sceneId": "sim-hydro-trans"
+    },
+    {
+      "modelId": 6694,
+      "modelName": "4号水轮发电机组",
+      "sceneId": "mpm-0"
+    },
+    {
+      "modelId": 6720,
+      "modelName": "厂房桥式起重机",
+      "sceneId": "mpm-64"
+    },
+    {
+      "modelId": 6731,
+      "modelName": "多级管道离心泵",
+      "sceneId": "fire-fighting-pump-seal-life"
+    },
+    {
+      "modelId": 6844,
+      "modelName": "法兰型电动调节阀（二通型）",
+      "sceneId": "pm-hydro-13"
+    },
+    {
+      "modelId": 6849,
+      "modelName": "流量传感器",
+      "sceneId": "eq-4"
+    },
+    {
+      "modelId": 6860,
+      "modelName": "电动蝶阀",
+      "sceneId": "cv-valve-position"
+    },
+    {
+      "modelId": 6862,
+      "modelName": "电动调节阀",
+      "sceneId": "ValvePositionerPIDTuningVR"
+    },
+    {
+      "modelId": 6893,
+      "modelName": "进水蝶阀",
+      "sceneId": "InletValveHydraulicRepairSim"
+    },
+    {
+      "modelId": 6918,
+      "modelName": "4-79 离心风机",
+      "sceneId": "vibe-MineVentilator"
+    },
+    {
+      "modelId": 7080,
+      "modelName": "中压空压机（带底座）",
+      "sceneId": "mpm-60"
+    },
+    {
+      "modelId": 7085,
+      "modelName": "中开蜗壳式离心泵（带底座）",
+      "sceneId": "sim-hydro-pump"
+    },
+    {
+      "modelId": 7117,
+      "modelName": "发电机主轴",
+      "sceneId": "pm-hydro-4"
+    },
+    {
+      "modelId": 7122,
+      "modelName": "变频离心式水冷冷水机组",
+      "sceneId": "ChillerRefrigerantRecoverySim"
+    },
+    {
+      "modelId": 7123,
+      "modelName": "变频螺杆式水冷冷水机组",
+      "sceneId": "central-air-conditioning-compressor-life"
+    },
+    {
+      "modelId": 7190,
+      "modelName": "深井潜水泵",
+      "sceneId": "mm-17"
+    },
+    {
+      "modelId": 7192,
+      "modelName": "混流式水轮发电机组",
+      "sceneId": "eq-1"
+    },
+    {
+      "modelId": 7197,
+      "modelName": "潜水排污泵",
+      "sceneId": "SubmersiblePumpMotorDryingSim"
+    },
+    {
+      "modelId": 7200,
+      "modelName": "立式明装风机盘管机组",
+      "sceneId": "vibe-ShipAirConditioning"
+    },
+    {
+      "modelId": 7205,
+      "modelName": "立式离心泵",
+      "sceneId": "DraftTubePumpSealRepair"
+    },
+    {
+      "modelId": 7213,
+      "modelName": "端吸式卧式离心泵",
+      "sceneId": "cv-pump-seal-leak"
+    },
+    {
+      "modelId": 7214,
+      "modelName": "端吸式卧式离心泵",
+      "sceneId": "cooling-pump-bearing-life"
+    },
+    {
+      "modelId": 7215,
+      "modelName": "便拆式立式离心泵",
+      "sceneId": "vibe-PortFirePump"
+    },
+    {
+      "modelId": 7228,
+      "modelName": "长轴深井泵",
+      "sceneId": "mpm-26"
+    },
+    {
+      "modelId": 7230,
+      "modelName": "长轴透平泵",
+      "sceneId": "pm-hydro-30"
+    },
+    {
+      "modelId": 7240,
+      "modelName": "齿轮油泵",
+      "sceneId": "vibe-PortOilPump"
+    },
+    {
+      "modelId": 7243,
+      "modelName": "下机架与推力轴承座",
+      "sceneId": "pm-hydro-6"
+    },
+    {
+      "modelId": 7244,
+      "modelName": "发电机主轴",
+      "sceneId": "pm-hydro-3"
+    },
+    {
+      "modelId": 7251,
+      "modelName": "水轮机主轴",
+      "sceneId": "pm-hydro-1"
+    },
+    {
+      "modelId": 7255,
+      "modelName": "进水球阀装配",
+      "sceneId": "mpm-17"
+    },
+    {
+      "modelId": 8677,
+      "modelName": "铰接式自卸卡车",
+      "sceneId": "cv-truck-tire"
+    },
+    {
+      "modelId": 8682,
+      "modelName": "06-Track_Excavator",
+      "sceneId": "pm-mining-5"
+    },
+    {
+      "modelId": 8684,
+      "modelName": "履带式装载机",
+      "sceneId": "underground-loader-gear-life"
+    },
+    {
+      "modelId": 8685,
+      "modelName": "轮式挖掘机",
+      "sceneId": "cv-excavator-bucket"
+    },
+    {
+      "modelId": 8686,
+      "modelName": "轮式装载机",
+      "sceneId": "sim-mine-coop"
+    },
+    {
+      "modelId": 8688,
+      "modelName": "12-Track_Drill 履带式钻机",
+      "sceneId": "eq-14"
+    },
+    {
+      "modelId": 8689,
+      "modelName": "轮式牵引铲运机",
+      "sceneId": "sim-mine-truck"
+    },
+    {
+      "modelId": 8690,
+      "modelName": "14-OffHighway_Truck",
+      "sceneId": "pm-mining-10"
+    },
+    {
+      "modelId": 8693,
+      "modelName": "17-Electric_Rope_Shovel",
+      "sceneId": "mpm-27"
+    },
+    {
+      "modelId": 8696,
+      "modelName": "履带式推土机",
+      "sceneId": "sim-mine-equip"
+    },
+    {
+      "modelId": 8704,
+      "modelName": "Kitbash3D 吊机起重机",
+      "sceneId": "mpm-40"
+    }
+  ]
+}
