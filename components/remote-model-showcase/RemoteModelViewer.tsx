@@ -8,7 +8,12 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Expand, Pause, Play, RotateCcw } from 'lucide-react';
 import type { ModelAssetDescriptor, RemoteBindableField, RemoteRenderConfig } from '../../src/remoteModelShowcase/types';
 import { apiUrl } from '../../src/integration/apiClient';
-import { advanceViewerRotation, prepareViewerModel } from '../../src/remoteModelShowcase/modelViewerTransform';
+import {
+  advanceViewerRotation,
+  applyViewerMaterialAlertState,
+  enhanceViewerMaterialVisibility,
+  prepareViewerModel,
+} from '../../src/remoteModelShowcase/modelViewerTransform';
 
 interface RemoteModelViewerProps {
   asset: ModelAssetDescriptor;
@@ -428,6 +433,8 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
       }
       // 2026-08-28 修复：用几何中心枢轴承载旋转，避免偏心 FBX 绕远处建模原点公转并甩出视窗。
       const { root, size } = prepareViewerModel(object);
+      // 2026-08-28 优化：为浏览器中失效后压成纯黑的 FBX 内嵌贴图保留可辨识的材质底色。
+      enhanceViewerMaterialVisibility(root);
       baseXRef.current = root.position.x;
       const radius = Math.max(size.length() * 0.52, 2.4);
       const reset = () => {
@@ -480,9 +487,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
           if (!(child instanceof THREE.Mesh)) return;
           const materials = Array.isArray(child.material) ? child.material : [child.material];
           materials.forEach((material) => {
-            if ('emissive' in material && material.emissive instanceof THREE.Color) {
-              material.emissive.set(abnormal ? '#5b1212' : '#000000');
-            }
+            applyViewerMaterialAlertState(material, abnormal);
           });
         });
       }

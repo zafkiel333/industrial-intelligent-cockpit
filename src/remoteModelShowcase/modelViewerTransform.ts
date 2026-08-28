@@ -4,11 +4,102 @@ const VIEWER_MODEL_MAX_DIMENSION = 4.8;
 const VIEWER_MAX_ROTATION_RATE = 0.48;
 const VIEWER_RPM_ROTATION_DIVISOR = 3_333.333333;
 const VIEWER_MAX_FRAME_DELTA_SECONDS = 0.1;
+const VIEWER_BASE_EMISSIVE_USER_DATA_KEY = 'remoteViewerBaseEmissive';
+const VIEWER_TEXTURED_EMISSIVE_LIFT = 0.14;
+const VIEWER_UNTEXTURED_EMISSIVE_LIFT = 0.018;
 
 export interface PreparedViewerModel {
   root: THREE.Group;
   size: THREE.Vector3;
   meshCount: number;
+}
+
+export interface ViewerMaterialVisibilityResult {
+  materialCount: number;
+  texturedMaterialCount: number;
+  rescuedTextureMaterialCount: number;
+}
+
+type ViewerColorMaterial = THREE.Material & {
+  color?: THREE.Color;
+  map?: THREE.Texture | null;
+  emissive?: THREE.Color;
+  emissiveMap?: THREE.Texture | null;
+};
+
+function viewerColorMaterial(material: THREE.Material): ViewerColorMaterial | null {
+  const candidate = material as ViewerColorMaterial;
+  return candidate.color instanceof THREE.Color && candidate.emissive instanceof THREE.Color
+    ? candidate
+    : null;
+}
+
+/**
+ * 统一模型库中依赖贴图的 FBX 显示下限。
+ *
+ * 部分资源的缩略图颜色丰富，但 FBX 内嵌贴图在浏览器中会解析成近黑纹理；仅增加灯光无法
+ * 改善纯黑漫反射。这里保留原材质和贴图，只给贴图材质增加很低的无贴图自发光底色，同时
+ * 取消会再次把底色乘黑的 emissiveMap。优先模型替换仍由页面绑定完成，本函数只负责兜底。
+ */
+export function enhanceViewerMaterialVisibility(root: THREE.Object3D): ViewerMaterialVisibilityResult {
+  const visited = new Set<THREE.Material>();
+  let texturedMaterialCount = 0;
+  let rescuedTextureMaterialCount = 0;
+
+  root.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+    const materials = Array.isArray(child.material) ? child.material : [child.material];
+    materials.forEach((material) => {
+      if (!material || visited.has(material)) return;
+      visited.add(material);
+      const candidate = viewerColorMaterial(material);
+      if (!candidate) return;
+
+      const importedEmissive = candidate.emissive!.clone();
+      const hasDiffuseTexture = candidate.map instanceof THREE.Texture;
+      if (hasDiffuseTexture) {
+        texturedMaterialCount += 1;
+        candidate.map!.colorSpace = THREE.SRGBColorSpace;
+      }
+
+      const baseEmissive = candidate.color!.clone().multiplyScalar(
+        hasDiffuseTexture ? VIEWER_TEXTURED_EMISSIVE_LIFT : VIEWER_UNTEXTURED_EMISSIVE_LIFT,
+      );
+      if (!hasDiffuseTexture && importedEmissive.getHex() !== 0x000000) {
+        baseEmissive.add(importedEmissive.multiplyScalar(0.22));
+      }
+
+      if (hasDiffuseTexture && candidate.emissiveMap instanceof THREE.Texture) {
+        candidate.emissiveMap = null;
+      }
+      if (hasDiffuseTexture) rescuedTextureMaterialCount += 1;
+
+      baseEmissive.r = Math.min(baseEmissive.r, 1);
+      baseEmissive.g = Math.min(baseEmissive.g, 1);
+      baseEmissive.b = Math.min(baseEmissive.b, 1);
+      material.userData[VIEWER_BASE_EMISSIVE_USER_DATA_KEY] = baseEmissive.getHex();
+      candidate.emissive!.copy(baseEmissive);
+      material.needsUpdate = true;
+    });
+  });
+
+  return {
+    materialCount: visited.size,
+    texturedMaterialCount,
+    rescuedTextureMaterialCount,
+  };
+}
+
+/** 在告警红色覆盖结束后恢复每个模型材质自身的可读性底色。 */
+export function applyViewerMaterialAlertState(material: THREE.Material, abnormal: boolean): void {
+  const candidate = viewerColorMaterial(material);
+  if (!candidate) return;
+  if (abnormal) {
+    candidate.emissive!.set('#5b1212');
+    return;
+  }
+  const stored = material.userData[VIEWER_BASE_EMISSIVE_USER_DATA_KEY];
+  candidate.emissive!.setHex(typeof stored === 'number' ? stored : 0x000000);
 }
 
 /**

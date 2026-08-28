@@ -684,6 +684,10 @@ function createAssetFingerprint(metadata: UpstreamModelMetadata, file: UpstreamM
   })).digest("hex");
 }
 
+function cachedModelMatchesAsset(model: CachedModelBinary, asset: ResolvedModelAsset): boolean {
+  return model.assetFingerprint === asset.fingerprint;
+}
+
 // 2026-08-12 调整：定时或手动更新时可绕过五分钟元数据缓存，确保真正向模型 API 核对新资源；
 async function resolveModelAsset(sceneId: ModelShowcaseSceneId, forceRefresh = false): Promise<ResolvedModelAsset> {
   const cached = modelMetadataCache.get(sceneId);
@@ -1067,8 +1071,9 @@ async function refreshModelBinary(
 // 2026-08-12 新增：请求优先返回当前可用模型，到期检查在后台进行，避免等待期间出现空白视窗；
 async function getServableModel(sceneId: ModelShowcaseSceneId): Promise<CachedModelBinary> {
   await ensurePersistedModelLoaded(sceneId);
+  const asset = await resolveModelAsset(sceneId);
   const cached = modelBinaryCache.get(sceneId);
-  if (cached) {
+  if (cached && cachedModelMatchesAsset(cached, asset)) {
     recordConnectionCacheHit(sceneId, "modelBinary", { bytes: cached.buffer.byteLength });
     if (Date.now() >= cached.nextRefreshAt && !modelRefreshRequests.has(sceneId)) {
       void refreshModelBinary(sceneId, "scheduled");
@@ -1077,7 +1082,7 @@ async function getServableModel(sceneId: ModelShowcaseSceneId): Promise<CachedMo
   }
   const result = await refreshModelBinary(sceneId, "initial");
   const downloaded = modelBinaryCache.get(sceneId);
-  if (downloaded) return downloaded;
+  if (downloaded && cachedModelMatchesAsset(downloaded, asset)) return downloaded;
   throw new UpstreamApiError(result.message, 502, "MODEL_DOWNLOAD_FAILED");
 }
 
@@ -1115,7 +1120,7 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
   const { sceneId, config } = getShowcaseScene(req.params.sceneId);
   // 2026-08-12 新增：初始化页面前先恢复持久模型状态，避免服务重启后丢失最后可用版本；
   await ensurePersistedModelLoaded(sceneId);
-  const restoredModel = modelBinaryCache.get(sceneId);
+  let restoredModel = modelBinaryCache.get(sceneId);
   const [asset, dashboard] = await Promise.all([
     resolveModelAsset(sceneId).catch((error) => {
       // 2026-08-12 新增：模型元数据库异常但已有持久版本时，允许页面继续使用最后成功模型初始化；
@@ -1124,6 +1129,19 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
     }),
     fetchDashboard(sceneId),
   ]);
+  // 2026-08-28 修复：页面改绑模型 ID 后，sceneId 对应的旧持久缓存不能继续作为当前资源返回。
+  // 配置指纹不一致时同步取得新模型；若新模型不可用则明确报错，不能把旧模型伪装成新模型。
+  if (asset && restoredModel && !cachedModelMatchesAsset(restoredModel, asset)) {
+    const refreshResult = await refreshModelBinary(sceneId, "initial");
+    restoredModel = modelBinaryCache.get(sceneId);
+    if (!restoredModel || !cachedModelMatchesAsset(restoredModel, asset)) {
+      throw new UpstreamApiError(
+        `Configured model changed but the replacement is not ready: ${refreshResult.message}`,
+        502,
+        "MODEL_BINDING_CACHE_MISMATCH",
+      );
+    }
+  }
   const modelRefresh = getModelRefreshStatus(sceneId);
   if (modelRefresh.stale && !modelRefreshRequests.has(sceneId)) void refreshModelBinary(sceneId, "scheduled");
   recordDiagnosticSnapshot(sceneId, dashboard, "dashboard");
