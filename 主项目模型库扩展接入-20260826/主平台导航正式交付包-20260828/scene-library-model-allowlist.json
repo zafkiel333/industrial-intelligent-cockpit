@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0",
   "deliveryVersion": "20260828",
-  "sceneLibraryRelease": "20260827-155745",
-  "runtimeSourceCommit": "6253a659b19b5539243320b4d1a4dce579d46092",
+  "sceneLibraryRelease": "20260828-145036",
+  "runtimeSourceCommit": "a205c525ea3ade15718e537fcaab559d5565b66d",
   "detailPath": "/three-model/detail",
   "totalModelCount": 103,
   "items": [
@@ -15,6 +15,11 @@
       "modelId": 2281,
       "modelName": "机械臂工作站",
       "sceneId": "IndustrialRobotServoRepair"
+    },
+    {
+      "modelId": 2283,
+      "modelName": "万吨级排水作业货轮",
+      "sceneId": "ia-ship-cii"
     },
     {
       "modelId": 2285,
@@ -60,11 +65,6 @@
       "modelId": 2303,
       "modelName": "工业变压器",
       "sceneId": "vibe-PortSubstation"
-    },
-    {
-      "modelId": 2304,
-      "modelName": "工业污水处理设备",
-      "sceneId": "eq-5"
     },
     {
       "modelId": 2306,
@@ -115,6 +115,11 @@
       "modelId": 2326,
       "modelName": "水轮机总成",
       "sceneId": "sim-visual-hydro-turbine"
+    },
+    {
+      "modelId": 2327,
+      "modelName": "污水处理设备",
+      "sceneId": "eq-5"
     },
     {
       "modelId": 2328,
@@ -224,11 +229,6 @@
     {
       "modelId": 2373,
       "modelName": "集装箱式远航跨洋货轮",
-      "sceneId": "ia-ship-cii"
-    },
-    {
-      "modelId": 2374,
-      "modelName": "集装箱船",
       "sceneId": "eq-7"
     },
     {

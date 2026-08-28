@@ -1,7 +1,7 @@
 # 主平台导航正式交付包
 
 > 交付日期：2026-08-28（Asia/Shanghai）
-> 对应场景库 Release：`20260827-155745`
+> 对应场景库 Release：`20260828-145036`
 > 正式菜单版本：`20260827-142935`
 
 本目录用于解除主项目团队反馈的“正式 manifest 缺失”阻塞。`scene-library-menu.manifest.json` 是场景库仓库正式文件的字节级副本，不是重新推算或从生产 bundle 逆向提取的替代文件。
@@ -11,7 +11,7 @@
 | 文件 | 用途 | SHA-256 |
 |---|---|---|
 | `scene-library-menu.manifest.json` | 替换主平台旧的 1,049 节点菜单快照 | `c54f5375db0b99460d5848895b436b47ffe0848aea69590a7d3719e24b7d14bd` |
-| `scene-library-model-allowlist.json` | 将宿主页模型详情白名单从 4 个扩展到 103 个 | `cd1b034418d10c460317ad34cce582a00d3715e72cd8d2a14b69c3b07a8c97f1` |
+| `scene-library-model-allowlist.json` | 将宿主页模型详情白名单从 4 个扩展到 103 个 | `2df40d23bd5377214cf785fda249f65319b5b56424a5bb779ae9948dfbadd881` |
 | `SHA256SUMS.txt` | Linux/macOS/Windows 校验依据 | — |
 
 ## manifest 验收值

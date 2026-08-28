@@ -2,7 +2,7 @@
 
 > 处理日期：2026-08-28（Asia/Shanghai）
 > 反馈材料：主项目团队《场景库导航更新-正式manifest缺失问题说明.md》
-> 处理状态：正式文件已核验并形成可直接转发的交付包；场景库和主平台服务器均未修改
+> 处理状态：正式文件已核验并形成可直接转发的交付包；场景库已更新至 `20260828-145036`，主平台服务器未修改
 
 ## 1. 结论
 
@@ -37,8 +37,8 @@ GitHub Raw 原文件已从公网重新下载并在内存中计算哈希，返回
 
 ```text
 主项目模型库扩展接入-20260826/主平台导航正式交付包-20260828.zip
-大小=34268 字节
-SHA-256=61f0a8e26e00aec5994cf62958a99684e47a745839663a3126ef1a9cf84f7aaa
+大小=34286 字节
+SHA-256=481e896ad4ff04be17cf31cf2c1882de0016221211ffb22023488843d9f1595e
 ```
 
 ZIP 内含：
@@ -68,8 +68,12 @@ scene-library-model-allowlist.json
 唯一 modelId=103
 唯一 sceneId=103
 detailPath=/three-model/detail
-SHA-256=cd1b034418d10c460317ad34cce582a00d3715e72cd8d2a14b69c3b07a8c97f1
+对应场景库 Release=20260828-145036
+运行时源码提交=a205c525ea3ade15718e537fcaab559d5565b66d
+SHA-256=2df40d23bd5377214cf785fda249f65319b5b56424a5bb779ae9948dfbadd881
 ```
+
+本次白名单随可视化择优结果更新：删除不再绑定的 `2304`、`2374`，新增 `2327`、`2283`，并把 `2373` 的页面从 `ia-ship-cii` 调整为 `eq-7`。正式菜单 manifest 的节点、顺序和哈希均未改变。
 
 ## 4. 在线取件地址
 
@@ -99,4 +103,4 @@ https://raw.githubusercontent.com/zafkiel333/industrial-intelligent-cockpit/main
 npm run generate:host-navigation-delivery
 ```
 
-生成器在复制前强制校验正式 manifest 的文件哈希、版本、节点数、唯一 ID 和 `eq-unit1-model`，并验证 103 个模型 ID/sceneId 唯一及详情路径契约。后续菜单或模型目录发生正式变更时，应先更新生成器中的版本契约，再生成新的日期交付包，不能覆盖本次包或把旧哈希继续当成新版本。
+生成器在复制前强制校验正式 manifest 的文件哈希、版本、节点数、唯一 ID 和 `eq-unit1-model`，并验证 103 个模型 ID/sceneId 唯一及详情路径契约。本目录中的 ZIP 已因模型替换重新生成，旧 SHA-256 `61f0a8e...` 已作废；主项目只应接收本文件所列新哈希。后续菜单或模型目录发生正式变更时，应先更新生成器中的版本契约，再生成交付包并明确旧包作废，不能把旧哈希继续当成新版本。
