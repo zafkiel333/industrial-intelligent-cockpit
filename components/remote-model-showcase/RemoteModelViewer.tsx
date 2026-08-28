@@ -8,6 +8,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Expand, Pause, Play, RotateCcw } from 'lucide-react';
 import type { ModelAssetDescriptor, RemoteBindableField, RemoteRenderConfig } from '../../src/remoteModelShowcase/types';
 import { apiUrl } from '../../src/integration/apiClient';
+import { advanceViewerRotation, prepareViewerModel } from '../../src/remoteModelShowcase/modelViewerTransform';
 
 interface RemoteModelViewerProps {
   asset: ModelAssetDescriptor;
@@ -425,23 +426,9 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
         disposeObject(object);
         return;
       }
-      let meshCount = 0;
-      object.traverse((child) => {
-        if (child instanceof THREE.Mesh) meshCount += 1;
-      });
-      object.updateMatrixWorld(true);
-      const initialBox = new THREE.Box3().setFromObject(object);
-      if (meshCount === 0 || initialBox.isEmpty()) {
-        disposeObject(object);
-        throw new Error('模型文件已解析，但没有可显示的网格对象');
-      }
-      const initialSize = initialBox.getSize(new THREE.Vector3());
-      const scale = 4.8 / Math.max(initialSize.x, initialSize.y, initialSize.z, 0.001);
-      object.scale.multiplyScalar(scale);
-      const box = new THREE.Box3().setFromObject(object);
-      object.position.sub(box.getCenter(new THREE.Vector3()));
-      baseXRef.current = object.position.x;
-      const size = new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3());
+      // 2026-08-28 修复：用几何中心枢轴承载旋转，避免偏心 FBX 绕远处建模原点公转并甩出视窗。
+      const { root, size } = prepareViewerModel(object);
+      baseXRef.current = root.position.x;
       const radius = Math.max(size.length() * 0.52, 2.4);
       const reset = () => {
         camera.position.set(radius * 1.15, radius * 0.72, radius * 1.45);
@@ -450,21 +437,21 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
       };
       resetViewRef.current = reset;
       reset();
-      object.traverse((child) => {
+      root.traverse((child) => {
         if (!(child instanceof THREE.Mesh)) return;
         child.castShadow = true;
         child.receiveShadow = true;
       });
       // 2026-08-12 新增：候选对象先完成 GPU 程序编译，再释放旧对象，避免解析成功但首帧失败或出现空白帧；
       const previous = rootRef.current;
-      scene.add(object);
+      scene.add(root);
       try {
         renderer.compile(scene, camera);
       } catch (error) {
-        scene.remove(object);
+        scene.remove(root);
         throw error;
       }
-      rootRef.current = object;
+      rootRef.current = root;
       if (previous) {
         scene.remove(previous);
         disposeObject(previous);
@@ -475,7 +462,8 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
     let animationFrame = 0;
     const animate = () => {
       animationFrame = window.requestAnimationFrame(animate);
-      const elapsed = clock.getElapsedTime();
+      const delta = Math.min(clock.getDelta(), 0.1);
+      const elapsed = clock.elapsedTime;
       const currentFields = fieldsRef.current;
       const vibration = currentFields.find((field) => field.field === 'vibration');
       const rpm = currentFields.find((field) => field.field === 'rpm');
@@ -486,7 +474,8 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
           ? Math.min(1, Math.abs(vibration.value) / Math.max(Math.abs(vibration.normal_max), 0.001))
           : 0;
         root.position.x = baseXRef.current + Math.sin(elapsed * 18) * vibrationRatio * 0.018;
-        if (rpm) root.rotation.y += Math.min(Math.abs(rpm.value) / 200_000, 0.008);
+        // 2026-08-28 修复：旋转量按真实帧间隔计算，60/120 Hz 屏幕保持一致速度。
+        if (rpm) root.rotation.y = advanceViewerRotation(root.rotation.y, rpm.value, delta);
         root.traverse((child) => {
           if (!(child instanceof THREE.Mesh)) return;
           const materials = Array.isArray(child.material) ? child.material : [child.material];
