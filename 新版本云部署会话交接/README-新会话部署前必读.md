@@ -101,6 +101,20 @@ health.version = 20260827-155745
 
 ---
 
+## 1.3 2026-08-28 最新生产状态：模型旋转偏移修复
+
+场景库 Release `20260828-103420` 已上线，直接回滚版本为 `20260827-155745`。本版用几何中心枢轴修复偏心 FBX 围绕来源建模原点公转的问题，并将遥测旋转改为按真实帧间隔推进，消除高刷新率下转速更快的差异；菜单、103 个模型映射、模型 API、主平台协议和 `eq-18` 均未改变。
+
+```text
+current  → /nlplabProj/scene-library/releases/20260828-103420
+previous → /nlplabProj/scene-library/releases/20260827-155745
+health.version = 20260828-103420
+```
+
+3103 预检、截图对应 `eq-5/2304` 模型、standalone/microapp 修复标记、线上 99/99 Bootstrap、公网双入口、服务/Nginx 和共享目录均通过，`NRestarts=0`。详细包哈希、两次安全阻断与回滚过程见 `云端更新执行记录-20260828-模型旋转偏移修复.md`；浏览器静置 30 秒的最终视觉确认仍需用户执行。
+
+---
+
 ## 2. 用户真正想要的协作方式
 
 用户不是要求 AI 在后台一次性完成部署，而是希望 AI 像一位谨慎的运维工程师一样逐步引导。
@@ -240,6 +254,8 @@ previous → /nlplabProj/scene-library/releases/20260821-120215
 ```
 
 应以本节列出的 `/nlplabProj/scene-library` 结构和现场 `readlink`、`systemctl cat`、Nginx 配置为准。
+
+切换脚本校验静态目录时必须使用现场路径 `/nlplabProj/scene-library/www/cockpit` 和 `/nlplabProj/scene-library/www/microapps/scene-library`。2026-08-28 曾因误用 `/var/www/cockpit` 旧示例路径触发切换前自动回滚。
 
 ---
 
