@@ -1,0 +1,2 @@
+73da22e4f3fc9e3f0673461e11e07263d3b1e8a174c76009380db100a600850c  scene-library-menu.manifest.json
+22d0e7e952b5f9383179bdf809bd331114c43232e87ac3fbed6e253e6c32bce3  scene-library-model-allowlist.json

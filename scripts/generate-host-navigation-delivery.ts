@@ -3,15 +3,15 @@ import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { MODEL_SHOWCASE_CATALOG } from '../src/remoteModelShowcase/modelCatalog';
 
-const DELIVERY_VERSION = '20260828';
-const SCENE_LIBRARY_RELEASE = '20260828-145036';
-const RUNTIME_SOURCE_COMMIT = 'a205c525ea3ade15718e537fcaab559d5565b66d';
-const MENU_VERSION = '20260827-142935';
-const EXPECTED_MANIFEST_SHA256 = 'c54f5375db0b99460d5848895b436b47ffe0848aea69590a7d3719e24b7d14bd';
-const EXPECTED_MENU_CONTENT_SHA256 = '270ed2cd19452df4e6ec2c5916974042744cea6fdf01e76e544ddd62bbe88951';
+const DELIVERY_VERSION = '20260901';
+const SCENE_LIBRARY_RELEASE = '20260901-093430';
+const RUNTIME_SOURCE_COMMIT = '07005f60131f8a202d6de1c257d098bfb2ad9ed0';
+const MENU_VERSION = '20260901-093430';
+const EXPECTED_MANIFEST_SHA256 = '73da22e4f3fc9e3f0673461e11e07263d3b1e8a174c76009380db100a600850c';
+const EXPECTED_MENU_CONTENT_SHA256 = 'd664531146fd033c7b0a23bda35f997e7adfe1396a7e7d58536dc6334b5d9abf';
 const EXPECTED_MANIFEST_NODES = 1050;
 const EXPECTED_MANIFEST_ROOTS = 20;
-const EXPECTED_MODEL_COUNT = 103;
+const EXPECTED_MODEL_COUNT = 106;
 const DETAIL_PATH = '/three-model/detail';
 
 const projectRoot = process.cwd();
@@ -115,7 +115,7 @@ writeFileSync(resolve(deliveryDirectory, 'scene-library-model-allowlist.json'), 
 
 const readme = `# 主平台导航正式交付包
 
-> 交付日期：2026-08-28（Asia/Shanghai）
+> 交付日期：2026-09-01（Asia/Shanghai）
 > 对应场景库 Release：\`${SCENE_LIBRARY_RELEASE}\`
 > 正式菜单版本：\`${MENU_VERSION}\`
 
@@ -126,7 +126,7 @@ const readme = `# 主平台导航正式交付包
 | 文件 | 用途 | SHA-256 |
 |---|---|---|
 | \`scene-library-menu.manifest.json\` | 替换主平台旧的 1,049 节点菜单快照 | \`${canonicalManifestSha256}\` |
-| \`scene-library-model-allowlist.json\` | 将宿主页模型详情白名单从 4 个扩展到 103 个 | \`${allowlistSha256}\` |
+| \`scene-library-model-allowlist.json\` | 将宿主页模型详情白名单更新到 106 个有效且唯一的模型 | \`${allowlistSha256}\` |
 | \`SHA256SUMS.txt\` | Linux/macOS/Windows 校验依据 | — |
 
 ## manifest 验收值
