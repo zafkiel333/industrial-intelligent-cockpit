@@ -47,8 +47,8 @@ assert(
 
 const hostNavigationSource = read('src/integration/hostModelNavigation.ts');
 const catalogEntries = Object.values(MODEL_SHOWCASE_CATALOG);
-assert(catalogEntries.length === 103, `expected 103 model showcase pages, got ${catalogEntries.length}`);
-assert(new Set(catalogEntries.map((item) => item.modelId)).size === 103, 'model showcase IDs must be unique');
+assert(catalogEntries.length === 106, `expected 106 model showcase pages, got ${catalogEntries.length}`);
+assert(new Set(catalogEntries.map((item) => item.modelId)).size === 106, 'model showcase IDs must be unique');
 for (const config of catalogEntries) {
   assert(
     config.sourceDetailUrl === `${secureMainOrigin}/three-model/detail?id=${config.modelId}`,

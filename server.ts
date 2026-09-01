@@ -10,7 +10,6 @@ import xlsx from "xlsx";
 import {
   getModelShowcaseConfig,
   isModelShowcaseSceneId,
-  MODEL_SHOWCASE_SCENE_IDS,
 } from "./src/remoteModelShowcase/modelCatalog";
 import {
   recordDiagnosticSnapshot,
@@ -47,7 +46,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", version: APP_VERSION });
+  res.json({ status: "ok", version: APP_VERSION, modelMemoryCache: modelBinaryCacheStats() });
 });
 
 // Directories
@@ -478,6 +477,14 @@ const MODEL_REFRESH_INTERVAL_MS = MODEL_REFRESH_INTERVAL_HOURS * 60 * 60 * 1000;
 const MODEL_REFRESH_RETRY_MS = 6 * 60 * 60 * 1000;
 const MODEL_REFRESH_SCHEDULER_MS = 30 * 60 * 1000;
 const MODEL_MANUAL_REFRESH_COOLDOWN_MS = 10 * 60 * 1000;
+const configuredModelMemoryCacheMb = Number(process.env.MODEL_MEMORY_CACHE_MAX_MB || 128);
+const MODEL_MEMORY_CACHE_MAX_BYTES = (Number.isFinite(configuredModelMemoryCacheMb)
+  ? Math.min(512, Math.max(64, configuredModelMemoryCacheMb))
+  : 128) * 1024 * 1024;
+const configuredModelMemoryCacheEntries = Number(process.env.MODEL_MEMORY_CACHE_MAX_ENTRIES || 8);
+const MODEL_MEMORY_CACHE_MAX_ENTRIES = Number.isFinite(configuredModelMemoryCacheEntries)
+  ? Math.min(24, Math.max(2, Math.floor(configuredModelMemoryCacheEntries)))
+  : 8;
 // 2026-08-12 新增：在服务端磁盘保留最后一次校验成功的模型，进程重启或上游异常时仍可展示；
 const MODEL_CACHE_DIRECTORY = process.env.MODEL_CACHE_DIRECTORY
   ? path.resolve(process.env.MODEL_CACHE_DIRECTORY)
@@ -583,10 +590,46 @@ class UpstreamApiError extends Error {
 
 const modelMetadataCache = new Map<ModelShowcaseSceneId, { expiresAt: number; asset: ResolvedModelAsset }>();
 const modelBinaryCache = new Map<ModelShowcaseSceneId, CachedModelBinary>();
+const modelBinaryLastAccessedAt = new Map<ModelShowcaseSceneId, number>();
 const modelRefreshRequests = new Map<ModelShowcaseSceneId, Promise<ModelRefreshOperationResult>>();
 const modelPersistenceRequests = new Map<ModelShowcaseSceneId, Promise<void>>();
 const modelRefreshStates = new Map<ModelShowcaseSceneId, ModelRefreshRuntimeState>();
 const modelManualRefreshAttempts = new Map<ModelShowcaseSceneId, number>();
+
+function modelBinaryCacheStats(): { entries: number; bytes: number; maxEntries: number; maxBytes: number } {
+  return {
+    entries: modelBinaryCache.size,
+    bytes: [...modelBinaryCache.values()].reduce((sum, model) => sum + model.buffer.byteLength, 0),
+    maxEntries: MODEL_MEMORY_CACHE_MAX_ENTRIES,
+    maxBytes: MODEL_MEMORY_CACHE_MAX_BYTES,
+  };
+}
+
+function touchModelBinary(sceneId: ModelShowcaseSceneId): CachedModelBinary | undefined {
+  const model = modelBinaryCache.get(sceneId);
+  if (model) modelBinaryLastAccessedAt.set(sceneId, Date.now());
+  return model;
+}
+
+function pruneModelBinaryMemoryCache(protectedSceneId?: ModelShowcaseSceneId): void {
+  let stats = modelBinaryCacheStats();
+  if (stats.entries <= MODEL_MEMORY_CACHE_MAX_ENTRIES && stats.bytes <= MODEL_MEMORY_CACHE_MAX_BYTES) return;
+  const candidates = [...modelBinaryCache.keys()]
+    .filter((sceneId) => sceneId !== protectedSceneId && !modelRefreshRequests.has(sceneId))
+    .sort((left, right) => (modelBinaryLastAccessedAt.get(left) || 0) - (modelBinaryLastAccessedAt.get(right) || 0));
+  for (const sceneId of candidates) {
+    if (stats.entries <= MODEL_MEMORY_CACHE_MAX_ENTRIES && stats.bytes <= MODEL_MEMORY_CACHE_MAX_BYTES) break;
+    modelBinaryCache.delete(sceneId);
+    modelBinaryLastAccessedAt.delete(sceneId);
+    stats = modelBinaryCacheStats();
+  }
+}
+
+function rememberModelBinary(sceneId: ModelShowcaseSceneId, model: CachedModelBinary): void {
+  modelBinaryCache.set(sceneId, model);
+  modelBinaryLastAccessedAt.set(sceneId, Date.now());
+  pruneModelBinaryMemoryCache(sceneId);
+}
 
 // 2026-08-10 调整：在不改变原有 API 转发行为的前提下记录请求成功、延迟和脱敏错误；
 async function fetchUpstreamJson<T>(
@@ -819,7 +862,7 @@ function getModelRefreshStatus(sceneId: ModelShowcaseSceneId): ModelRefreshStatu
 
 // 2026-08-12 新增：懒加载磁盘中的最后成功模型，并校验路径、大小、格式和 SHA-256；
 async function ensurePersistedModelLoaded(sceneId: ModelShowcaseSceneId): Promise<void> {
-  if (modelBinaryCache.has(sceneId)) return;
+  if (touchModelBinary(sceneId)) return;
   const pending = modelPersistenceRequests.get(sceneId);
   if (pending) return pending;
   const request = (async () => {
@@ -838,7 +881,7 @@ async function ensurePersistedModelLoaded(sceneId: ModelShowcaseSceneId): Promis
       assertModelFile(manifest.format, buffer);
       const contentHash = createHash("sha256").update(buffer).digest("hex");
       if (contentHash !== manifest.contentHash) throw new Error("Persisted model hash verification failed");
-      modelBinaryCache.set(sceneId, {
+      rememberModelBinary(sceneId, {
         buffer,
         contentType: manifest.contentType,
         fileName: manifest.fileName,
@@ -965,7 +1008,7 @@ async function refreshModelBinary(
   if (pending) return pending;
   const request = (async (): Promise<ModelRefreshOperationResult> => {
     await ensurePersistedModelLoaded(sceneId);
-    const previous = modelBinaryCache.get(sceneId);
+    const previous = touchModelBinary(sceneId);
     const runtime = modelRefreshState(sceneId);
     const startedAt = Date.now();
     runtime.state = "checking";
@@ -1012,7 +1055,7 @@ async function refreshModelBinary(
         persistenceError = `模型已更新，但持久缓存写入失败：${safeRefreshError(error)}`;
         console.error(`[model-showcase] persistence failed for ${sceneId}:`, error);
       }
-      modelBinaryCache.set(sceneId, model);
+      rememberModelBinary(sceneId, model);
       runtime.state = persistenceError ? "stale" : "fresh";
       runtime.lastCheckedAt = now;
       runtime.nextRefreshAt = model.nextRefreshAt;
@@ -1063,7 +1106,12 @@ async function refreshModelBinary(
     } finally {
       runtime.candidateVersion = null;
     }
-  })().finally(() => modelRefreshRequests.delete(sceneId));
+  })().finally(() => {
+    modelRefreshRequests.delete(sceneId);
+    // 并发下载期间会临时保护所有在途模型；最后一个请求结束时再次收敛到预算，
+    // 避免高并发首访后留下超限的常驻 Buffer。
+    pruneModelBinaryMemoryCache();
+  });
   modelRefreshRequests.set(sceneId, request);
   return request;
 }
@@ -1072,7 +1120,7 @@ async function refreshModelBinary(
 async function getServableModel(sceneId: ModelShowcaseSceneId): Promise<CachedModelBinary> {
   await ensurePersistedModelLoaded(sceneId);
   const asset = await resolveModelAsset(sceneId);
-  const cached = modelBinaryCache.get(sceneId);
+  const cached = touchModelBinary(sceneId);
   if (cached && cachedModelMatchesAsset(cached, asset)) {
     recordConnectionCacheHit(sceneId, "modelBinary", { bytes: cached.buffer.byteLength });
     if (Date.now() >= cached.nextRefreshAt && !modelRefreshRequests.has(sceneId)) {
@@ -1081,7 +1129,7 @@ async function getServableModel(sceneId: ModelShowcaseSceneId): Promise<CachedMo
     return cached;
   }
   const result = await refreshModelBinary(sceneId, "initial");
-  const downloaded = modelBinaryCache.get(sceneId);
+  const downloaded = touchModelBinary(sceneId);
   if (downloaded && cachedModelMatchesAsset(downloaded, asset)) return downloaded;
   throw new UpstreamApiError(result.message, 502, "MODEL_DOWNLOAD_FAILED");
 }
@@ -1120,7 +1168,7 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
   const { sceneId, config } = getShowcaseScene(req.params.sceneId);
   // 2026-08-12 新增：初始化页面前先恢复持久模型状态，避免服务重启后丢失最后可用版本；
   await ensurePersistedModelLoaded(sceneId);
-  let restoredModel = modelBinaryCache.get(sceneId);
+  let restoredModel = touchModelBinary(sceneId);
   const [asset, dashboard] = await Promise.all([
     resolveModelAsset(sceneId).catch((error) => {
       // 2026-08-12 新增：模型元数据库异常但已有持久版本时，允许页面继续使用最后成功模型初始化；
@@ -1133,7 +1181,7 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
   // 配置指纹不一致时同步取得新模型；若新模型不可用则明确报错，不能把旧模型伪装成新模型。
   if (asset && restoredModel && !cachedModelMatchesAsset(restoredModel, asset)) {
     const refreshResult = await refreshModelBinary(sceneId, "initial");
-    restoredModel = modelBinaryCache.get(sceneId);
+    restoredModel = touchModelBinary(sceneId);
     if (!restoredModel || !cachedModelMatchesAsset(restoredModel, asset)) {
       throw new UpstreamApiError(
         `Configured model changed but the replacement is not ready: ${refreshResult.message}`,
@@ -1168,7 +1216,7 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
 app.get("/api/model-showcase/:sceneId/connection", showcaseRoute(async (req, res) => {
   const { sceneId } = getShowcaseScene(req.params.sceneId);
   await ensurePersistedModelLoaded(sceneId);
-  const cached = modelBinaryCache.get(sceneId);
+  const cached = touchModelBinary(sceneId);
   if (cached && Date.now() >= cached.nextRefreshAt && !modelRefreshRequests.has(sceneId)) {
     void refreshModelBinary(sceneId, "scheduled");
   }
@@ -1298,9 +1346,10 @@ app.post("/api/model-showcase/:sceneId/diagnosis", showcaseRoute(async (req, res
 
 // 2026-08-12 新增：服务启动后每 30 分钟扫描已使用场景，仅对到期模型发起后台更新；
 async function sweepDueModelRefreshes(): Promise<void> {
-  await Promise.all(MODEL_SHOWCASE_SCENE_IDS.map(async (sceneId) => {
-    await ensurePersistedModelLoaded(sceneId);
-    const cached = modelBinaryCache.get(sceneId);
+  // 2026-09-01 修复：定时器只检查已驻留的活跃模型。旧实现会把全部持久缓存读入内存，
+  // 浏览页面越多，Node 常驻 Buffer 越大，最终与浏览器 Three.js 内存叠加导致主机无响应。
+  await Promise.all([...modelBinaryCache.keys()].map(async (sceneId) => {
+    const cached = touchModelBinary(sceneId);
     if (cached && Date.now() >= cached.nextRefreshAt && !modelRefreshRequests.has(sceneId)) {
       void refreshModelBinary(sceneId, "scheduled");
     }
@@ -1348,6 +1397,7 @@ async function startServer() {
       console.log("Public: set SCENE_LIBRARY_PUBLIC_URL after configuring a tunnel or reverse proxy.");
     }
     console.log(`Model refresh interval: ${MODEL_REFRESH_INTERVAL_HOURS} hours`);
+    console.log(`Model memory cache: ${MODEL_MEMORY_CACHE_MAX_ENTRIES} entries / ${Math.round(MODEL_MEMORY_CACHE_MAX_BYTES / 1024 / 1024)} MB`);
     console.log(`Press 'q' followed by 'Enter' in the terminal to exit the development server.`);
   });
   void sweepDueModelRefreshes();

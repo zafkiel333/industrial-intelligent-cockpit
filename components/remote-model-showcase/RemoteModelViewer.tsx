@@ -56,9 +56,10 @@ interface SharedModelBufferTask {
 // 2026-08-27 优化：同一模型下载任务共享字节进度；版本轮询或组件重挂载不再重复拉取大文件。
 const modelBufferTasks = new Map<string, SharedModelBufferTask>();
 const allModelBufferTasks = new Set<SharedModelBufferTask>();
-const MAX_RESOLVED_MODEL_BUFFERS = 3;
+const MAX_RESOLVED_MODEL_BUFFERS = 1;
 const MODEL_PREPARE_TIMEOUT_MS = 75_000;
 const MODEL_STREAM_STALL_TIMEOUT_MS = 30_000;
+const MAX_AUTOMATIC_MODEL_RETRIES = 2;
 
 function modelCacheKey(asset: ModelAssetDescriptor): string {
   return `${asset.localAssetUrl}::${asset.version}`;
@@ -332,6 +333,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
   const installModelRef = useRef<((object: THREE.Object3D) => void) | null>(null);
   const resetViewRef = useRef<() => void>(() => undefined);
   const loadGenerationRef = useRef(0);
+  const automaticRetryCountRef = useRef(0);
   const [loadProgress, setLoadProgress] = useState<ModelLoadProgress>({
     phase: 'preparing',
     percent: 0,
@@ -364,10 +366,18 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
 
   useEffect(() => {
     if (!loadError || hasRenderableModel) return;
-    // 2026-08-12 调整：仅在没有任何可展示版本时自动重试，更新失败时保留旧模型且不反复下载；
-    const timer = window.setTimeout(() => setReloadKey((value) => value + 1), 30_000);
+    // 2026-09-01 修复：上游文件失效时禁止页面每 30 秒永久重试，避免失败页长期制造 502 和下载压力。
+    if (automaticRetryCountRef.current >= MAX_AUTOMATIC_MODEL_RETRIES) return;
+    const timer = window.setTimeout(() => {
+      automaticRetryCountRef.current += 1;
+      setReloadKey((value) => value + 1);
+    }, 30_000);
     return () => window.clearTimeout(timer);
   }, [hasRenderableModel, loadError]);
+
+  useEffect(() => {
+    automaticRetryCountRef.current = 0;
+  }, [asset.localAssetUrl, asset.version]);
 
   // 2026-08-12 调整：Three.js 场景生命周期与模型版本解耦，版本更新不再销毁画布和旧模型；
   useEffect(() => {
@@ -524,7 +534,9 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
       setHasRenderableModel(false);
       grid.geometry.dispose();
       gridMaterials.forEach((material) => material.dispose());
+      renderer.renderLists.dispose();
       renderer.dispose();
+      renderer.forceContextLoss();
       renderer.domElement.remove();
     };
   }, [accent, autoRotateSpeed, viewerSettingsKey]);
@@ -581,6 +593,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
         candidateObject = null;
         activeVersionRef.current = result.responseVersion || asset.version;
         setHasRenderableModel(true);
+        automaticRetryCountRef.current = 0;
         setUpdatingModel(false);
         setLoadError(null);
         setLoadProgress({
@@ -643,10 +656,12 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
           <span className="mt-2 max-w-lg break-words leading-6">{loadError}</span>
           <span className="mt-2 max-w-lg text-[10px] leading-5 text-slate-300">
             {failureStage === 'request'
-              ? '当前尚无可用模型，系统将在 30 秒后自动重试；也可立即重新加载。'
+              ? automaticRetryCountRef.current < MAX_AUTOMATIC_MODEL_RETRIES
+                ? `当前尚无可用模型，系统将在 30 秒后自动重试（最多 ${MAX_AUTOMATIC_MODEL_RETRIES} 次）；也可立即重新加载。`
+                : '自动重试已停止，避免持续占用服务资源；请检查模型资源后手动重新加载。'
               : '模型二进制已取得，但解析或建立网格时发生异常。'}
           </span>
-          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 border border-cyan-300/50 bg-cyan-50/10 px-4 py-2 text-xs text-cyan-100 hover:bg-cyan-50/20">
+          <button type="button" onClick={() => { automaticRetryCountRef.current = 0; setReloadKey((value) => value + 1); }} className="mt-4 border border-cyan-300/50 bg-cyan-50/10 px-4 py-2 text-xs text-cyan-100 hover:bg-cyan-50/20">
             重新加载模型
           </button>
         </div>

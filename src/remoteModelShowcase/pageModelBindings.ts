@@ -1,4 +1,4 @@
-// 2026-08-27 新增：由已审核的页面—模型配对表生成，作为 99 个扩展展示页的唯一运行时映射源；
+// 2026-08-27 新增：由已审核的页面—模型配对表生成；2026-09-01 扩展为 102 个展示页；
 // 注意：eq-18（1号机组异常预测分析）不在本表中，必须保持原页面和原位置不变。
 export type ModelAdaptationGrade = 'A' | 'B' | 'C';
 
@@ -14,7 +14,7 @@ export interface PageModelBinding {
 }
 
 export const PAGE_MODEL_BINDINGS = [
-  {"viewId":"eq-0","modelId":2353,"pageTitle":"水轮机智能运维","modelName":"脉冲式水轮机","grade":"A","fileSize":"2.26 MiB","adaptation":"直接匹配","note":"缩略图材质与转轮细节较好；页面保留通用水轮机指标，补充“脉冲式”型号标识即可。"},
+  {"viewId":"eq-0","modelId":2363,"pageTitle":"水轮机智能运维","modelName":"轴流式水轮机","grade":"A","fileSize":"7.31 MiB","adaptation":"直接匹配","note":"替换上游端点已不再返回有效 FBX 的 2353；新模型文件头、完整下载和缩略图均已核验，蜗壳、导水结构与机组外形清楚。"},
   {"viewId":"eq-1","modelId":7192,"pageTitle":"发电机智能运维","modelName":"混流式水轮发电机组","grade":"A","fileSize":"8.51 MiB","adaptation":"轻量适配","note":"模型包含发电机组结构，适合水电语境；页面名称可不变，设备信息改为水轮发电机组。"},
   {"viewId":"eq-2","modelId":2364,"pageTitle":"输电装置智能运维","modelName":"输电塔","grade":"A","fileSize":"0.57 MiB","adaptation":"直接匹配","note":"现有页面的覆冰、舞动、弧垂、绝缘子和线路负荷均是输电线路语义；模型虽为单色桁架，但结构清楚，开发时用材质、灯光和边缘线增强层次。"},
   {"viewId":"eq-3","modelId":2324,"pageTitle":"泵站智能运维","modelName":"水泵站","grade":"A","fileSize":"12.74 MiB","adaptation":"直接匹配","note":"模型含多泵、管路、阀门和底座，细节丰富，和现有泵站页面指标一致。"},
@@ -24,6 +24,9 @@ export const PAGE_MODEL_BINDINGS = [
   {"viewId":"eq-9","modelId":2308,"pageTitle":"起重设备智能运维","modelName":"抓斗桥式起重机","grade":"A","fileSize":"28.77 MiB","adaptation":"直接匹配","note":"与页面载荷、驱动和防撞指标一致；比通用吊机更符合现有页面逻辑。"},
   {"viewId":"eq-10","modelId":5466,"pageTitle":"航标智能运维","modelName":"太阳能浮标设计模型","grade":"A","fileSize":"4.20 MiB","adaptation":"直接匹配","note":"具备浮体、信号灯和太阳能板，和页面电池、灯器、定位及海况指标高度一致。"},
   {"viewId":"eq-14","modelId":8688,"pageTitle":"钻孔设备智能运维","modelName":"12-Track_Drill 履带式钻机","grade":"A","fileSize":"20.94 MiB","adaptation":"直接匹配","note":"新模型外形完整、钻架和履带细节丰富，和钻压、转速、泥浆/动力监测语义接近。"},
+  {"viewId":"eq-15","modelId":8741,"pageTitle":"破碎设备智能运维","modelName":"粗粉碎机","grade":"A","fileSize":"7.81 MiB","adaptation":"直接匹配","note":"2026-08-28 新增模型；整机含进料箱、粉碎腔、传动轴和支架，文件小于 50 MiB 且 FBX 已完整校验。"},
+  {"viewId":"eq-16","modelId":8736,"pageTitle":"选矿设备智能运维","modelName":"矿石球磨机","grade":"A","fileSize":"20.83 MiB","adaptation":"轻量适配","note":"2026-08-28 新增模型；球磨机属于选矿磨矿核心设备，页面收敛到筒体、齿圈、轴承和驱动系统指标，不泛化为整条选矿线。"},
+  {"viewId":"eq-17","modelId":8740,"pageTitle":"制砂机智能运维","modelName":"筛沙机","grade":"B","fileSize":"21.15 MiB","adaptation":"相关工序适配","note":"2026-08-28 新增模型；筛沙机与制砂后段筛分直接相关，页面改为制砂筛分单元，指标限定到筛面、输送、给料和振动，不冒充破碎主机。"},
   {"viewId":"eq-unit1-model","modelId":6691,"pageTitle":"1号水轮发电机组模型展示","modelName":"1号水轮发电机组","grade":"A","fileSize":"2.04 MiB","adaptation":"新建直配","note":"新建独立页面，仅使用主项目模型 API 的模拟 Dashboard 与模型交互；不得复用、嵌入或改写现有 `eq-18` 的单独数据展示逻辑。"},
   {"viewId":"pm-mining-10","modelId":8690,"pageTitle":"矿用自卸卡车整车健康状态总览","modelName":"14-OffHighway_Truck","grade":"A","fileSize":"8.98 MiB","adaptation":"直接匹配","note":"新模型是完整非公路矿用自卸车，车架、货箱和轮胎细节清晰。"},
   {"viewId":"pm-mining-5","modelId":8682,"pageTitle":"液压挖掘机整机健康状态总览","modelName":"06-Track_Excavator","grade":"A","fileSize":"16.46 MiB","adaptation":"直接匹配","note":"履带、动臂、铲斗和驾驶室完整，页面整机健康指标无需改变主题。"},
@@ -42,8 +45,8 @@ export const PAGE_MODEL_BINDINGS = [
   {"viewId":"pm-hydro-1","modelId":7251,"pageTitle":"水轮机主轴与推力轴承健康监测","modelName":"水轮机主轴","grade":"B","fileSize":"0.05 MiB","adaptation":"以主轴为中心映射摆度、轴向位移、温度和振动。"},
   {"viewId":"pm-hydro-3","modelId":7244,"pageTitle":"发电机转子不平衡劣化评估","modelName":"发电机主轴","grade":"C","fileSize":"0.04 MiB","adaptation":"页面标题收敛为“转子轴系不平衡评估”，删除模型不能支撑的定子可视化。"},
   {"viewId":"pm-hydro-5","modelId":2285,"pageTitle":"水轮机转轮空蚀与裂纹劣化预测","modelName":"冲击式水轮机","grade":"B","fileSize":"19.75 MiB","adaptation":"明确机型为冲击式，热点集中到转轮水斗和轴系。"},
-  {"viewId":"turbine-blade-erosion","modelId":2286,"pageTitle":"水轮机转轮叶片冲蚀预警","modelName":"冲击式水轮机叶片","grade":"B","fileSize":"2.49 MiB","adaptation":"用叶片级热区、冲蚀深度和剩余寿命替代整机示意。"},
-  {"viewId":"TurbineRunnerHoistingTraining","modelId":2306,"pageTitle":"水轮机转轮吊装与拆卸实训","modelName":"弗朗西斯水轮机转轮","grade":"B","fileSize":"8.28 MiB","adaptation":"增加吊点、重心和拆装步骤热点，不虚构模型中不存在的吊具。"},
+  {"viewId":"turbine-blade-erosion","modelId":2306,"pageTitle":"水轮机转轮叶片冲蚀预警","modelName":"弗朗西斯水轮机转轮","grade":"A","fileSize":"8.28 MiB","adaptation":"直接聚焦转轮叶片，以叶片级热区、冲蚀深度和剩余寿命替代原整机示意；原模型 2286 的上游文件不是有效 FBX，已停用。"},
+  {"viewId":"TurbineRunnerHoistingTraining","modelId":7193,"pageTitle":"水轮机转轮吊装与拆卸实训","modelName":"混流式转轮","grade":"B","fileSize":"1.08 MiB","adaptation":"直接以混流式转轮设置吊点、重心和拆装步骤热点；模型轮廓清楚且体积较小，材质由展示端补光增强，不虚构模型中不存在的吊具。"},
   {"viewId":"mpm-0","modelId":6694,"pageTitle":"水轮发电机组大修计划","modelName":"4号水轮发电机组","grade":"B","fileSize":"9.54 MiB","adaptation":"资产编号改为 4 号机组，计划节点绑定到机组区域。"},
   {"viewId":"pm-hydro-0","modelId":6692,"pageTitle":"水轮发电机组整机健康状态总览","modelName":"2号水轮发电机组","grade":"B","fileSize":"2.16 MiB","adaptation":"资产编号改为 2 号机组，保留整机健康指标。"},
   {"viewId":"cv-turbine-cavitation","modelId":2287,"pageTitle":"水轮机叶片空蚀智能检测","modelName":"冲击式水轮机转轮","grade":"B","fileSize":"1.70 MiB","adaptation":"视觉框定位到水斗边缘，增加缺陷编号与置信度。"},

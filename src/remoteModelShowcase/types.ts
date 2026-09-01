@@ -7,7 +7,7 @@ export type ExistingModelShowcaseSceneId =
   | 'sim-visual-bridge-crane'
   | 'sim-visual-haul-truck';
 
-// 2026-08-27 扩展：保留四个既有样例，并纳入 99 个经审核的页面—模型绑定。
+// 2026-09-01 扩展：保留四个既有样例，并纳入 102 个经审核的页面—模型绑定。
 export type ModelShowcaseSceneId = ExistingModelShowcaseSceneId | PageModelBindingViewId;
 
 export type RemoteScenarioType = 'normal' | 'high_load' | 'fault';

@@ -19,10 +19,17 @@ assert(viewer.includes("phase: 'preparing'"), 'server preparation phase is missi
 assert(viewer.includes("phase: 'downloading'"), 'byte download phase is missing');
 assert(viewer.includes("phase: 'parsing'"), 'model parsing phase is missing');
 assert(viewer.includes('MODEL_STREAM_STALL_TIMEOUT_MS'), 'stalled streams must have a watchdog');
-assert(viewer.includes('MAX_RESOLVED_MODEL_BUFFERS = 3'), 'browser ArrayBuffer cache must remain bounded');
+assert(viewer.includes('MAX_RESOLVED_MODEL_BUFFERS = 1'), 'browser ArrayBuffer cache must retain at most one resolved model');
+assert(viewer.includes('MAX_AUTOMATIC_MODEL_RETRIES = 2'), 'invalid upstream assets must not trigger endless browser retries');
+assert(viewer.includes('renderer.forceContextLoss()'), 'unmounted viewers must release their WebGL context');
 assert(server.includes('private, max-age=31536000, immutable'), 'versioned model responses must be browser-cacheable');
 assert(!server.includes('res.setHeader("Cache-Control", "private, no-store")'), 'server must not disable the versioned model cache');
 assert(server.includes('cachedModelMatchesAsset(cached, asset)'), 'a scene cache must be rejected when its configured model fingerprint changes');
 assert(server.includes('MODEL_BINDING_CACHE_MISMATCH'), 'a failed replacement must not be disguised as the newly configured model');
+assert(server.includes('MODEL_MEMORY_CACHE_MAX_BYTES'), 'server model buffers must have a byte budget');
+assert(server.includes('MODEL_MEMORY_CACHE_MAX_ENTRIES'), 'server model buffers must have an entry budget');
+assert(server.includes('pruneModelBinaryMemoryCache'), 'server model buffers must be evicted by LRU');
+assert(server.includes('[...modelBinaryCache.keys()]'), 'scheduled refresh must inspect only resident models');
+assert(!server.includes('Promise.all(MODEL_SHOWCASE_SCENE_IDS.map'), 'scheduled refresh must not load every persisted model into memory');
 
-console.log('MODEL_LOADING_OPTIMIZATION_VERIFY_OK abort=enabled sharedProgress=enabled duplicateFetch=guarded phases=3 browserCache=immutable memoryCache=3 bindingCache=validated');
+console.log('MODEL_LOADING_OPTIMIZATION_VERIFY_OK abort=enabled sharedProgress=enabled duplicateFetch=guarded phases=3 browserCache=immutable browserBuffers=1 serverLru=bounded autoRetry=2 bindingCache=validated');

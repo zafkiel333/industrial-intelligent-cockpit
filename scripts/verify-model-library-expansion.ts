@@ -12,11 +12,15 @@ function flatten(items: MenuItem[]): MenuItem[] {
   return items.flatMap((item) => [item, ...flatten(item.children || [])]);
 }
 
-assert(PAGE_MODEL_BINDINGS.length === 99, `expected 99 bindings, got ${PAGE_MODEL_BINDINGS.length}`);
-assert(new Set(PAGE_MODEL_BINDINGS.map((item) => item.viewId)).size === 99, 'viewId must be unique');
-assert(new Set(PAGE_MODEL_BINDINGS.map((item) => item.modelId)).size === 99, 'modelId must be unique');
+assert(PAGE_MODEL_BINDINGS.length === 102, `expected 102 bindings, got ${PAGE_MODEL_BINDINGS.length}`);
+assert(new Set(PAGE_MODEL_BINDINGS.map((item) => item.viewId)).size === 102, 'viewId must be unique');
+assert(new Set(PAGE_MODEL_BINDINGS.map((item) => item.modelId)).size === 102, 'modelId must be unique');
 assert(!PAGE_MODEL_BINDINGS.some((item) => item.viewId === 'eq-18'), 'eq-18 must never be model-enabled');
 assert(PAGE_MODEL_BINDINGS.some((item) => item.viewId === 'eq-unit1-model' && item.modelId === 6691), 'independent unit-1 model page is missing');
+assert(PAGE_MODEL_BINDINGS.some((item) => item.viewId === 'eq-0' && item.modelId === 2363), 'invalid eq-0 model replacement is missing');
+assert(PAGE_MODEL_BINDINGS.some((item) => item.viewId === 'eq-15' && item.modelId === 8741), 'crusher model page is missing');
+assert(PAGE_MODEL_BINDINGS.some((item) => item.viewId === 'eq-16' && item.modelId === 8736), 'mineral processing model page is missing');
+assert(PAGE_MODEL_BINDINGS.some((item) => item.viewId === 'eq-17' && item.modelId === 8740), 'sand screening model page is missing');
 assert(PAGE_MODEL_BINDINGS.every((item) => Number.parseFloat(item.fileSize) <= 50), 'a selected model exceeds the 50 MiB BFF limit');
 
 const modelEnabledPageFrameSource = readFileSync('components/remote-model-showcase/ModelEnabledPageFrame.tsx', 'utf8');
@@ -32,7 +36,7 @@ const allItems = flatten(MENU_ITEMS);
 const allIds = new Set(allItems.map((item) => item.id));
 PAGE_MODEL_BINDINGS.forEach((binding) => assert(allIds.has(binding.viewId), `menu page missing: ${binding.viewId}`));
 
-assert(Object.keys(MODEL_SHOWCASE_CATALOG).length === 103, 'catalog must include 99 expanded pages plus 4 existing samples');
+assert(Object.keys(MODEL_SHOWCASE_CATALOG).length === 106, 'catalog must include 102 expanded pages plus 4 existing samples');
 PAGE_MODEL_BINDINGS.forEach((binding) => {
   assert(MODEL_SHOWCASE_CATALOG[binding.viewId]?.modelId === binding.modelId, `catalog model mismatch: ${binding.viewId}`);
 });

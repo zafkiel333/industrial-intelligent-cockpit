@@ -897,7 +897,7 @@ export const MAINTENANCE_TRAINING_CHILDREN: MenuItem[] = [
 // 2026-08-27 新增：接入主项目模型库的页面在各栏目中前置；未列出的页面保持原相对顺序。
 // 两个硬约束：仿真前四页固定；eq-18 固定在智能运维第 19 位，独立模型页紧随其后。
 export const MODEL_ENABLED_CHILD_ORDER: Partial<Record<string, readonly string[]>> = {
-  'smart-ops': ['eq-0', 'eq-1', 'eq-2', 'eq-3', 'eq-4', 'eq-5', 'eq-7', 'eq-8', 'eq-9', 'eq-10', 'eq-12', 'eq-14', 'eq-6', 'eq-11', 'eq-13', 'eq-15', 'eq-16', 'eq-17', 'eq-18', 'eq-unit1-model'],
+  'smart-ops': ['eq-0', 'eq-1', 'eq-2', 'eq-3', 'eq-4', 'eq-5', 'eq-7', 'eq-8', 'eq-9', 'eq-10', 'eq-12', 'eq-14', 'eq-15', 'eq-16', 'eq-17', 'eq-6', 'eq-11', 'eq-13', 'eq-18', 'eq-unit1-model'],
   cockpit: ['cp-dam-safety', 'cp-ocean-fleet'],
   'index-analysis': ['ia-turbine-wear', 'ia-ship-eeoi', 'ia-ship-cii'],
   'digital-delivery': ['dd-hydro-bim', 'dd-ship-lifecycle'],
