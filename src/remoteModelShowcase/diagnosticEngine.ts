@@ -36,12 +36,16 @@ export function recordDiagnosticSnapshot(
   mode: RemoteDataMode = 'dashboard',
 ): void {
   if (!Array.isArray(dashboard.bindable_fields) || dashboard.bindable_fields.length === 0) return;
+  const numericFields = dashboard.bindable_fields.filter((field) => (
+    typeof field.value === 'number' && Number.isFinite(field.value)
+  ));
+  if (numericFields.length === 0) return;
 
   const history = histories.get(sceneId) ?? [];
   history.push({
     timestamp: Date.now(),
     mode,
-    fields: dashboard.bindable_fields.map((field) => ({ ...field })),
+    fields: numericFields.map((field) => ({ ...field })),
   });
   if (history.length > HISTORY_LIMIT) history.splice(0, history.length - HISTORY_LIMIT);
   histories.set(sceneId, history);
@@ -173,7 +177,7 @@ export function runDiagnosis(sceneId: ModelShowcaseSceneId): DiagnosisResult | n
     const evidence = profileAnalyses
       .sort((a, b) => b.risk - a.risk)
       .slice(0, 3)
-      .map((item) => `${item.field.label} ${item.field.value.toFixed(2)} ${item.field.unit}（风险贡献 ${Math.round(item.risk)}%）`);
+      .map((item) => `${item.field.label} ${finite(item.field.value, finite(item.field.base_value)).toFixed(2)} ${item.field.unit}（风险贡献 ${Math.round(item.risk)}%）`);
     return {
       faultCode: profile.code,
       faultName: profile.name,

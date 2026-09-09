@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {buildDataTimeline,referencePercent,splitTimelineSegments} from '../src/remoteModelShowcase/dataTimeline';
+const field={field:'temperature',label:'温度',unit:'°C',normalMin:10,normalMax:20,decimals:1};
+const records=Array.from({length:8},(_,i)=>({timestamp:new Date(Date.UTC(2026,8,7,0,i)).toISOString(),device_id:'A',batch_id:'one',quality:'good' as const,values:{temperature:15+i/10}}));
+const forecasts=[{field:'temperature',timestamp:new Date(Date.UTC(2026,8,7,0,8)).toISOString(),predicted:16,lower:15,upper:17}];
+const a=buildDataTimeline(records,[field],'A','one',60,forecasts,'未来 1 分钟');assert.equal(a.history.length,8);assert.equal(a.forecasts.length,1);assert(Date.parse(a.forecasts[0].timestamp)>Date.parse(a.forecastOrigin!));
+assert.equal(buildDataTimeline(records,[field],'B',null,60,forecasts,'').forecasts.length,0);
+assert.equal(buildDataTimeline(records,[field],'A','other',60,forecasts,'').history.length,0);
+assert.equal(buildDataTimeline(records.slice(0,5),[field],'A',null,60,forecasts,'').forecasts.length,0);
+const bad=[...records.slice(0,-1),{...records[7],quality:'bad' as const}];assert.equal(buildDataTimeline(bad,[field],'A',null,60,forecasts,'').forecasts.length,0);
+const sparse=records.map((r,i)=>({...r,timestamp:new Date(Date.UTC(2026,8,7,0,i*10)).toISOString()}));assert.equal(buildDataTimeline(sparse,[field],'A',null,60,[],'').observedIntervalSeconds,600);
+assert.equal(referencePercent(10,field),0);assert.equal(referencePercent(20,field),100);assert.equal(referencePercent(25,field),150);
+const split=splitTimelineSegments([{time:0,value:1},{time:60,value:2},{time:120,value:null},{time:180,value:3},{time:1000,value:4}],90);assert.deepEqual(split.map(s=>s.length),[2,1,1]);
+const big=Array.from({length:300},(_,i)=>({...records[0],timestamp:new Date(Date.UTC(2026,8,7,0,i)).toISOString()}));const cap=buildDataTimeline(big,[field],'A',null,60,[],'');assert.equal(cap.totalRecords,300);assert.equal(cap.displayedRecords,240);
+console.log('DATA_TIMELINE_VERIFY_OK scope=ok forecastBoundary=ok insufficientData=ok badQuality=ok gaps=ok normalization=ok window=240');

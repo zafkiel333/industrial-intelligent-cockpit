@@ -43,7 +43,7 @@ export const ProjectConnectionMap: React.FC<ProjectConnectionMapProps> = ({
           <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-slate-200">
             <Cable size={14} className="text-cyan-400" />设备数字孪生资源协同
           </div>
-          <div className="mt-1 text-[10px] text-slate-500">汇聚设备三维模型与运行数据，支撑仿真监测、健康评估和故障预警</div>
+          <div className="mt-1 text-[10px] text-slate-500">汇聚设备三维模型与运行数据，支撑运行监测、健康评估和故障预警</div>
         </div>
         <div className="flex items-center gap-2">
           <ConnectionStatusBadge status={status} />
@@ -96,7 +96,7 @@ export const ProjectConnectionMap: React.FC<ProjectConnectionMapProps> = ({
               <div className="text-[9px] tracking-[0.18em] text-violet-500">业务应用端</div>
               <div className="mt-0.5 text-xs font-semibold text-slate-200">工业智能驾驶舱</div>
               {/* 2026-08-10 新增：标注当前消费场景，明确四个页面共享连接能力但状态相互隔离； */}
-              <div className="mt-1 text-[9px] text-violet-300/70">当前场景：{modelName}仿真监测</div>
+              <div className="mt-1 text-[9px] text-violet-300/70">当前场景：{modelName}运行监测</div>
               <div className="mt-1 text-[10px] leading-4 text-slate-500">三维可视化 · 运行监测 · 健康评估 · 故障预警 · 分析报告</div>
             </div>
           </div>
@@ -105,7 +105,7 @@ export const ProjectConnectionMap: React.FC<ProjectConnectionMapProps> = ({
 
       {(loading || error) && (
         <div className={`mt-2 text-[10px] ${error ? 'text-amber-300/80' : 'text-slate-600'}`}>
-          {error ? `资源协同状态暂未更新：${error}；当前继续显示上一次结果。` : '正在获取设备资源协同状态…'}
+          {error ? '资源协同状态正在更新，当前业务页面可继续使用。' : '正在获取设备资源协同状态…'}
         </div>
       )}
     </section>

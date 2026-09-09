@@ -26,6 +26,21 @@ assert(server.includes('private, max-age=31536000, immutable'), 'versioned model
 assert(!server.includes('res.setHeader("Cache-Control", "private, no-store")'), 'server must not disable the versioned model cache');
 assert(server.includes('cachedModelMatchesAsset(cached, asset)'), 'a scene cache must be rejected when its configured model fingerprint changes');
 assert(server.includes('MODEL_BINDING_CACHE_MISMATCH'), 'a failed replacement must not be disguised as the newly configured model');
+const servableModelStart = server.indexOf('async function getServableModel');
+const servableModelEnd = server.indexOf('function sendShowcaseError', servableModelStart);
+const servableModelSource = server.slice(servableModelStart, servableModelEnd);
+assert(servableModelSource.includes('cached?.modelId === config.modelId'), 'cached models must be checked against the configured binding');
+assert(
+  servableModelSource.indexOf('return cached;') < servableModelSource.indexOf('resolveModelAsset(sceneId)'),
+  'a valid bound cache must be returned before waiting for upstream metadata',
+);
+assert(server.includes('dashboardRuntimeCache'), 'the last available dashboard must be retained for transient upstream failures');
+assert(server.includes('MODEL_DASHBOARD_TIMEOUT_MS'), 'dashboard loading must use a bounded responsiveness timeout');
+assert(server.includes('modelMetadataRequests'), 'concurrent metadata requests for one scene must be coalesced');
+assert(server.includes('MODEL_METADATA_FAILURE_BACKOFF_MS'), 'recent metadata failures must use a short retry backoff');
+assert(server.includes('MODEL_METADATA_TIMEOUT_MS'), 'metadata loading must use a bounded responsiveness timeout');
+assert(server.includes('process.env.MODEL_DOWNLOAD_TIMEOUT_MS || 20_000'), 'first model download must not block for the previous 60-second retry window');
+assert(server.includes('process.env.MODEL_DOWNLOAD_ATTEMPTS || 1'), 'initial download retries must return control to the viewer between attempts');
 assert(server.includes('MODEL_MEMORY_CACHE_MAX_BYTES'), 'server model buffers must have a byte budget');
 assert(server.includes('MODEL_MEMORY_CACHE_MAX_ENTRIES'), 'server model buffers must have an entry budget');
 assert(server.includes('pruneModelBinaryMemoryCache'), 'server model buffers must be evicted by LRU');

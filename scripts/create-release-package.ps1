@@ -18,6 +18,13 @@ $RequiredSourceFiles = @(
     'server.ts',
     'package.json',
     'package-lock.json',
+    'scripts/run-tsx.mjs',
+    'vendor/xlsx-0.20.3.tgz',
+    'src/remoteModelShowcase/pilotDataService.ts',
+    'src/remoteModelShowcase/assets/NotoSansSC.ttf',
+    'src/remoteModelShowcase/assets/OFL.txt',
+    'src/data/model-showcase/sim-visual-hydro-turbine__model-2326/reference/forecast-validation/manifest.json',
+    'src/data/model-showcase/sim-visual-hydro-turbine__model-2326/reference/forecast-validation/README.md',
     'src/remoteModelShowcase/modelCatalog.ts',
     'src/remoteModelShowcase/diagnosticEngine.ts',
     'src/remoteModelShowcase/connectionRegistry.ts',
@@ -41,7 +48,10 @@ $PackageRoots = @(
     'server.ts',
     'package.json',
     'package-lock.json',
-    'src/remoteModelShowcase'
+    'scripts/run-tsx.mjs',
+    'vendor',
+    'src/remoteModelShowcase',
+    'src/data/model-showcase/sim-visual-hydro-turbine__model-2326/reference/forecast-validation'
 )
 
 & tar.exe -czf $Package @PackageRoots

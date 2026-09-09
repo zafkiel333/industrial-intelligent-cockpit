@@ -22,23 +22,23 @@ import {
 
 // Ship Queue
 const QUEUE_DATA = [
-  { id: 'S-8821', name: 'HUAYUN 05', tons: 1500, status: 'Entering', eta: 'Now' },
-  { id: 'S-8822', name: 'CHANGJ IANG', tons: 2200, status: 'Queue', eta: '15m' },
-  { id: 'S-8823', name: 'GOLDEN STAR', tons: 800, status: 'Queue', eta: '35m' },
-  { id: 'S-8824', name: 'BLUE WHALE', tons: 1800, status: 'Queue', eta: '50m' },
-  { id: 'S-8825', name: 'RIVER KING', tons: 1200, status: 'Scheduled', eta: '1h 20m' },
+  { id: 'S-8821', name: '华运05号', tons: 1500, status: 'Entering', eta: '当前' },
+  { id: 'S-8822', name: '长江号', tons: 2200, status: 'Queue', eta: '15 min' },
+  { id: 'S-8823', name: '金星号', tons: 800, status: 'Queue', eta: '35 min' },
+  { id: 'S-8824', name: '蓝鲸号', tons: 1800, status: 'Queue', eta: '50 min' },
+  { id: 'S-8825', name: '江王号', tons: 1200, status: 'Scheduled', eta: '1 h 20 min' },
 ];
 
 // Transit Time Breakdown (Stacked Bar)
 const TRANSIT_BREAKDOWN = [
-  { stage: 'Entry', time: 5, fill: '#0ea5e9' },
-  { stage: 'Gate Ops', time: 2, fill: '#64748b' },
-  { stage: 'Filling/Emptying', time: 8, fill: '#3b82f6' },
-  { stage: 'Exit', time: 4, fill: '#22c55e' },
+  { stage: '进闸', time: 5, fill: '#0ea5e9' },
+  { stage: '闸门操作', time: 2, fill: '#64748b' },
+  { stage: '充水/泄水', time: 8, fill: '#3b82f6' },
+  { stage: '出闸', time: 4, fill: '#22c55e' },
 ];
 
 // Water Level Cycle
-const LEVEL_CYCLE = Array.from({length: 40}, (_, i) => ({
+const LEVEL_循环 = Array.from({length: 40}, (_, i) => ({
     time: i,
     chamber1: i < 10 ? 7 : i < 20 ? 7 - (i-10)*0.3 : 4,
     chamber2: i < 20 ? 4 : i < 30 ? 4 - (i-20)*0.3 : 1
@@ -86,7 +86,7 @@ export const LockEfficiencyView: React.FC = () => {
       <div className="relative z-10 flex items-end justify-between border-b border-cyan-800/50 pb-4 px-2 bg-gradient-to-r from-cyan-950/80 to-transparent pt-2">
         <div>
           <div className="flex items-center gap-2 text-xs text-cyan-400 mb-1 uppercase tracking-wider">
-             <Lock size={14} className="animate-pulse" /> Hydro-Navigation System
+             <Lock size={14} className="animate-pulse" /> 水运通航系统
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
              闸坝通航 <span className="text-cyan-500">效率指数分析</span>
@@ -96,15 +96,15 @@ export const LockEfficiencyView: React.FC = () => {
         {/* KPI Strip */}
         <div className="flex gap-8">
             <div className="flex flex-col items-end">
-                <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1"><Clock size={10}/> Avg Transit Time</div>
+                <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1"><Clock size={10}/> 平均通航时长</div>
                 <div className="text-2xl font-mono font-bold text-white">{metrics.avgTransitTime.toFixed(1)} <span className="text-sm text-slate-500">min</span></div>
             </div>
             <div className="flex flex-col items-end border-l border-cyan-900/40 pl-6">
-                <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1"><Anchor size={10}/> Daily Throughput</div>
+                <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1"><Anchor size={10}/> 每日吞吐量</div>
                 <div className="text-2xl font-mono font-bold text-cyan-300">{(metrics.dailyTonnage/1000).toFixed(1)}k <span className="text-sm text-slate-500">t</span></div>
             </div>
             <div className="flex flex-col items-end border-l border-cyan-900/40 pl-6">
-                <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1"><Activity size={10}/> Efficiency Index</div>
+                <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1"><Activity size={10}/> 效率指数</div>
                 <div className="text-2xl font-mono font-bold text-green-400">{metrics.efficiencyScore.toFixed(1)}</div>
             </div>
         </div>
@@ -116,7 +116,7 @@ export const LockEfficiencyView: React.FC = () => {
           {/* LEFT: Queue (Input Stream) */}
           <div className="w-full lg:w-1/4 flex flex-col gap-5">
               
-              <SciFiCard title="待闸船舶队列 (Arrivals)" subtitle="REAL-TIME" className="flex-1 border-cyan-900/50 bg-[#081218]/80">
+              <SciFiCard title="待闸船舶队列" subtitle="实时数据" className="flex-1 border-cyan-900/50 bg-[#081218]/80">
                   <div className="flex flex-col gap-2 h-full overflow-y-auto pr-1 custom-scrollbar">
                       {QUEUE_DATA.map((ship, i) => (
                           <div key={i} className="flex items-center justify-between p-3 rounded border border-slate-800 bg-slate-900/40 hover:border-cyan-500/30 transition-colors group">
@@ -134,7 +134,7 @@ export const LockEfficiencyView: React.FC = () => {
                                       ${ship.status === 'Entering' ? 'bg-green-900/30 text-green-400' : 
                                         ship.status === 'Queue' ? 'bg-yellow-900/30 text-yellow-400' : 'bg-slate-800 text-slate-400'}
                                   `}>
-                                      {ship.status}
+                                      {{Entering:'进闸中',Queue:'排队中',Scheduled:'已安排'}[ship.status] || ship.status}
                                   </div>
                                   <div className="text-[9px] text-slate-500 mt-1">{ship.eta}</div>
                               </div>
@@ -142,20 +142,20 @@ export const LockEfficiencyView: React.FC = () => {
                       ))}
                       
                       <div className="mt-auto pt-2 border-t border-slate-800 text-center text-[10px] text-slate-500">
-                          Total Queue: 12 Vessels | Est. Wait: 45 min
+                          排队船舶：12 艘｜预计等待：45 min
                       </div>
                   </div>
               </SciFiCard>
 
-              <SciFiCard title="水资源利用率" subtitle="SAVINGS" className="h-[200px] border-cyan-900/50">
+              <SciFiCard title="水资源利用率" subtitle="节水量" className="h-[200px] border-cyan-900/50">
                   <div className="flex flex-col h-full justify-center items-center gap-4">
                       <div className="relative w-32 h-32">
                           <ResponsiveContainer width="100%" height="100%">
                               <PieChart>
                                   <Pie
                                     data={[
-                                        { name: 'Used', value: 100 - metrics.waterSaved, fill: '#334155' },
-                                        { name: 'Saved', value: metrics.waterSaved, fill: '#0ea5e9' }
+                                        { name: '已用水量', value: 100 - metrics.waterSaved, fill: '#334155' },
+                                        { name: '节约水量', value: metrics.waterSaved, fill: '#0ea5e9' }
                                     ]}
                                     innerRadius={30}
                                     outerRadius={45}
@@ -171,11 +171,11 @@ export const LockEfficiencyView: React.FC = () => {
                           </ResponsiveContainer>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
                               <span className="text-2xl font-bold text-cyan-400">{metrics.waterSaved.toFixed(1)}%</span>
-                              <span className="text-[8px] text-slate-500 uppercase">Recycled</span>
+                              <span className="text-[8px] text-slate-500 uppercase">循环利用</span>
                           </div>
                       </div>
                       <div className="text-xs text-slate-400 flex items-center gap-2">
-                          <Droplets size={12} className="text-cyan-500" /> Pump-back System Active
+                          <Droplets size={12} className="text-cyan-500" /> 回水系统运行中
                       </div>
                   </div>
               </SciFiCard>
@@ -193,8 +193,8 @@ export const LockEfficiencyView: React.FC = () => {
                       <div className="bg-black/60 backdrop-blur border border-cyan-500/30 px-3 py-2 rounded flex items-center gap-3">
                           <Layers size={16} className="text-cyan-400" />
                           <div>
-                              <div className="text-[10px] text-slate-400 uppercase">Chamber Levels</div>
-                              <div className="text-sm font-bold text-white font-mono">HIGH <span className="text-slate-500">→</span> MID <span className="text-slate-500">→</span> LOW</div>
+                              <div className="text-[10px] text-slate-400 uppercase">闸室水位</div>
+                              <div className="text-sm font-bold text-white font-mono">高 <span className="text-slate-500">→</span> 中 <span className="text-slate-500">→</span> 低</div>
                           </div>
                       </div>
                   </div>
@@ -202,13 +202,13 @@ export const LockEfficiencyView: React.FC = () => {
                   {/* Flow Animation Overlay */}
                   <div className="absolute bottom-8 right-8 z-20 w-48">
                       <div className="bg-black/60 backdrop-blur p-2 rounded border border-cyan-900">
-                          <div className="text-[10px] text-slate-400 mb-1">Water Cycle Phase</div>
+                          <div className="text-[10px] text-slate-400 mb-1">充泄水阶段</div>
                           <div className="w-full h-1 bg-slate-800 rounded overflow-hidden">
                               <div className="h-full bg-cyan-500 animate-[loading_4s_linear_infinite]" style={{width: '30%'}}></div>
                           </div>
                           <div className="flex justify-between text-[8px] text-slate-500 mt-1">
-                              <span>Fill</span>
-                              <span>Empty</span>
+                              <span>充水</span>
+                              <span>泄水</span>
                           </div>
                       </div>
                   </div>
@@ -220,10 +220,10 @@ export const LockEfficiencyView: React.FC = () => {
               </div>
 
               {/* Water Level Chart */}
-              <SciFiCard title="闸室水位动态曲线" subtitle="CYCLE" className="h-[220px] border-cyan-900/50" noPadding>
+              <SciFiCard title="闸室水位动态曲线" subtitle="循环" className="h-[220px] border-cyan-900/50" noPadding>
                   <div className="w-full h-full p-2">
                       <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={LEVEL_CYCLE}>
+                          <AreaChart data={LEVEL_循环}>
                               <defs>
                                   <linearGradient id="lvlC1" x1="0" y1="0" x2="0" y2="1">
                                       <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3}/>
@@ -239,8 +239,8 @@ export const LockEfficiencyView: React.FC = () => {
                               <YAxis stroke="#64748b" tick={{fontSize: 10}} domain={[0, 8]} />
                               <Tooltip contentStyle={{backgroundColor: '#020610', borderColor: '#0ea5e9', color: '#fff'}} />
                               <Legend verticalAlign="top" height={36} wrapperStyle={{fontSize: '10px'}}/>
-                              <Area type="step" dataKey="chamber1" name="Chamber 1 (High)" stroke="#0ea5e9" fill="url(#lvlC1)" strokeWidth={2} />
-                              <Area type="step" dataKey="chamber2" name="Chamber 2 (Low)" stroke="#3b82f6" fill="url(#lvlC2)" strokeWidth={2} />
+                              <Area type="step" dataKey="chamber1" name="闸室1（高水位）" stroke="#0ea5e9" fill="url(#lvlC1)" strokeWidth={2} />
+                              <Area type="step" dataKey="chamber2" name="闸室2（低水位）" stroke="#3b82f6" fill="url(#lvlC2)" strokeWidth={2} />
                           </AreaChart>
                       </ResponsiveContainer>
                   </div>
@@ -252,7 +252,7 @@ export const LockEfficiencyView: React.FC = () => {
           <div className="w-full lg:w-1/4 flex flex-col gap-5">
               
               {/* Transit Time Analysis */}
-              <SciFiCard title="通航耗时分解" subtitle="MINUTES" className="h-[280px] border-cyan-900/50">
+              <SciFiCard title="通航耗时分解" subtitle="分钟" className="h-[280px] border-cyan-900/50">
                   <div className="w-full h-full flex flex-col">
                       <div className="flex-1">
                           <ResponsiveContainer width="100%" height="100%">
@@ -261,7 +261,7 @@ export const LockEfficiencyView: React.FC = () => {
                                   <XAxis type="number" stroke="#64748b" tick={{fontSize: 10}} />
                                   <YAxis dataKey="stage" type="category" stroke="#94a3b8" width={80} tick={{fontSize: 10}} />
                                   <Tooltip cursor={{fill: '#1e293b'}} contentStyle={{backgroundColor: '#020610', borderColor: '#0ea5e9'}} />
-                                  <Bar dataKey="time" radius={[0, 4, 4, 0]} barSize={20}>
+                                  <Bar name="耗时" dataKey="time" radius={[0, 4, 4, 0]} barSize={20}>
                                       {TRANSIT_BREAKDOWN.map((entry, index) => (
                                           <Cell key={`cell-${index}`} fill={entry.fill} />
                                       ))}
@@ -270,13 +270,13 @@ export const LockEfficiencyView: React.FC = () => {
                           </ResponsiveContainer>
                       </div>
                       <div className="text-center text-xs text-slate-400 mt-2">
-                          Filling/Emptying is the critical path.
+                          充水/泄水是耗时控制的关键环节。
                       </div>
                   </div>
               </SciFiCard>
 
               {/* Tonnage Trend */}
-              <SciFiCard title="过闸吨位趋势" subtitle="24H" className="h-[200px] border-cyan-900/50" noPadding>
+              <SciFiCard title="过闸吨位趋势" subtitle="近24小时" className="h-[200px] border-cyan-900/50" noPadding>
                   <div className="w-full h-full p-2">
                       <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={TONNAGE_TREND}>
@@ -284,14 +284,14 @@ export const LockEfficiencyView: React.FC = () => {
                               <XAxis dataKey="hour" stroke="#64748b" tick={{fontSize: 10}} interval={2} />
                               <YAxis stroke="#64748b" tick={{fontSize: 10}} />
                               <Tooltip contentStyle={{backgroundColor: '#020610', borderColor: '#0ea5e9'}} />
-                              <Line type="monotone" dataKey="tonnage" stroke="#facc15" strokeWidth={2} dot={false} />
+                              <Line name="过闸吨位" type="monotone" dataKey="tonnage" stroke="#facc15" strokeWidth={2} dot={false} />
                           </LineChart>
                       </ResponsiveContainer>
                   </div>
               </SciFiCard>
 
               {/* Dispatch Console */}
-              <SciFiCard title="调度策略控制台" subtitle="ALGORITHM" className="flex-1 border-cyan-900/50">
+              <SciFiCard title="调度策略控制台" subtitle="调度策略" className="flex-1 border-cyan-900/50">
                   <div className="flex flex-col gap-3 h-full justify-center">
                       
                       <button 
@@ -300,7 +300,7 @@ export const LockEfficiencyView: React.FC = () => {
                       >
                           <div className="flex items-center gap-2">
                               <FastForward size={16} />
-                              <span className="text-xs font-bold">Max Throughput</span>
+                              <span className="text-xs font-bold">最大吞吐量</span>
                           </div>
                           {strategy === 'MAX_THROUGHPUT' && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
                       </button>
@@ -311,7 +311,7 @@ export const LockEfficiencyView: React.FC = () => {
                       >
                           <div className="flex items-center gap-2">
                               <Clock size={16} />
-                              <span className="text-xs font-bold">First Come First Serve</span>
+                              <span className="text-xs font-bold">先到先服务</span>
                           </div>
                           {strategy === 'FCFS' && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
                       </button>
@@ -322,7 +322,7 @@ export const LockEfficiencyView: React.FC = () => {
                       >
                           <div className="flex items-center gap-2">
                               <Droplets size={16} />
-                              <span className="text-xs font-bold">Water Conservation</span>
+                              <span className="text-xs font-bold">优先节水</span>
                           </div>
                           {strategy === 'WATER_SAVE' && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
                       </button>

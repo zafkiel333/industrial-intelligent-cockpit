@@ -5,7 +5,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { createHash } from "crypto";
-import xlsx from "xlsx";
+import * as xlsx from "xlsx";
 // 2026-08-09 新增：引入外部模型场景白名单、诊断引擎及共享数据类型；
 import {
   getModelShowcaseConfig,
@@ -22,6 +22,7 @@ import {
   recordConnectionFailure,
   recordConnectionSuccess,
 } from "./src/remoteModelShowcase/connectionRegistry";
+import { registerPilotDataRoutes } from "./src/remoteModelShowcase/pilotDataService";
 import type {
   ModelConnectionChannel,
   ModelRefreshStatus,
@@ -30,6 +31,8 @@ import type {
   RemoteDataMode,
   RemoteScenarioType,
 } from "./src/remoteModelShowcase/types";
+
+xlsx.set_fs(fs);
 
 const app = express();
 // 2026-08-17 调整：生产环境默认只监听回环地址，并允许部署配置覆盖。
@@ -463,9 +466,24 @@ app.get("/api/scenarios/:scenarioId/data", (req, res) => {
 const VISUAL_MODEL_API_BASE_URL = (process.env.VISUAL_MODEL_API_BASE_URL
   || "https://8.146.211.204:3100/three-model-api").replace(/\/$/, "");
 const MODEL_METADATA_TTL_MS = 5 * 60 * 1000;
+const MODEL_METADATA_FAILURE_BACKOFF_MS = 8_000;
+const configuredMetadataTimeoutMs = Number(process.env.MODEL_METADATA_TIMEOUT_MS || 4_500);
+const MODEL_METADATA_TIMEOUT_MS = Number.isFinite(configuredMetadataTimeoutMs)
+  ? Math.min(10_000, Math.max(2_000, configuredMetadataTimeoutMs))
+  : 4_500;
 const MAX_MODEL_FILE_BYTES = 50 * 1024 * 1024;
-const MODEL_DOWNLOAD_TIMEOUT_MS = 30_000;
-const MODEL_DOWNLOAD_ATTEMPTS = 2;
+const configuredModelDownloadTimeoutMs = Number(process.env.MODEL_DOWNLOAD_TIMEOUT_MS || 20_000);
+const MODEL_DOWNLOAD_TIMEOUT_MS = Number.isFinite(configuredModelDownloadTimeoutMs)
+  ? Math.min(60_000, Math.max(10_000, configuredModelDownloadTimeoutMs))
+  : 20_000;
+const configuredModelDownloadAttempts = Number(process.env.MODEL_DOWNLOAD_ATTEMPTS || 1);
+const MODEL_DOWNLOAD_ATTEMPTS = Number.isFinite(configuredModelDownloadAttempts)
+  ? Math.min(2, Math.max(1, Math.floor(configuredModelDownloadAttempts)))
+  : 1;
+const configuredDashboardTimeoutMs = Number(process.env.MODEL_DASHBOARD_TIMEOUT_MS || 4_500);
+const MODEL_DASHBOARD_TIMEOUT_MS = Number.isFinite(configuredDashboardTimeoutMs)
+  ? Math.min(10_000, Math.max(2_000, configuredDashboardTimeoutMs))
+  : 4_500;
 // 2026-08-12 新增：模型默认每 36 小时检查一次，可通过环境变量在 24～48 小时内调整；
 const configuredModelRefreshHours = Number(
   process.env.MODEL_BINARY_REFRESH_HOURS || process.env.MODEL_REFRESH_INTERVAL_HOURS || 36,
@@ -523,6 +541,7 @@ interface ResolvedModelAsset {
 }
 
 interface CachedModelBinary {
+  modelId?: number;
   buffer: Buffer;
   contentType: string;
   fileName: string;
@@ -539,6 +558,7 @@ interface CachedModelBinary {
 }
 
 interface PersistedModelManifest {
+  modelId?: number;
   schemaVersion: 1;
   sceneId: ModelShowcaseSceneId;
   binaryFile: string;
@@ -589,7 +609,10 @@ class UpstreamApiError extends Error {
 }
 
 const modelMetadataCache = new Map<ModelShowcaseSceneId, { expiresAt: number; asset: ResolvedModelAsset }>();
+const modelMetadataRequests = new Map<ModelShowcaseSceneId, Promise<ResolvedModelAsset>>();
+const modelMetadataFailures = new Map<ModelShowcaseSceneId, { retryAt: number; error: unknown }>();
 const modelBinaryCache = new Map<ModelShowcaseSceneId, CachedModelBinary>();
+const dashboardRuntimeCache = new Map<ModelShowcaseSceneId, RemoteDashboardData>();
 const modelBinaryLastAccessedAt = new Map<ModelShowcaseSceneId, number>();
 const modelRefreshRequests = new Map<ModelShowcaseSceneId, Promise<ModelRefreshOperationResult>>();
 const modelPersistenceRequests = new Map<ModelShowcaseSceneId, Promise<void>>();
@@ -672,8 +695,8 @@ async function fetchUpstreamJson<T>(
     const normalized = error instanceof UpstreamApiError
       ? error
       : error instanceof Error && error.name === "AbortError"
-        ? new UpstreamApiError("Remote model API request timed out", 504, "UPSTREAM_TIMEOUT")
-        : new UpstreamApiError("Remote model API is temporarily unavailable");
+        ? new UpstreamApiError("远端模型数据接口请求超时", 504, "UPSTREAM_TIMEOUT")
+        : new UpstreamApiError("远端模型数据接口暂时不可用");
     if (observation) {
       recordConnectionFailure(observation.sceneId, observation.channel, {
         latencyMs: Date.now() - startedAt,
@@ -739,43 +762,82 @@ async function resolveModelAsset(sceneId: ModelShowcaseSceneId, forceRefresh = f
     recordConnectionCacheHit(sceneId, "metadata");
     return cached.asset;
   }
+  const pending = modelMetadataRequests.get(sceneId);
+  if (pending) return pending;
+  const recentFailure = modelMetadataFailures.get(sceneId);
+  if (!forceRefresh && recentFailure && recentFailure.retryAt > Date.now()) throw recentFailure.error;
 
-  const config = getModelShowcaseConfig(sceneId)!;
-  const metadata = await fetchUpstreamJson<UpstreamModelMetadata>(
-    `/api/v1/three-model/models?model_id=${config.modelId}`,
-    undefined,
-    10_000,
-    { sceneId, channel: "metadata" },
-  );
-  let files = Array.isArray(metadata.model_file) ? metadata.model_file : [];
-  if (files.length === 0) {
-    const result = await fetchUpstreamJson<{ file_list?: UpstreamModelFile[] }>(
-      `/api/v1/three-model/models/files?model_id=${config.modelId}`,
+  const request = (async () => {
+    const config = getModelShowcaseConfig(sceneId)!;
+    const metadata = await fetchUpstreamJson<UpstreamModelMetadata>(
+      `/api/v1/three-model/models?model_id=${config.modelId}`,
       undefined,
-      10_000,
+      MODEL_METADATA_TIMEOUT_MS,
       { sceneId, channel: "metadata" },
     );
-    files = Array.isArray(result.file_list) ? result.file_list : [];
+    let files = Array.isArray(metadata.model_file) ? metadata.model_file : [];
+    if (files.length === 0) {
+      const result = await fetchUpstreamJson<{ file_list?: UpstreamModelFile[] }>(
+        `/api/v1/three-model/models/files?model_id=${config.modelId}`,
+        undefined,
+        MODEL_METADATA_TIMEOUT_MS,
+        { sceneId, channel: "metadata" },
+      );
+      files = Array.isArray(result.file_list) ? result.file_list : [];
+    }
+    const selected = chooseModelFile(files);
+    const asset = {
+      metadata,
+      ...selected,
+      fingerprint: createAssetFingerprint(metadata, selected.file),
+    };
+    modelMetadataCache.set(sceneId, { expiresAt: Date.now() + MODEL_METADATA_TTL_MS, asset });
+    modelMetadataFailures.delete(sceneId);
+    return asset;
+  })();
+  modelMetadataRequests.set(sceneId, request);
+  try {
+    return await request;
+  } catch (error) {
+    modelMetadataFailures.set(sceneId, { retryAt: Date.now() + MODEL_METADATA_FAILURE_BACKOFF_MS, error });
+    throw error;
+  } finally {
+    if (modelMetadataRequests.get(sceneId) === request) modelMetadataRequests.delete(sceneId);
   }
-  const selected = chooseModelFile(files);
-  const asset = {
-    metadata,
-    ...selected,
-    fingerprint: createAssetFingerprint(metadata, selected.file),
-  };
-  modelMetadataCache.set(sceneId, { expiresAt: Date.now() + MODEL_METADATA_TTL_MS, asset });
-  return asset;
 }
 
 async function fetchDashboard(sceneId: ModelShowcaseSceneId): Promise<RemoteDashboardData> {
   const modelId = getModelShowcaseConfig(sceneId)!.modelId;
   // 2026-08-10 调整：Dashboard 请求同步写入跨项目连接通道状态；
-  return fetchUpstreamJson<RemoteDashboardData>(
+  const dashboard = await fetchUpstreamJson<RemoteDashboardData>(
     `/api/visual-models/${modelId}/dashboard`,
     undefined,
-    10_000,
+    MODEL_DASHBOARD_TIMEOUT_MS,
     { sceneId, channel: "dashboard" },
   );
+  dashboardRuntimeCache.set(sceneId, dashboard);
+  return dashboard;
+}
+
+function dashboardFallback(sceneId: ModelShowcaseSceneId): RemoteDashboardData {
+  const cached = dashboardRuntimeCache.get(sceneId);
+  if (cached) {
+    return {
+      ...cached,
+      unavailableReason: "运行数据正在同步；当前展示最近一次可用数据",
+      twin_status: {
+        ...cached.twin_status,
+        status: "运行数据同步中",
+      },
+    };
+  }
+  const config = getModelShowcaseConfig(sceneId)!;
+  return {
+    unavailableReason: "运行数据正在同步；三维模型与已存储的业务数据可正常查看",
+    twin_status: { status: "运行数据同步中", data_points: "0", data_source: "实时数据接口" },
+    equipment: { name: config.expectedRemoteName, status: "等待数据更新" },
+    bindable_fields: [],
+  };
 }
 
 function assertModelFile(format: ResolvedModelAsset["format"], buffer: Buffer): void {
@@ -873,6 +935,9 @@ async function ensurePersistedModelLoaded(sceneId: ModelShowcaseSceneId): Promis
       if (manifest.schemaVersion !== 1 || manifest.sceneId !== sceneId || path.basename(manifest.binaryFile) !== manifest.binaryFile) {
         throw new Error("Model cache manifest is invalid");
       }
+      if (manifest.modelId !== undefined && manifest.modelId !== getModelShowcaseConfig(sceneId)!.modelId) {
+        throw new Error("Persisted model binding does not match the configured model");
+      }
       const binaryPath = path.join(MODEL_CACHE_DIRECTORY, manifest.binaryFile);
       const buffer = await fs.promises.readFile(binaryPath);
       if (buffer.byteLength > MAX_MODEL_FILE_BYTES || buffer.byteLength !== manifest.fileSize) {
@@ -882,6 +947,7 @@ async function ensurePersistedModelLoaded(sceneId: ModelShowcaseSceneId): Promis
       const contentHash = createHash("sha256").update(buffer).digest("hex");
       if (contentHash !== manifest.contentHash) throw new Error("Persisted model hash verification failed");
       rememberModelBinary(sceneId, {
+        modelId: manifest.modelId,
         buffer,
         contentType: manifest.contentType,
         fileName: manifest.fileName,
@@ -923,6 +989,7 @@ async function persistModelBinary(sceneId: ModelShowcaseSceneId, model: CachedMo
     await fs.promises.rename(temporaryBinaryPath, binaryPath);
   }
   const manifest: PersistedModelManifest = {
+    modelId: model.modelId,
     schemaVersion: 1,
     sceneId,
     binaryFile,
@@ -1047,6 +1114,7 @@ async function refreshModelBinary(
             version: contentHash.slice(0, 16),
             persistent: false,
           };
+      model.modelId = getModelShowcaseConfig(sceneId)!.modelId;
       let persistenceError: string | null = null;
       try {
         await persistModelBinary(sceneId, model);
@@ -1119,9 +1187,23 @@ async function refreshModelBinary(
 // 2026-08-12 新增：请求优先返回当前可用模型，到期检查在后台进行，避免等待期间出现空白视窗；
 async function getServableModel(sceneId: ModelShowcaseSceneId): Promise<CachedModelBinary> {
   await ensurePersistedModelLoaded(sceneId);
-  const asset = await resolveModelAsset(sceneId);
   const cached = touchModelBinary(sceneId);
+  const config = getModelShowcaseConfig(sceneId)!;
+  if (cached?.modelId === config.modelId) {
+    recordConnectionCacheHit(sceneId, "modelBinary", { bytes: cached.buffer.byteLength });
+    if (Date.now() >= cached.nextRefreshAt && !modelRefreshRequests.has(sceneId)) {
+      void refreshModelBinary(sceneId, "scheduled");
+    }
+    return cached;
+  }
+  const asset = await resolveModelAsset(sceneId).catch((error) => {
+    throw error;
+  });
   if (cached && cachedModelMatchesAsset(cached, asset)) {
+    cached.modelId = config.modelId;
+    void persistModelBinary(sceneId, cached).catch((error) => {
+      console.error(`[model-showcase] failed to upgrade cached model binding for ${sceneId}:`, error);
+    });
     recordConnectionCacheHit(sceneId, "modelBinary", { bytes: cached.buffer.byteLength });
     if (Date.now() >= cached.nextRefreshAt && !modelRefreshRequests.has(sceneId)) {
       void refreshModelBinary(sceneId, "scheduled");
@@ -1143,10 +1225,17 @@ function sendShowcaseError(res: express.Response, error: unknown): void {
     res.destroy(error instanceof Error ? error : undefined);
     return;
   }
+  const publicMessage = normalized.code === "SCENE_NOT_FOUND"
+    ? "未找到对应的设备场景。"
+    : normalized.code === "INVALID_SCENARIO"
+      ? "当前工况指令无效。"
+      : normalized.code.startsWith("MODEL_")
+        ? "三维模型资源正在准备，请稍后重试。"
+        : "当前服务正在恢复，请稍后重试。";
   res.status(normalized.status).json({
     error: {
       code: normalized.code,
-      message: normalized.message,
+      message: publicMessage,
       retryable: normalized.retryable,
     },
   });
@@ -1169,17 +1258,19 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
   // 2026-08-12 新增：初始化页面前先恢复持久模型状态，避免服务重启后丢失最后可用版本；
   await ensurePersistedModelLoaded(sceneId);
   let restoredModel = touchModelBinary(sceneId);
+  const hasBoundCachedModel = restoredModel?.modelId === config.modelId;
+  const knownAsset = modelMetadataCache.get(sceneId)?.asset ?? null;
+  if (hasBoundCachedModel && !knownAsset) {
+    void resolveModelAsset(sceneId).catch(() => undefined);
+  }
   const [asset, dashboard] = await Promise.all([
-    resolveModelAsset(sceneId).catch((error) => {
-      // 2026-08-12 新增：模型元数据库异常但已有持久版本时，允许页面继续使用最后成功模型初始化；
-      if (restoredModel) return null;
-      throw error;
-    }),
-    fetchDashboard(sceneId),
+    // 三维资源异常只影响视窗；已存实测、预测和文件管理仍需进入页面。
+    hasBoundCachedModel ? Promise.resolve(knownAsset) : resolveModelAsset(sceneId).catch(() => null),
+    fetchDashboard(sceneId).catch(() => dashboardFallback(sceneId)),
   ]);
   // 2026-08-28 修复：页面改绑模型 ID 后，sceneId 对应的旧持久缓存不能继续作为当前资源返回。
   // 配置指纹不一致时同步取得新模型；若新模型不可用则明确报错，不能把旧模型伪装成新模型。
-  if (asset && restoredModel && !cachedModelMatchesAsset(restoredModel, asset)) {
+  if (!hasBoundCachedModel && asset && restoredModel && !cachedModelMatchesAsset(restoredModel, asset)) {
     const refreshResult = await refreshModelBinary(sceneId, "initial");
     restoredModel = touchModelBinary(sceneId);
     if (!restoredModel || !cachedModelMatchesAsset(restoredModel, asset)) {
@@ -1192,7 +1283,7 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
   }
   const modelRefresh = getModelRefreshStatus(sceneId);
   if (modelRefresh.stale && !modelRefreshRequests.has(sceneId)) void refreshModelBinary(sceneId, "scheduled");
-  recordDiagnosticSnapshot(sceneId, dashboard, "dashboard");
+  if (!dashboard.unavailableReason) recordDiagnosticSnapshot(sceneId, dashboard, "dashboard");
   res.json({
     sceneId,
     modelId: config.modelId,
@@ -1201,11 +1292,11 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
       name: asset?.metadata.model_name || config.expectedRemoteName,
       description: asset?.metadata.model_description || config.description,
       industry: asset?.metadata.industry || "工业设备",
-      fileName: asset?.file.file_name || restoredModel!.fileName,
-      fileSize: asset ? Number(asset.file.file_size || 0) : restoredModel!.fileSize,
-      format: asset?.format || restoredModel!.format,
+      fileName: asset?.file.file_name || restoredModel?.fileName || `${config.expectedRemoteName}.fbx`,
+      fileSize: asset ? Number(asset.file.file_size || 0) : restoredModel?.fileSize || 0,
+      format: asset?.format || restoredModel?.format || "fbx",
       localAssetUrl: `/api/model-showcase/${sceneId}/model`,
-      version: modelRefresh.activeVersion || asset!.fingerprint.slice(0, 16),
+      version: modelRefresh.activeVersion || asset?.fingerprint.slice(0, 16) || `unavailable-${config.modelId}`,
       updatedAt: modelRefresh.updatedAt,
     },
     dashboard,
@@ -1268,14 +1359,19 @@ app.post("/api/model-showcase/:sceneId/model/refresh", showcaseRoute(async (req,
   const result = await refreshModelBinary(sceneId, "manual");
   res.status(result.result === "failed" && !modelBinaryCache.has(sceneId) ? 502 : 200).json({
     ...result,
+    message: result.result === "failed"
+      ? modelBinaryCache.has(sceneId)
+        ? "模型资源正在同步，当前可用版本不受影响。"
+        : "三维模型资源正在准备，请稍后重试。"
+      : result.message,
     modelRefresh: getModelRefreshStatus(sceneId),
   });
 }));
 
 app.get("/api/model-showcase/:sceneId/dashboard", showcaseRoute(async (req, res) => {
   const { sceneId } = getShowcaseScene(req.params.sceneId);
-  const dashboard = await fetchDashboard(sceneId);
-  recordDiagnosticSnapshot(sceneId, dashboard, "dashboard");
+  const dashboard = await fetchDashboard(sceneId).catch(() => dashboardFallback(sceneId));
+  if (!dashboard.unavailableReason) recordDiagnosticSnapshot(sceneId, dashboard, "dashboard");
   res.json(dashboard);
 }));
 
@@ -1343,6 +1439,9 @@ app.post("/api/model-showcase/:sceneId/diagnosis", showcaseRoute(async (req, res
   });
   res.json(result);
 }));
+
+// 2026-09-04 新增：四个试点模型的数据导入、持久化、预测、协议映射与下载接口。
+registerPilotDataRoutes(app, SCENE_DATA_DIRECTORY);
 
 // 2026-08-12 新增：服务启动后每 30 分钟扫描已使用场景，仅对到期模型发起后台更新；
 async function sweepDueModelRefreshes(): Promise<void> {

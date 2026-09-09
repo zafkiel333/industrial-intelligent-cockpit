@@ -1,14 +1,11 @@
 // 2026-08-09 新增：统一管理外部模型初始化、轮询、工况切换、历史趋势和诊断请求；
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
-  ConsistencyResult,
   DiagnosisResult,
   ModelShowcaseBootstrap,
   ModelShowcaseSceneId,
   RemoteBindableField,
   RemoteDashboardData,
-  RemoteDataMode,
-  RemoteScenarioType,
   ShowcaseApiErrorBody,
   TelemetryHistoryPoint,
 } from './types';
@@ -22,12 +19,11 @@ interface SceneRuntimeCache {
   dashboard: RemoteDashboardData | null;
   history: TelemetryHistoryPoint[];
   diagnosis: DiagnosisResult | null;
-  consistency: ConsistencyResult | null;
-  mode: RemoteDataMode;
   error: string | null;
   lastSuccessAt: number | null;
   lastCheckedAt: number | null;
   dashboardSignature: string | null;
+  hasSourceTelemetry: boolean;
 }
 
 // 2026-08-09 修复：按场景保留应用运行期数据，切页先展示旧值并同步请求最新数据；
@@ -44,12 +40,11 @@ function createRuntimeCache(): SceneRuntimeCache {
     dashboard: null,
     history: [],
     diagnosis: null,
-    consistency: null,
-    mode: 'dashboard',
     error: null,
     lastSuccessAt: null,
     lastCheckedAt: null,
     dashboardSignature: null,
+    hasSourceTelemetry: false,
   };
 }
 
@@ -159,8 +154,26 @@ function storeDashboard(sceneId: ModelShowcaseSceneId, next: RemoteDashboardData
   }
   const cache = getRuntimeCache(sceneId);
   const now = Date.now();
+  cache.hasSourceTelemetry = next.bindable_fields.some((field) => finite(field.value));
   const fields = materializeRangeFields(next.bindable_fields, now / 1_000);
-  const materialized = { ...next, bindable_fields: fields };
+  const loose = next as RemoteDashboardData & Record<string, unknown>;
+  const materialized: RemoteDashboardData = {
+    ...next,
+    equipment: next.equipment || { name: '设备', status: 'UNKNOWN' },
+    twin_status: next.twin_status || {
+      status: next.unavailableReason ? 'OFFLINE' : 'ONLINE',
+      data_source: typeof loose.data_source === 'string' ? loose.data_source : '实时数据接口',
+      data_points: String(fields.length),
+      last_sync: new Date(now).toISOString(),
+    },
+    bindable_fields: fields,
+  };
+  if (materialized.unavailableReason) {
+    cache.error = materialized.unavailableReason;
+    cache.lastCheckedAt = now;
+    if (!cache.dashboard) cache.dashboard = materialized;
+    return { cache, changed: false };
+  }
   const signature = signatureForDashboard(materialized);
   cache.lastCheckedAt = now;
   cache.error = null;
@@ -199,17 +212,14 @@ function loadBootstrap(sceneId: ModelShowcaseSceneId): Promise<SceneRuntimeCache
   return request;
 }
 
-export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId) {
+export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId, diagnosisEnabled = true) {
   const runtimeAtRender = getRuntimeCache(sceneId);
   const [bootstrap, setBootstrap] = useState<ModelShowcaseBootstrap | null>(() => runtimeAtRender.bootstrap);
   const [dashboard, setDashboard] = useState<RemoteDashboardData | null>(() => runtimeAtRender.dashboard);
   const [history, setHistory] = useState<TelemetryHistoryPoint[]>(() => runtimeAtRender.history);
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(() => runtimeAtRender.diagnosis);
-  const [consistency, setConsistency] = useState<ConsistencyResult | null>(() => runtimeAtRender.consistency);
-  const [mode, setModeState] = useState<RemoteDataMode>(() => runtimeAtRender.mode);
   const [initialLoading, setInitialLoading] = useState(!runtimeAtRender.bootstrap || !runtimeAtRender.dashboard);
   const [refreshing, setRefreshing] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(() => runtimeAtRender.error);
   const [lastSuccessAt, setLastSuccessAt] = useState<number | null>(() => runtimeAtRender.lastSuccessAt);
   const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(() => runtimeAtRender.lastCheckedAt);
@@ -221,14 +231,14 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId) {
     setDashboard(cache.dashboard);
     setHistory(cache.history);
     setDiagnosis(cache.diagnosis);
-    setConsistency(cache.consistency);
-    setModeState(cache.mode);
     setError(cache.error);
     setLastSuccessAt(cache.lastSuccessAt);
     setLastCheckedAt(cache.lastCheckedAt);
   }, []);
 
   const loadDiagnosis = useCallback(async () => {
+    if (!diagnosisEnabled) return;
+    if (!getRuntimeCache(sceneId).hasSourceTelemetry) return;
     const version = (diagnosisRequestVersions.get(sceneId) || 0) + 1;
     diagnosisRequestVersions.set(sceneId, version);
     try {
@@ -243,22 +253,16 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId) {
     } catch (diagnosisError) {
       console.warn('[model-showcase] diagnosis unavailable:', diagnosisError);
     }
-  }, [sceneId]);
+  }, [diagnosisEnabled, sceneId]);
 
-  const refresh = useCallback(async (requestedMode: RemoteDataMode, foreground = false) => {
+  const refresh = useCallback(async (foreground = false) => {
     const version = (telemetryRequestVersions.get(sceneId) || 0) + 1;
     telemetryRequestVersions.set(sceneId, version);
     if (foreground && mounted.current) setRefreshing(true);
     try {
-      const endpoint = requestedMode === 'dashboard'
-        ? `model-showcase/${sceneId}/dashboard`
-        : `model-showcase/${sceneId}/scenario/${requestedMode}`;
-      const next = await requestJson<RemoteDashboardData>(endpoint, requestedMode === 'dashboard'
-        ? undefined
-        : { method: 'POST', body: '{}' });
+      const next = await requestJson<RemoteDashboardData>(`model-showcase/${sceneId}/dashboard`);
       if (telemetryRequestVersions.get(sceneId) !== version) return;
       const cache = storeDashboard(sceneId, next).cache;
-      cache.mode = requestedMode;
       hydrateFromRuntime(cache);
       void loadDiagnosis();
     } catch (refreshError) {
@@ -280,7 +284,7 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId) {
     if (cached.bootstrap && cached.dashboard) {
       setInitialLoading(false);
       // Show cached data immediately, then check for newer data in parallel.
-      void refresh(cached.mode, false);
+      void refresh(false);
     } else {
       setInitialLoading(true);
       void loadBootstrap(sceneId)
@@ -302,45 +306,11 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId) {
   useEffect(() => {
     if (!bootstrap) return;
     const poll = () => {
-      if (document.visibilityState === 'visible') void refresh(mode, false);
+      if (document.visibilityState === 'visible') void refresh(false);
     };
     const timer = window.setInterval(poll, POLL_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [bootstrap, mode, refresh]);
-
-  const setMode = useCallback((nextMode: RemoteDataMode) => {
-    const cache = getRuntimeCache(sceneId);
-    cache.mode = nextMode;
-    cache.consistency = null;
-    setModeState(nextMode);
-    setConsistency(null);
-    void refresh(nextMode, true);
-  }, [refresh, sceneId]);
-
-  const validateConsistency = useCallback(async () => {
-    if (!dashboard) return;
-    setSyncing(true);
-    try {
-      const scenario: RemoteScenarioType = mode === 'dashboard' ? 'normal' : mode;
-      const result = await requestJson<ConsistencyResult>(`model-showcase/${sceneId}/data-sync`, {
-        method: 'POST',
-        body: JSON.stringify({
-          scenario,
-          actual_values: Object.fromEntries(dashboard.bindable_fields.map((field) => [field.field, field.value])),
-        }),
-      });
-      const cache = getRuntimeCache(sceneId);
-      cache.consistency = result;
-      if (mounted.current) setConsistency(result);
-    } catch (syncError) {
-      const cache = getRuntimeCache(sceneId);
-      cache.error = errorMessage(syncError);
-      cache.lastCheckedAt = Date.now();
-      hydrateFromRuntime(cache);
-    } finally {
-      if (mounted.current) setSyncing(false);
-    }
-  }, [dashboard, hydrateFromRuntime, mode, sceneId]);
+  }, [bootstrap, refresh]);
 
   const hasRangeSimulation = useMemo(
     () => dashboard?.bindable_fields.some((field) => field.value_source === 'range-simulated') || false,
@@ -352,17 +322,12 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId) {
     dashboard,
     history,
     diagnosis,
-    consistency,
-    mode,
     initialLoading,
     refreshing,
-    syncing,
     error,
     lastSuccessAt,
     lastCheckedAt,
     hasRangeSimulation,
-    setMode,
-    refresh: () => refresh(mode, true),
-    validateConsistency,
+    refresh: () => refresh(true),
   };
 }

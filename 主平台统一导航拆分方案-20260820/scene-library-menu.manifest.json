@@ -1,11 +1,11 @@
 {
   "schemaVersion": "1.0",
-  "menuVersion": "20260901-093430",
-  "generatedAt": "2026-09-01T01:34:30.520Z",
-  "sourceCommit": "07005f60131f8a202d6de1c257d098bfb2ad9ed0",
-  "sourceDirty": false,
+  "menuVersion": "20260909-083801",
+  "generatedAt": "2026-09-09T00:46:57.059Z",
+  "sourceCommit": "04209ba1eda3a74ff54e0010befda078bfb6ac6b",
+  "sourceDirty": true,
   "defaultViewId": "smart-ops",
-  "menuContentSha256": "d664531146fd033c7b0a23bda35f997e7adfe1396a7e7d58536dc6334b5d9abf",
+  "menuContentSha256": "2df4367183435500d65a9ea095a6d78d9ea6ba0c1e488b097ee8f9f9b139ca2d",
   "totalNodeCount": 1050,
   "items": [
     {
@@ -770,28 +770,28 @@
       "children": [
         {
           "viewId": "sim-visual-hydro-turbine",
-          "title": "水轮机多工况数字孪生仿真",
+          "title": "水轮机多工况数字孪生分析",
           "order": 10,
           "enabled": true,
           "children": []
         },
         {
           "viewId": "sim-visual-wastewater-pump",
-          "title": "污水泵运行效能与故障仿真",
+          "title": "污水泵运行效能与故障分析",
           "order": 20,
           "enabled": true,
           "children": []
         },
         {
           "viewId": "sim-visual-bridge-crane",
-          "title": "桥式起重机载荷安全数字孪生仿真",
+          "title": "桥式起重机载荷安全数字孪生分析",
           "order": 30,
           "enabled": true,
           "children": []
         },
         {
           "viewId": "sim-visual-haul-truck",
-          "title": "矿卡牵引运输状态与故障仿真",
+          "title": "矿卡牵引运输状态与故障分析",
           "order": 40,
           "enabled": true,
           "children": []

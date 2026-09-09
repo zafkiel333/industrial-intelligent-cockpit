@@ -1,0 +1,17 @@
+﻿import assert from 'node:assert/strict';
+import { buildDataInspection } from '../src/remoteModelShowcase/dataInspection';
+const fields=[{field:'temp',label:'温度',unit:'°C',normalMin:10,normalMax:20,decimals:1}];
+const row=(minute:number,value:number,device='A',batch='one',quality:'good'|'bad'|'uncertain'='good')=>({timestamp:new Date(Date.UTC(2026,8,7,0,minute)).toISOString(),device_id:device,batch_id:batch,quality,values:{temp:value}});
+const records=[row(0,10),row(1,20),row(2,21),row(3,999,'A','one','bad'),row(4,18,'A','two','uncertain'),row(5,500,'B')];
+const data=buildDataInspection(records,fields,'A',null);
+assert.equal(data.recordCount,5);assert.equal(data.outsideRecordCount,1);assert.equal(data.fields[0].max,21);assert.equal(data.fields[0].latest,18);assert.equal(data.quality.bad,1);assert.equal(data.quality.uncertain,1);
+assert(data.bins.some(b=>b.fields[0].status==='empty'));
+assert(data.bins.some(b=>b.fields[0].status==='bad'));
+assert.equal(data.bins.reduce((n,b)=>n+b.fields[0].count,0),5);
+assert.equal(buildDataInspection(records,fields,'A','two').recordCount,1);
+assert.equal(buildDataInspection(records,fields,'B','two').recordCount,0);
+assert.equal(buildDataInspection([],fields,null,null).bins.length,0);
+const bad=buildDataInspection([row(0,900,'A','one','bad')],fields,'A',null);assert.equal(bad.fields[0].latest,null);assert.equal(bad.outsideRecordCount,0);assert.equal(bad.bins.length,1);
+assert.equal(buildDataInspection([row(0,10),row(0,20)],fields,'A',null).bins.length,1);
+const big=buildDataInspection(Array.from({length:150000},(_,i)=>row(i,i%25)),fields,'A',null);assert.equal(big.recordCount,150000);assert.equal(big.fields[0].max,24);
+console.log('DATA_INSPECTION_VERIFY_OK deviceIsolation=ok batchIsolation=ok quality=ok bounds=ok gaps=ok empty=ok largeDataset=ok');

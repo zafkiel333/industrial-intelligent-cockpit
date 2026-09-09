@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';
+import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader.js';
+import {repairFbxNullMeshNodes} from '../src/remoteModelShowcase/fbxCompatibility';
+import {readLegacyStepFbx} from '../src/remoteModelShowcase/legacyFbxMesh';
+import {prepareViewerModel,viewerFitDistance} from '../src/remoteModelShowcase/modelViewerTransform';
+const load=(id:number)=>{const b=fs.readFileSync(`.runtime-cache/model-repair/audit/${id}.fbx`);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength);};
+const source=load(2338),before=Buffer.from(source).toString('base64');
+const repaired=repairFbxNullMeshNodes(source);assert.equal(repaired.repairedNodes,1);assert.equal(source.byteLength,repaired.buffer.byteLength);assert.equal(Buffer.from(source).toString('base64'),before);
+assert.equal(prepareViewerModel(new FBXLoader().parse(repaired.buffer,'')).meshCount,1);
+assert.equal(repairFbxNullMeshNodes(repaired.buffer).repairedNodes,0);
+assert.equal(repairFbxNullMeshNodes(source.slice(0,60)).repairedNodes,0);
+const legacy=readLegacyStepFbx(load(6639));assert(legacy);const p=prepareViewerModel(legacy);assert.equal(p.meshCount,1);const mesh=legacy.children[0] as any;assert.equal(mesh.geometry.attributes.position.count,631671);assert.equal(mesh.geometry.index.count,3039354);assert(p.size.toArray().every(Number.isFinite));
+assert.equal(readLegacyStepFbx(source),null);assert.equal(readLegacyStepFbx(new ArrayBuffer(20)),null);
+assert(viewerFitDistance(p.size,.5)>viewerFitDistance(p.size,2));
+assert(viewerFitDistance(p.size,2)>p.size.length()/2/Math.sin(21*Math.PI/180));
+console.log('FBX_COMPATIBILITY_OK nullMesh=1 legacyVertices=631671 triangles=1013118 sourcePreserved=ok bounds=ok');

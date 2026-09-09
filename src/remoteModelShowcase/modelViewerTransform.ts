@@ -14,6 +14,13 @@ export interface PreparedViewerModel {
   meshCount: number;
 }
 
+/** Fit the bounding sphere in both vertical and horizontal fields of view. */
+export function viewerFitDistance(size:THREE.Vector3,aspect:number,verticalFovDegrees=42):number {
+  const vertical=THREE.MathUtils.degToRad(verticalFovDegrees)/2;
+  const horizontal=Math.atan(Math.tan(vertical)*Math.max(.1,aspect));
+  return Math.max(size.length()*.5,.01)/Math.sin(Math.min(vertical,horizontal))*1.12;
+}
+
 export interface ViewerMaterialVisibilityResult {
   materialCount: number;
   texturedMaterialCount: number;

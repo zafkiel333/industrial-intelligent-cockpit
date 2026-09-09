@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "sceneId": "sim-visual-haul-truck",
+  "modelId": 2310,
+  "modelName": "矿卡牵引运输状态与故障分析",
+  "required": [
+    "timestamp",
+    "device_id",
+    "quality",
+    "rpm",
+    "temperature",
+    "vibration",
+    "pressure",
+    "flow_rate",
+    "power_output"
+  ],
+  "fields": [
+    {
+      "field": "rpm",
+      "label": "发动机转速",
+      "unit": "r/min",
+      "normalMin": 650,
+      "normalMax": 2100,
+      "base": 1320,
+      "amplitude": 210,
+      "decimals": 1,
+      "modbusAddress": 40001,
+      "iec61850Path": "LD0/MMXU1.RotSpd.mag.f"
+    },
+    {
+      "field": "temperature",
+      "label": "发动机温度",
+      "unit": "°C",
+      "normalMin": 65,
+      "normalMax": 105,
+      "base": 86,
+      "amplitude": 4.8,
+      "decimals": 1,
+      "modbusAddress": 40003,
+      "iec61850Path": "LD0/TTMP1.Tmp.mag.f"
+    },
+    {
+      "field": "vibration",
+      "label": "车体振动",
+      "unit": "mm/s",
+      "normalMin": 0,
+      "normalMax": 7,
+      "base": 2.7,
+      "amplitude": 0.8,
+      "decimals": 2,
+      "modbusAddress": 40005,
+      "iec61850Path": "LD0/SVBR1.Vbr.mag.f"
+    },
+    {
+      "field": "pressure",
+      "label": "液压压力",
+      "unit": "MPa",
+      "normalMin": 12,
+      "normalMax": 28,
+      "base": 20,
+      "amplitude": 2.2,
+      "decimals": 2,
+      "modbusAddress": 40007,
+      "iec61850Path": "LD0/MMXU1.Pres.mag.f"
+    },
+    {
+      "field": "flow_rate",
+      "label": "燃油流量",
+      "unit": "L/h",
+      "normalMin": 18,
+      "normalMax": 68,
+      "base": 39,
+      "amplitude": 7,
+      "decimals": 2,
+      "modbusAddress": 40009,
+      "iec61850Path": "LD0/MMXU1.Flwrte.mag.f"
+    },
+    {
+      "field": "power_output",
+      "label": "输出功率",
+      "unit": "kW",
+      "normalMin": 120,
+      "normalMax": 380,
+      "base": 250,
+      "amplitude": 38,
+      "decimals": 2,
+      "modbusAddress": 40011,
+      "iec61850Path": "LD0/MMXU1.TotW.mag.f"
+    }
+  ],
+  "importSources": {
+    "standard": {
+      "formats": [
+        "csv",
+        "xlsx",
+        "json"
+      ],
+      "structure": "每行一条完整时间记录，列名使用模型字段"
+    },
+    "modbus": {
+      "formats": [
+        "csv",
+        "xlsx",
+        "json"
+      ],
+      "structure": "固定字段长表，每行一个寄存器点值",
+      "requiredColumns": [
+        "timestamp",
+        "device_id",
+        "unit_id",
+        "function_code",
+        "address",
+        "raw_value",
+        "data_type",
+        "byte_order",
+        "scale",
+        "offset",
+        "unit",
+        "quality"
+      ]
+    },
+    "iec61850": {
+      "formats": [
+        "csv",
+        "xlsx",
+        "json"
+      ],
+      "structure": "固定字段长表，每行一个对象点值",
+      "requiredColumns": [
+        "timestamp",
+        "device_id",
+        "ied",
+        "object_reference",
+        "functional_constraint",
+        "value",
+        "unit",
+        "quality"
+      ],
+      "scl": [
+        "icd",
+        "cid",
+        "scd",
+        "ssd",
+        "xml"
+      ],
+      "sclStorage": "protocol/scl，确认导入后永久保存"
+    }
+  },
+  "obviousExceptionPolicy": {
+    "normalize": [
+      "字段首尾空白",
+      "英文/中文小数分隔符",
+      "常见质量值大小写"
+    ],
+    "rejectValue": [
+      "空值",
+      "非数值",
+      "非有限数值",
+      "明显超出模型合理范围"
+    ],
+    "rejectRecord": [
+      "时间戳无效",
+      "任一必需点位缺失或无效"
+    ],
+    "duplicatePoint": "同一时间同一点位保留文件中最后一个值并在预检计数"
+  },
+  "qualityValues": [
+    "good",
+    "uncertain",
+    "bad"
+  ],
+  "sampleIntervalSeconds": 30,
+  "forecast": {
+    "steps": 240,
+    "label": "未来 2 小时"
+  }
+}

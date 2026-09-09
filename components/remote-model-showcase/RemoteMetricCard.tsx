@@ -40,9 +40,6 @@ export const RemoteMetricCard: React.FC<RemoteMetricCardProps> = ({ field }) => 
         <span>正常范围</span>
         <span>{field.normal_max}</span>
       </div>
-      {field.value_source === 'range-simulated' && (
-        <div className="mt-2 text-[9px] text-amber-300/80">范围模拟值 · 非实时实测值</div>
-      )}
     </div>
   );
 };

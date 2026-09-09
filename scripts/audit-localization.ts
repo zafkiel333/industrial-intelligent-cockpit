@@ -3,6 +3,10 @@ import { MENU_ITEMS } from '../constants';
 import { translateVisibleText } from '../src/localization/chineseUi';
 
 const cases: Array<[string, string]> = [
+  ['Unit Tests','单元测试'],['Publish','发布'],['Retired','已退役'],['Installation','安装'],['Param Mismatch','参数不匹配'],['Due Soon','即将到期'],['Approval','审批'],['Overpressure','超压'],
+  ['HUAYUN 05','华运05号'],['CHANGJ IANG','长江号'],['GOLDEN STAR','金星号'],['BLUE WHALE','蓝鲸号'],['RIVER KING','江王号'],
+  ['MID','中'],['Recycled','循环利用'],['Syncing','同步中'],['Anchored','已锚泊'],['COSCO STAR','中远之星'],
+  ['S-8821','S-8821'],['1500t','1500t'],['MPa','MPa'],['IEC 61850','IEC 61850'],
   ['Current Depth', '当前深度'],
   ['AI DIAGNOSTICS', '智能诊断'],
   ['System Status: Online', '系统状态：在线'],

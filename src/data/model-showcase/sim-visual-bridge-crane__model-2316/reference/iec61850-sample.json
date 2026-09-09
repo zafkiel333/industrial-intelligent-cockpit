@@ -1,0 +1,606 @@
+{
+  "source": "iec61850",
+  "deviceId": "2316-01",
+  "records": [
+    {
+      "timestamp": "2026-09-08T16:01:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 8.9,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 19.55,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 22.12,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 54.9,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.89,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 9.13,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 19.89,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 22,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 54.5,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.84,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 9.34,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.12,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 21.85,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 54.1,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.8,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 9.52,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.27,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 21.68,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 53.7,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.75,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 9.68,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.34,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 21.49,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 53.3,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.71,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 9.82,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.35,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 21.29,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 52.9,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:01:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.66,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 9.93,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.31,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 21.09,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 52.5,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:02.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.62,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 10.02,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.22,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.87,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 52.1,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:12.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.57,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 10.09,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.11,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.66,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 51.7,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:22.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.53,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 10.15,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 19.97,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.43,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 51.3,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:32.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.48,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 10.2,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 19.81,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 20.2,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 50.8,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:42.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.43,
+      "unit": "mm/s",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Load.mag.f",
+      "functional_constraint": "MX",
+      "value": 10.24,
+      "unit": "t",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/GGIO1.AnIn1.mag.f",
+      "functional_constraint": "MX",
+      "value": 19.64,
+      "unit": "m",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/MMXU1.Spd.mag.f",
+      "functional_constraint": "MX",
+      "value": 19.95,
+      "unit": "m/min",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/TTMP1.Tmp.mag.f",
+      "functional_constraint": "MX",
+      "value": 50.4,
+      "unit": "°C",
+      "quality": "good"
+    },
+    {
+      "timestamp": "2026-09-08T16:02:52.487Z",
+      "device_id": "2316-01",
+      "ied": "2316_IED_01",
+      "object_reference": "LD0/SVBR1.Vbr.mag.f",
+      "functional_constraint": "MX",
+      "value": 1.38,
+      "unit": "mm/s",
+      "quality": "good"
+    }
+  ]
+}

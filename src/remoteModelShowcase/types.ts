@@ -140,6 +140,7 @@ export interface RemoteScenarioTemplate {
 }
 
 export interface RemoteDashboardData {
+  unavailableReason?: string;
   scenario?: RemoteScenarioType;
   scenario_label?: string;
   scenario_status?: string;

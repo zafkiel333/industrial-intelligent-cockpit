@@ -6,6 +6,7 @@
  * 新增或遗漏的英文标签不会直接暴露给用户。数值单位会按白名单保留。
  */
 
+import {OPERATIONAL_CHINESE,OPERATIONAL_WORDS} from './operationalChinese';
 type LocalizableRoot = HTMLElement | ShadowRoot;
 
 const UNIT_TOKENS = new Set([
@@ -34,7 +35,6 @@ const EXACT_TEXT: Record<string, string> = {
   'loc: surface base': '位置：地面基地',
   'loc: triage tent': '位置：检伤分类帐篷',
   'advancing': '正在前进',
-  'standby': '待命',
   'ready': '就绪',
   'reservoir a': 'A水库',
   'reservoir b': 'B水库',
@@ -178,7 +178,6 @@ const EXACT_TEXT: Record<string, string> = {
   'linking': '关联中',
   'methanol': '甲醇',
   'mon': '周一',
-  'multi-dimensional': '多维分析',
   'muted': '已静音',
   'owns 100%': '持股100%',
   'people': '人',
@@ -650,7 +649,6 @@ const EXACT_TEXT: Record<string, string> = {
   'porosity (φ)': '孔隙度（Φ）',
   'position': '位置',
   'radius': '工作幅度',
-  'real-time': '实时',
   'resistivity (ωm)': '电阻率（Ω·m）',
   'roll': '横摇',
   'roll:': '横滚角：',
@@ -710,7 +708,6 @@ const EXACT_TEXT: Record<string, string> = {
   'sludge vol (svi)': '污泥体积指数（SVI）',
   'aeration tank do control': '曝气池溶解氧控制',
   'bio-process active': '生化处理运行中',
-  'do vs airflow': '溶解氧与曝气量对比',
   'normal': '正常',
   'standby': '待机',
   'organization management': '组织关系管理',
@@ -2123,7 +2120,7 @@ const WORDS: Record<string, string> = {
   stress_matirx: '应力矩阵', stressors: '应力源',
 };
 
-const SORTED_PHRASES = [...PHRASES].sort((a, b) => b[0].length - a[0].length);
+const SORTED_PHRASES = [...PHRASES,...Object.entries(OPERATIONAL_CHINESE)].sort((a, b) => b[0].length - a[0].length);
 const LOCALIZABLE_ATTRIBUTES = ['title', 'placeholder', 'aria-label', 'aria-description', 'alt'];
 const SKIPPED_ELEMENTS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE']);
 const TRANSLATABLE_STRUCTURED_LABELS = new Set(['auto-generated', 'auto-wear', 'real-time']);
@@ -2191,7 +2188,7 @@ function translateToken(token: string): string {
   // 行业通用缩写是用户能够识别的专业标记，不应再被逐词展开；仅保留原本就是
   // 大写缩写的写法，避免把普通单词（如 individual）误判成缩写。
   if (token === token.toUpperCase() && PRESERVED_TECHNICAL_ACRONYMS.has(token.toUpperCase())) return token;
-  const direct = WORDS[lower];
+  const direct = WORDS[lower] || OPERATIONAL_WORDS[lower];
   if (direct) return direct;
 
   // 含数字的连字符/下划线组合通常是设备型号或业务编码，如 SHAFT-MAIN-01。
@@ -2200,7 +2197,7 @@ function translateToken(token: string): string {
   const parts = token.split(/[-_]+/).filter(Boolean);
   if (parts.length > 1) {
     const translatedParts = parts.map((part) => {
-      const mapped = WORDS[part.toLowerCase()];
+      const mapped = WORDS[part.toLowerCase()] || OPERATIONAL_WORDS[part.toLowerCase()];
       if (mapped) return mapped;
       if (/^\d+(?:\.\d+)*$/.test(part)) return part;
       return null;
@@ -2261,7 +2258,7 @@ export function translateVisibleText(input: string): string {
   if (isMachineIdentifier && !TRANSLATABLE_STRUCTURED_LABELS.has(normalized)) {
     return input;
   }
-  const exact = EXACT_TEXT[normalized];
+  const exact = OPERATIONAL_CHINESE[normalized] || EXACT_TEXT[normalized];
   if (exact) {
     const leading = input.match(/^\s*/)?.[0] ?? '';
     const trailing = input.match(/\s*$/)?.[0] ?? '';

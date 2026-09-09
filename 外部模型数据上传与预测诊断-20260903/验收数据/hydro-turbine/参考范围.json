@@ -1,0 +1,74 @@
+[
+  {
+    "field": "rpm",
+    "label": "转速",
+    "unit": "r/min",
+    "normalMin": 140,
+    "normalMax": 160,
+    "base": 150,
+    "amplitude": 3.2,
+    "decimals": 1,
+    "modbusAddress": 40001,
+    "iec61850Path": "LD0/MMXU1.RotSpd.mag.f"
+  },
+  {
+    "field": "temperature",
+    "label": "轴承温度",
+    "unit": "°C",
+    "normalMin": 35,
+    "normalMax": 75,
+    "base": 54,
+    "amplitude": 5,
+    "decimals": 1,
+    "modbusAddress": 40003,
+    "iec61850Path": "LD0/TTMP1.Tmp.mag.f"
+  },
+  {
+    "field": "vibration",
+    "label": "主轴振动",
+    "unit": "mm/s",
+    "normalMin": 0,
+    "normalMax": 4.5,
+    "base": 1.6,
+    "amplitude": 0.55,
+    "decimals": 2,
+    "modbusAddress": 40005,
+    "iec61850Path": "LD0/SVBR1.Vbr.mag.f"
+  },
+  {
+    "field": "pressure",
+    "label": "水压",
+    "unit": "MPa",
+    "normalMin": 1.1,
+    "normalMax": 2.4,
+    "base": 1.75,
+    "amplitude": 0.18,
+    "decimals": 2,
+    "modbusAddress": 40007,
+    "iec61850Path": "LD0/MMXU1.HydPres.mag.f"
+  },
+  {
+    "field": "flow_rate",
+    "label": "流量",
+    "unit": "m³/s",
+    "normalMin": 18,
+    "normalMax": 42,
+    "base": 31,
+    "amplitude": 3.5,
+    "decimals": 2,
+    "modbusAddress": 40009,
+    "iec61850Path": "LD0/MMXU1.Flwrte.mag.f"
+  },
+  {
+    "field": "power_output",
+    "label": "输出功率",
+    "unit": "MW",
+    "normalMin": 12,
+    "normalMax": 32,
+    "base": 23,
+    "amplitude": 3.2,
+    "decimals": 2,
+    "modbusAddress": 40011,
+    "iec61850Path": "LD0/MMXU1.TotW.mag.f"
+  }
+]

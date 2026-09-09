@@ -47,8 +47,8 @@ const EXISTING_MODEL_SHOWCASE_CATALOG: Record<ExistingModelShowcaseSceneId, Mode
   'sim-visual-hydro-turbine': {
     sceneId: 'sim-visual-hydro-turbine',
     modelId: 2326,
-    title: '水轮机多工况数字孪生仿真',
-    englishTitle: 'Hydro Turbine Multi-condition Digital Twin',
+    title: '水轮机多工况数字孪生分析',
+    englishTitle: 'Hydro Turbine Multi-condition Digital Twin Analysis',
     description: '融合转速、温度、振动、水压、流量与功率数据，呈现水轮机组运行状态和智能诊断结论。',
     expectedRemoteName: '水轮机总成',
     sourceAssetLabel: '远端模型：水轮机总成',
@@ -79,8 +79,8 @@ const EXISTING_MODEL_SHOWCASE_CATALOG: Record<ExistingModelShowcaseSceneId, Mode
   'sim-visual-wastewater-pump': {
     sceneId: 'sim-visual-wastewater-pump',
     modelId: 2328,
-    title: '污水泵运行效能与故障仿真',
-    englishTitle: 'Wastewater Pump Efficiency & Fault Simulation',
+    title: '污水泵运行效能与故障分析',
+    englishTitle: 'Wastewater Pump Efficiency & Fault Analysis',
     description: '围绕压力、流量、功率、温升与振动关系，评估污水泵运行效能并输出潜在故障结论。',
     expectedRemoteName: '污水泵KCM100HD',
     sourceAssetLabel: '远端模型：污水泵 KCM100HD',
@@ -111,7 +111,7 @@ const EXISTING_MODEL_SHOWCASE_CATALOG: Record<ExistingModelShowcaseSceneId, Mode
   'sim-visual-bridge-crane': {
     sceneId: 'sim-visual-bridge-crane',
     modelId: 2316,
-    title: '桥式起重机载荷安全数字孪生仿真',
+    title: '桥式起重机载荷安全数字孪生分析',
     englishTitle: 'Bridge Crane Load Safety Digital Twin',
     description: '利用载荷、小车位置、运行速度、电机温度与振动数据，评估吊运安全和驱动系统状态。',
     expectedRemoteName: '桥式起重机',
@@ -142,8 +142,8 @@ const EXISTING_MODEL_SHOWCASE_CATALOG: Record<ExistingModelShowcaseSceneId, Mode
   'sim-visual-haul-truck': {
     sceneId: 'sim-visual-haul-truck',
     modelId: 2310,
-    title: '矿卡牵引运输状态与故障仿真',
-    englishTitle: 'Haul Truck Transport Condition & Fault Simulation',
+    title: '矿卡牵引运输状态与故障分析',
+    englishTitle: 'Haul Truck Transport Condition & Fault Analysis',
     description: '以拖车牵引车资源承载矿卡运输场景，融合动力、热状态、振动、液压与燃油数据输出诊断结论。',
     expectedRemoteName: '拖车牵引车',
     sourceAssetLabel: '远端模型：拖车牵引车',
@@ -182,14 +182,32 @@ const GENERIC_FIELDS: Record<string, ShowcaseFieldConfig> = {
   power_output: { label: '输出功率', riskDirection: 'both', weight: 0.15 },
 };
 
+function createPublicDescription(binding: PageModelBinding): string {
+  const businessName = binding.pageTitle.trim();
+  const modelName = binding.modelName.trim();
+
+  if (/检修|维修|维保|保养|更换|校验|整定|实训|教学|作业|操作/.test(businessName)) {
+    return `围绕${businessName}业务，结合${modelName}的三维结构、作业流程与关键状态信息，辅助设备认知、过程检查和作业分析。`;
+  }
+
+  if (/交付|BIM|装配|工艺|制造|设计/.test(businessName)) {
+    return `面向${businessName}，以${modelName}为核心载体，呈现设备结构、业务要素和关键状态信息。`;
+  }
+
+  if (/监测|预警|预测|评估|分析|运维|状态|健康|诊断/.test(businessName)) {
+    return `面向${businessName}，关联${modelName}的三维结构、运行参数和状态指标，呈现关键部件状态、变化趋势及风险信息。`;
+  }
+
+  return `围绕${businessName}业务，呈现${modelName}的三维结构、关键部件与运行状态信息。`;
+}
+
 function createExpandedConfig(binding: PageModelBinding): ModelShowcaseConfig {
-  const detail = binding.note || binding.adaptation;
   return {
     sceneId: binding.viewId as ModelShowcaseSceneId,
     modelId: binding.modelId,
     title: `${binding.pageTitle} · 三维模型展示`,
     englishTitle: `Industrial Model Showcase · ${binding.modelName}`,
-    description: detail,
+    description: createPublicDescription(binding),
     expectedRemoteName: binding.modelName,
     sourceAssetLabel: `远端模型：${binding.modelName}`,
     sourceDetailUrl: `https://8.146.211.204:3100/three-model/detail?id=${binding.modelId}`,

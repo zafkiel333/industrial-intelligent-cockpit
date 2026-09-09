@@ -38,7 +38,15 @@ PAGE_MODEL_BINDINGS.forEach((binding) => assert(allIds.has(binding.viewId), `men
 
 assert(Object.keys(MODEL_SHOWCASE_CATALOG).length === 106, 'catalog must include 102 expanded pages plus 4 existing samples');
 PAGE_MODEL_BINDINGS.forEach((binding) => {
-  assert(MODEL_SHOWCASE_CATALOG[binding.viewId]?.modelId === binding.modelId, `catalog model mismatch: ${binding.viewId}`);
+  const publicConfig = MODEL_SHOWCASE_CATALOG[binding.viewId];
+  assert(publicConfig?.modelId === binding.modelId, `catalog model mismatch: ${binding.viewId}`);
+  assert(publicConfig.description !== binding.note, `internal note leaked into public description: ${binding.viewId}`);
+  assert(publicConfig.description !== binding.adaptation, `adaptation note leaked into public description: ${binding.viewId}`);
+  assert(publicConfig.description.includes(binding.modelName), `public description must identify its model: ${binding.viewId}`);
+  assert(
+    !/上游端点|文件头|完整下载|缩略图|替换运行时|模拟 Dashboard|不得复用|不虚构|不冒充|开发时|页面改为|删除模型不能支撑|FBX 已|GLB 已|失效后/.test(publicConfig.description),
+    `implementation detail leaked into public description: ${binding.viewId}`,
+  );
 });
 
 Object.entries(MODEL_ENABLED_CHILD_ORDER).forEach(([sectionId, expectedOrder]) => {

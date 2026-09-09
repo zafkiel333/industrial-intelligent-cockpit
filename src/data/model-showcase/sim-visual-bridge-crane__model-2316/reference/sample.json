@@ -1,0 +1,304 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-09-08T15:58:02.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 8.9,
+      "trolley_position": 19.55,
+      "crane_speed": 22.12,
+      "motor_temperature": 54.9,
+      "vibration": 1.89
+    },
+    {
+      "timestamp": "2026-09-08T15:58:12.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.13,
+      "trolley_position": 19.89,
+      "crane_speed": 22,
+      "motor_temperature": 54.5,
+      "vibration": 1.84
+    },
+    {
+      "timestamp": "2026-09-08T15:58:22.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.34,
+      "trolley_position": 20.12,
+      "crane_speed": 21.85,
+      "motor_temperature": 54.1,
+      "vibration": 1.8
+    },
+    {
+      "timestamp": "2026-09-08T15:58:32.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.52,
+      "trolley_position": 20.27,
+      "crane_speed": 21.68,
+      "motor_temperature": 53.7,
+      "vibration": 1.75
+    },
+    {
+      "timestamp": "2026-09-08T15:58:42.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.68,
+      "trolley_position": 20.34,
+      "crane_speed": 21.49,
+      "motor_temperature": 53.3,
+      "vibration": 1.71
+    },
+    {
+      "timestamp": "2026-09-08T15:58:52.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.82,
+      "trolley_position": 20.35,
+      "crane_speed": 21.29,
+      "motor_temperature": 52.9,
+      "vibration": 1.66
+    },
+    {
+      "timestamp": "2026-09-08T15:59:02.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.93,
+      "trolley_position": 20.31,
+      "crane_speed": 21.09,
+      "motor_temperature": 52.5,
+      "vibration": 1.62
+    },
+    {
+      "timestamp": "2026-09-08T15:59:12.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.02,
+      "trolley_position": 20.22,
+      "crane_speed": 20.87,
+      "motor_temperature": 52.1,
+      "vibration": 1.57
+    },
+    {
+      "timestamp": "2026-09-08T15:59:22.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.09,
+      "trolley_position": 20.11,
+      "crane_speed": 20.66,
+      "motor_temperature": 51.7,
+      "vibration": 1.53
+    },
+    {
+      "timestamp": "2026-09-08T15:59:32.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.15,
+      "trolley_position": 19.97,
+      "crane_speed": 20.43,
+      "motor_temperature": 51.3,
+      "vibration": 1.48
+    },
+    {
+      "timestamp": "2026-09-08T15:59:42.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.2,
+      "trolley_position": 19.81,
+      "crane_speed": 20.2,
+      "motor_temperature": 50.8,
+      "vibration": 1.43
+    },
+    {
+      "timestamp": "2026-09-08T15:59:52.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.24,
+      "trolley_position": 19.64,
+      "crane_speed": 19.95,
+      "motor_temperature": 50.4,
+      "vibration": 1.38
+    },
+    {
+      "timestamp": "2026-09-08T16:00:02.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.27,
+      "trolley_position": 19.44,
+      "crane_speed": 19.68,
+      "motor_temperature": 49.9,
+      "vibration": 1.33
+    },
+    {
+      "timestamp": "2026-09-08T16:00:12.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.29,
+      "trolley_position": 19.22,
+      "crane_speed": 19.39,
+      "motor_temperature": 49.4,
+      "vibration": 1.28
+    },
+    {
+      "timestamp": "2026-09-08T16:00:22.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.31,
+      "trolley_position": 18.96,
+      "crane_speed": 19.07,
+      "motor_temperature": 48.8,
+      "vibration": 1.24
+    },
+    {
+      "timestamp": "2026-09-08T16:00:32.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.32,
+      "trolley_position": 18.66,
+      "crane_speed": 18.72,
+      "motor_temperature": 48.3,
+      "vibration": 1.2
+    },
+    {
+      "timestamp": "2026-09-08T16:00:42.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.32,
+      "trolley_position": 18.31,
+      "crane_speed": 18.34,
+      "motor_temperature": 47.7,
+      "vibration": 1.17
+    },
+    {
+      "timestamp": "2026-09-08T16:00:52.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.32,
+      "trolley_position": 17.91,
+      "crane_speed": 17.93,
+      "motor_temperature": 47.1,
+      "vibration": 1.14
+    },
+    {
+      "timestamp": "2026-09-08T16:01:02.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.3,
+      "trolley_position": 17.43,
+      "crane_speed": 17.48,
+      "motor_temperature": 46.6,
+      "vibration": 1.12
+    },
+    {
+      "timestamp": "2026-09-08T16:01:12.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.27,
+      "trolley_position": 16.88,
+      "crane_speed": 17.01,
+      "motor_temperature": 46,
+      "vibration": 1.11
+    },
+    {
+      "timestamp": "2026-09-08T16:01:22.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.23,
+      "trolley_position": 16.25,
+      "crane_speed": 16.52,
+      "motor_temperature": 45.5,
+      "vibration": 1.12
+    },
+    {
+      "timestamp": "2026-09-08T16:01:32.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.16,
+      "trolley_position": 15.53,
+      "crane_speed": 16.01,
+      "motor_temperature": 45.1,
+      "vibration": 1.13
+    },
+    {
+      "timestamp": "2026-09-08T16:01:42.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 10.07,
+      "trolley_position": 14.74,
+      "crane_speed": 15.5,
+      "motor_temperature": 44.8,
+      "vibration": 1.16
+    },
+    {
+      "timestamp": "2026-09-08T16:01:52.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.95,
+      "trolley_position": 13.87,
+      "crane_speed": 15,
+      "motor_temperature": 44.5,
+      "vibration": 1.2
+    },
+    {
+      "timestamp": "2026-09-08T16:02:02.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.81,
+      "trolley_position": 12.94,
+      "crane_speed": 14.52,
+      "motor_temperature": 44.3,
+      "vibration": 1.25
+    },
+    {
+      "timestamp": "2026-09-08T16:02:12.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.64,
+      "trolley_position": 11.95,
+      "crane_speed": 14.07,
+      "motor_temperature": 44.3,
+      "vibration": 1.31
+    },
+    {
+      "timestamp": "2026-09-08T16:02:22.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.44,
+      "trolley_position": 10.94,
+      "crane_speed": 13.67,
+      "motor_temperature": 44.3,
+      "vibration": 1.39
+    },
+    {
+      "timestamp": "2026-09-08T16:02:32.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 9.21,
+      "trolley_position": 9.91,
+      "crane_speed": 13.33,
+      "motor_temperature": 44.5,
+      "vibration": 1.47
+    },
+    {
+      "timestamp": "2026-09-08T16:02:42.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 8.95,
+      "trolley_position": 8.89,
+      "crane_speed": 13.06,
+      "motor_temperature": 44.8,
+      "vibration": 1.56
+    },
+    {
+      "timestamp": "2026-09-08T16:02:52.481Z",
+      "device_id": "2316-01",
+      "quality": "good",
+      "load_weight": 8.68,
+      "trolley_position": 7.92,
+      "crane_speed": 12.88,
+      "motor_temperature": 45.3,
+      "vibration": 1.65
+    }
+  ]
+}

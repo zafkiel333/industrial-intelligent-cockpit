@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "sceneId": "sim-visual-bridge-crane",
+  "modelId": 2316,
+  "modelName": "桥式起重机载荷安全数字孪生分析",
+  "required": [
+    "timestamp",
+    "device_id",
+    "quality",
+    "load_weight",
+    "trolley_position",
+    "crane_speed",
+    "motor_temperature",
+    "vibration"
+  ],
+  "fields": [
+    {
+      "field": "load_weight",
+      "label": "负载重量",
+      "unit": "t",
+      "normalMin": 0,
+      "normalMax": 20,
+      "base": 8.5,
+      "amplitude": 2.2,
+      "decimals": 2,
+      "modbusAddress": 40001,
+      "iec61850Path": "LD0/MMXU1.Load.mag.f"
+    },
+    {
+      "field": "trolley_position",
+      "label": "小车位置",
+      "unit": "m",
+      "normalMin": 0,
+      "normalMax": 28,
+      "base": 13.5,
+      "amplitude": 8,
+      "decimals": 2,
+      "modbusAddress": 40003,
+      "iec61850Path": "LD0/GGIO1.AnIn1.mag.f"
+    },
+    {
+      "field": "crane_speed",
+      "label": "运行速度",
+      "unit": "m/min",
+      "normalMin": 0,
+      "normalMax": 40,
+      "base": 18,
+      "amplitude": 4.5,
+      "decimals": 2,
+      "modbusAddress": 40005,
+      "iec61850Path": "LD0/MMXU1.Spd.mag.f"
+    },
+    {
+      "field": "motor_temperature",
+      "label": "电机温度",
+      "unit": "°C",
+      "normalMin": 25,
+      "normalMax": 80,
+      "base": 51,
+      "amplitude": 6,
+      "decimals": 1,
+      "modbusAddress": 40007,
+      "iec61850Path": "LD0/TTMP1.Tmp.mag.f"
+    },
+    {
+      "field": "vibration",
+      "label": "结构振动",
+      "unit": "mm/s",
+      "normalMin": 0,
+      "normalMax": 5,
+      "base": 1.8,
+      "amplitude": 0.65,
+      "decimals": 2,
+      "modbusAddress": 40009,
+      "iec61850Path": "LD0/SVBR1.Vbr.mag.f"
+    }
+  ],
+  "importSources": {
+    "standard": {
+      "formats": [
+        "csv",
+        "xlsx",
+        "json"
+      ],
+      "structure": "每行一条完整时间记录，列名使用模型字段"
+    },
+    "modbus": {
+      "formats": [
+        "csv",
+        "xlsx",
+        "json"
+      ],
+      "structure": "固定字段长表，每行一个寄存器点值",
+      "requiredColumns": [
+        "timestamp",
+        "device_id",
+        "unit_id",
+        "function_code",
+        "address",
+        "raw_value",
+        "data_type",
+        "byte_order",
+        "scale",
+        "offset",
+        "unit",
+        "quality"
+      ]
+    },
+    "iec61850": {
+      "formats": [
+        "csv",
+        "xlsx",
+        "json"
+      ],
+      "structure": "固定字段长表，每行一个对象点值",
+      "requiredColumns": [
+        "timestamp",
+        "device_id",
+        "ied",
+        "object_reference",
+        "functional_constraint",
+        "value",
+        "unit",
+        "quality"
+      ],
+      "scl": [
+        "icd",
+        "cid",
+        "scd",
+        "ssd",
+        "xml"
+      ],
+      "sclStorage": "protocol/scl，确认导入后永久保存"
+    }
+  },
+  "obviousExceptionPolicy": {
+    "normalize": [
+      "字段首尾空白",
+      "英文/中文小数分隔符",
+      "常见质量值大小写"
+    ],
+    "rejectValue": [
+      "空值",
+      "非数值",
+      "非有限数值",
+      "明显超出模型合理范围"
+    ],
+    "rejectRecord": [
+      "时间戳无效",
+      "任一必需点位缺失或无效"
+    ],
+    "duplicatePoint": "同一时间同一点位保留文件中最后一个值并在预检计数"
+  },
+  "qualityValues": [
+    "good",
+    "uncertain",
+    "bad"
+  ],
+  "sampleIntervalSeconds": 10,
+  "forecast": {
+    "steps": 180,
+    "label": "未来 30 分钟"
+  }
+}

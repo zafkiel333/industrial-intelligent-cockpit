@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "sceneId": "sim-visual-hydro-turbine",
+  "modelId": 2326,
+  "modelName": "水轮机多工况数字孪生分析",
+  "required": [
+    "timestamp",
+    "device_id",
+    "quality",
+    "rpm",
+    "temperature",
+    "vibration",
+    "pressure",
+    "flow_rate",
+    "power_output"
+  ],
+  "fields": [
+    {
+      "field": "rpm",
+      "label": "转速",
+      "unit": "r/min",
+      "normalMin": 140,
+      "normalMax": 160,
+      "base": 150,
+      "amplitude": 3.2,
+      "decimals": 1,
+      "modbusAddress": 40001,
+      "iec61850Path": "LD0/MMXU1.RotSpd.mag.f"
+    },
+    {
+      "field": "temperature",
+      "label": "轴承温度",
+      "unit": "°C",
+      "normalMin": 35,
+      "normalMax": 75,
+      "base": 54,
+      "amplitude": 5,
+      "decimals": 1,
+      "modbusAddress": 40003,
+      "iec61850Path": "LD0/TTMP1.Tmp.mag.f"
+    },
+    {
+      "field": "vibration",
+      "label": "主轴振动",
+      "unit": "mm/s",
+      "normalMin": 0,
+      "normalMax": 4.5,
+      "base": 1.6,
+      "amplitude": 0.55,
+      "decimals": 2,
+      "modbusAddress": 40005,
+      "iec61850Path": "LD0/SVBR1.Vbr.mag.f"
+    },
+    {
+      "field": "pressure",
+      "label": "水压",
+      "unit": "MPa",
+      "normalMin": 1.1,
+      "normalMax": 2.4,
+      "base": 1.75,
+      "amplitude": 0.18,
+      "decimals": 2,
+      "modbusAddress": 40007,
+      "iec61850Path": "LD0/MMXU1.HydPres.mag.f"
+    },
+    {
+      "field": "flow_rate",
+      "label": "流量",
+      "unit": "m³/s",
+      "normalMin": 18,
+      "normalMax": 42,
+      "base": 31,
+      "amplitude": 3.5,
+      "decimals": 2,
+      "modbusAddress": 40009,
+      "iec61850Path": "LD0/MMXU1.Flwrte.mag.f"
+    },
+    {
+      "field": "power_output",
+      "label": "输出功率",
+      "unit": "MW",
+      "normalMin": 12,
+      "normalMax": 32,
+      "base": 23,
+      "amplitude": 3.2,
+      "decimals": 2,
+      "modbusAddress": 40011,
+      "iec61850Path": "LD0/MMXU1.TotW.mag.f"
+    }
+  ],
+  "importSources": {
+    "standard": {
+      "formats": [
+        "csv",
+        "xlsx",
+        "json"
+      ],
+      "structure": "每行一条完整时间记录，列名使用模型字段"
+    },
+    "modbus": {
+      "formats": [
+        "csv",
+        "xlsx",
+        "json"
+      ],
+      "structure": "固定字段长表，每行一个寄存器点值",
+      "requiredColumns": [
+        "timestamp",
+        "device_id",
+        "unit_id",
+        "function_code",
+        "address",
+        "raw_value",
+        "data_type",
+        "byte_order",
+        "scale",
+        "offset",
+        "unit",
+        "quality"
+      ]
+    },
+    "iec61850": {
+      "formats": [
+        "csv",
+        "xlsx",
+        "json"
+      ],
+      "structure": "固定字段长表，每行一个对象点值",
+      "requiredColumns": [
+        "timestamp",
+        "device_id",
+        "ied",
+        "object_reference",
+        "functional_constraint",
+        "value",
+        "unit",
+        "quality"
+      ],
+      "scl": [
+        "icd",
+        "cid",
+        "scd",
+        "ssd",
+        "xml"
+      ],
+      "sclStorage": "protocol/scl，确认导入后永久保存"
+    }
+  },
+  "obviousExceptionPolicy": {
+    "normalize": [
+      "字段首尾空白",
+      "英文/中文小数分隔符",
+      "常见质量值大小写"
+    ],
+    "rejectValue": [
+      "空值",
+      "非数值",
+      "非有限数值",
+      "明显超出模型合理范围"
+    ],
+    "rejectRecord": [
+      "时间戳无效",
+      "任一必需点位缺失或无效"
+    ],
+    "duplicatePoint": "同一时间同一点位保留文件中最后一个值并在预检计数"
+  },
+  "qualityValues": [
+    "good",
+    "uncertain",
+    "bad"
+  ],
+  "sampleIntervalSeconds": 60,
+  "forecast": {
+    "steps": 360,
+    "label": "未来 6 小时"
+  }
+}

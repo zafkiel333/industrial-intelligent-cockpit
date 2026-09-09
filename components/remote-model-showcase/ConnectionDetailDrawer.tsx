@@ -92,7 +92,7 @@ export const ConnectionDetailDrawer: React.FC<ConnectionDetailDrawerProps> = ({
               <div className="border border-slate-700/60 bg-slate-950/40 p-3"><div className="text-slate-600">安全接入服务</div><div className="mt-1 text-slate-300">{snapshot?.connector.name || '模型数据安全接入服务'}</div></div>
               <div className="border border-slate-700/60 bg-slate-950/40 p-3"><div className="text-slate-600">业务应用</div><div className="mt-1 text-slate-300">{snapshot?.targetProject.name || '工业智能驾驶舱'}</div></div>
             </div>
-            <p className="mt-2 text-[10px] leading-5 text-slate-600">设备模型及运行数据由资源平台提供，经安全接入服务校验后用于当前仿真监测；资源详情页仅用于人工查看原始设备模型。</p>
+            <p className="mt-2 text-[10px] leading-5 text-slate-600">设备模型及运行数据由资源平台提供，经安全接入服务校验后用于当前运行监测；资源详情页仅用于人工查看原始设备模型。</p>
           </section>
 
           <section>
@@ -111,7 +111,7 @@ export const ConnectionDetailDrawer: React.FC<ConnectionDetailDrawerProps> = ({
                     <span>{channelExtra(channel)}</span>
                     <span>最近可用：{formatTime(channel.lastSuccessAt)}</span>
                   </div>
-                  {channel.errorMessage && <div className="mt-2 border-l-2 border-rose-500/50 pl-2 text-[9px] leading-4 text-rose-300/80">服务异常（{channel.errorCode}）：{channel.errorMessage}</div>}
+                  {channel.errorMessage && <div className="mt-2 border-l-2 border-amber-500/50 pl-2 text-[9px] leading-4 text-amber-200/90">当前通道正在恢复，系统将继续使用最近一次可用结果。</div>}
                 </div>
               ))}
               {!snapshot && <div className="border border-dashed border-slate-700 p-6 text-center text-xs text-slate-600">正在获取资源协同状态</div>}
