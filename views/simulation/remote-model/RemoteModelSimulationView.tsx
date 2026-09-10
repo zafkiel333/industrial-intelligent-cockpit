@@ -268,7 +268,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
                 <span className="rounded border border-cyan-500/25 bg-cyan-500/5 px-2 py-0.5 tracking-normal text-cyan-300">资源来源：ICES-Union 3d2.0</span>
                 <span className="rounded border border-amber-500/25 bg-amber-500/5 px-2 py-0.5 tracking-normal text-amber-300">接入服务：模型数据安全接入</span>
               </div>
-              <h1 className="text-xl font-bold tracking-wide text-slate-100 lg:text-2xl">{config.title}</h1>
+              <h1 className="text-xl font-bold tracking-wide text-slate-100 lg:text-2xl" data-localization="preserve">{config.title}</h1>
               <p className="mt-1 max-w-4xl text-xs leading-5 text-slate-500">{config.description}</p>
             </div>
             <div className="flex flex-wrap gap-2">

@@ -71,6 +71,11 @@ if (!sidebarSource.includes("data-localization={depth === 0 ? 'preserve' : undef
   throw new Error('20 个一级分类尚未启用本地化保护。');
 }
 
+const remoteModelPageSource = readFileSync(new URL('../views/simulation/remote-model/RemoteModelSimulationView.tsx', import.meta.url), 'utf8');
+if (!remoteModelPageSource.includes('data-localization="preserve">{config.title}</h1>')) {
+  throw new Error('外部模型页面业务标题尚未与全局术语规范化分离。');
+}
+
 const orgSource = readFileSync(new URL('../views/cdm/CustomerOrgStructureView.tsx', import.meta.url), 'utf8');
 if (!orgSource.includes("label: 'Quantum Global Group'") || !orgSource.includes('ORG_NODE_DISPLAY_NAME')) {
   throw new Error('组织架构的数据层英文标签与中文展示映射未正确分离。');
