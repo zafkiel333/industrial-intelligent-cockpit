@@ -8,6 +8,7 @@ import type {
   ShowcaseApiErrorBody,
 } from './types';
 import { apiUrl } from '../integration/apiClient';
+import { beginTiming, finishAfterPaint } from './responseTiming';
 
 const CONNECTION_POLL_INTERVAL_MS = 10_000;
 const connectionSnapshots = new Map<ModelShowcaseSceneId, ModelShowcaseConnectionSnapshot>();
@@ -59,6 +60,8 @@ export function useModelShowcaseConnection(sceneId: ModelShowcaseSceneId) {
   const activeScene = useRef(sceneId);
 
   const refresh = useCallback(async (foreground = false) => {
+    const timing=foreground?beginTiming(sceneId,'协同状态读取'):null;
+    let failed=false;
     if (foreground && mounted.current) setRefreshing(true);
     try {
       const next = await requestConnection(sceneId);
@@ -66,6 +69,7 @@ export function useModelShowcaseConnection(sceneId: ModelShowcaseSceneId) {
       setSnapshot(next);
       setError(null);
     } catch (requestError) {
+      failed=true;
       if (!mounted.current || activeScene.current !== sceneId) return;
       setError(requestError instanceof Error ? requestError.message : '资源协同状态获取失败');
     } finally {
@@ -73,11 +77,14 @@ export function useModelShowcaseConnection(sceneId: ModelShowcaseSceneId) {
         setLoading(false);
         setRefreshing(false);
         setLastCheckedAt(Date.now());
+        finishAfterPaint(timing,undefined,failed?'failed':'completed');
       }
     }
   }, [sceneId]);
 
   const refreshModel = useCallback(async () => {
+    const timing=beginTiming(sceneId,'三维模型更新');
+    const previousVersion=connectionSnapshots.get(sceneId)?.modelRefresh?.activeVersion;
     if (mounted.current) setModelRefreshing(true);
     try {
       const result = await requestModelRefresh(sceneId);
@@ -90,10 +97,13 @@ export function useModelShowcaseConnection(sceneId: ModelShowcaseSceneId) {
         return next;
       });
       setError(null);
+      const version=result.modelRefresh.activeVersion;
+      finishAfterPaint(timing,()=>!version || version===previousVersion || document.querySelector('.remote-model-viewer')?.getAttribute('data-model-version')===version,result.result==='failed'||result.result==='rate-limited'?'failed':'completed');
       return result;
     } catch (requestError) {
       if (!mounted.current || activeScene.current !== sceneId) return null;
       setError(requestError instanceof Error ? requestError.message : '模型手动更新失败');
+      finishAfterPaint(timing,undefined,'failed');
       return null;
     } finally {
       if (mounted.current && activeScene.current === sceneId) setModelRefreshing(false);

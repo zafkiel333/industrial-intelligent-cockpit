@@ -173,5 +173,27 @@
   "forecast": {
     "steps": 360,
     "label": "未来 6 小时"
+  },
+  "verification": {
+    "entry": "使用独立的“导入验证数据”按钮",
+    "reference": "只使用所选设备的当前历史生成预测；无固定组号或组数限制",
+    "optionalFields": [
+      "actual_tag",
+      "actual_fault_code",
+      "actual_fault_name",
+      "actual_fault_part"
+    ],
+    "tags": [
+      "normal",
+      "abnormal"
+    ],
+    "faultCodes": [
+      "SHAFT_IMBALANCE",
+      "BEARING_OVERHEAT",
+      "HYDRAULIC_INSTABILITY",
+      "POWER_DEGRADATION"
+    ],
+    "timeAlignment": "匹配原预测时间戳；部分覆盖补齐前不计入完整核验；缺少标签只计算误差",
+    "storage": "validation/unified，保存原预测与参考快照"
   }
 }

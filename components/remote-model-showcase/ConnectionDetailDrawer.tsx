@@ -5,6 +5,7 @@ import { ExternalLink, RefreshCw, X } from 'lucide-react';
 import type { ModelConnectionChannelState, ModelShowcaseConnectionSnapshot } from '../../src/remoteModelShowcase/types';
 import { ConnectionStatusBadge } from './ConnectionStatusBadge';
 import { DataProvenancePanel } from './DataProvenancePanel';
+import { ResponseTimingStrip } from './ResponseTiming';
 
 interface ConnectionDetailDrawerProps {
   open: boolean;
@@ -77,6 +78,7 @@ export const ConnectionDetailDrawer: React.FC<ConnectionDetailDrawerProps> = ({
             </button>
           </div>
         </header>
+        <ResponseTimingStrip scope={snapshot?.sceneId || ''} action="协同状态读取"/>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
           <section>

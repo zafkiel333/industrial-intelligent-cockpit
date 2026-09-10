@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {thresholdStatus,forecastDeviation,chartHistory} from '../src/remoteModelShowcase/metricComparison';
+
+assert.equal(thresholdStatus(140,140,160),'normal');
+assert.equal(thresholdStatus(160,140,160),'normal');
+assert.equal(thresholdStatus(139,140,160),'low');
+assert.equal(thresholdStatus(161,140,160),'high');
+assert.equal(thresholdStatus(null,140,160),'unknown');
+assert.equal(thresholdStatus(Number.NaN,140,160),'unknown');
+const forecast={predicted:150,lower:148,upper:153};
+assert.equal(thresholdStatus(147,140,160),'normal');
+assert.deepEqual(forecastDeviation(147,forecast),{delta:-3,lower:-2,upper:3,outside:true});
+assert.equal(forecastDeviation(153,forecast)?.outside,false);
+assert.equal(forecastDeviation(148,forecast)?.outside,false);
+assert.equal(forecastDeviation(155,forecast)?.outside,true);
+assert.equal(forecastDeviation(undefined,forecast),null);
+assert.equal(forecastDeviation(150),null);
+assert.equal(forecastDeviation(0,{predicted:0,lower:0,upper:0})?.outside,false);
+assert.equal(forecastDeviation(.1,{predicted:0,lower:0,upper:0})?.outside,true);
+const records=Array.from({length:150000},(_,i)=>({quality:i===499?'bad':'good',values:{rpm:i===401?190:i===15011?110:150}}));
+const plotted=chartHistory(records,'rpm');
+assert(plotted.length<=1250);assert(plotted.includes(records[401]));assert(plotted.includes(records[15011]));assert(plotted.includes(records[499]));assert.equal(plotted.at(-1),records.at(-1));
+console.log('METRIC_COMPARISON_OK thresholdEdges=ok asymmetricErrors=ok missing=ok spikePreservation=ok boundedHistory='+plotted.length);

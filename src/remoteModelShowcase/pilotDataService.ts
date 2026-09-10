@@ -1,5 +1,8 @@
 import { buildDataTimeline } from './dataTimeline';
+import { registerUnifiedHydroRoutes, checkVerification, readRun, unifiedRoot, unifiedSummary } from './unifiedHydroService';
 import { adaptiveForecast, forecastTraining } from './adaptiveForecast';
+import { harmonicForecast } from './harmonicForecast';
+import { HYDRO_THRESHOLD_MODEL } from './thresholdModel';
 import { buildDataInspection } from './dataInspection';
 import type { Request, Response } from 'express';
 import { createHash, randomUUID } from 'crypto';
@@ -9,7 +12,9 @@ import * as xlsx from 'xlsx';
 import { ZipArchive } from 'archiver';
 import PDFDocument from 'pdfkit';
 import { Document, HeadingLevel, Packer, Paragraph } from 'docx';
-import { getModelShowcaseConfig } from './modelCatalog';
+import { getModelShowcaseConfig, isModelShowcaseSceneId, MODEL_SHOWCASE_SCENE_IDS } from './modelCatalog';
+import { getModelOperationalProfile } from './modelOperationalProfiles';
+import type { ModelShowcaseSceneId } from './types';
 import {
   HYDRO_VALIDATION_FAULTS,
   HYDRO_VALIDATION_FIELDS,
@@ -20,14 +25,8 @@ import {
 
 xlsx.set_fs(fs);
 
-export const PILOT_DATA_SCENE_IDS = [
-  'sim-visual-hydro-turbine',
-  'sim-visual-wastewater-pump',
-  'sim-visual-bridge-crane',
-  'sim-visual-haul-truck',
-] as const;
-
-export type PilotSceneId = typeof PILOT_DATA_SCENE_IDS[number];
+export const PILOT_DATA_SCENE_IDS = MODEL_SHOWCASE_SCENE_IDS;
+export type PilotSceneId = ModelShowcaseSceneId;
 type ImportMode = 'replace' | 'append';
 type ConflictPolicy = 'keep-existing' | 'replace-existing' | 'reject';
 type Quality = 'good' | 'uncertain' | 'bad';
@@ -54,6 +53,7 @@ interface ModelDataProfile {
 }
 
 export interface DataRecord {
+  source_device_id?: string;
   timestamp: string;
   device_id: string;
   quality: Quality;
@@ -84,6 +84,7 @@ interface BatchManifest {
 }
 
 interface ImportPreview {
+  verification?: { matched: number; excluded: number; coverage: number };
   source: ImportSource;
   sourceLabel: string;
   fileFormat: 'csv' | 'xlsx' | 'json';
@@ -120,6 +121,8 @@ export interface StoredState {
 }
 
 interface ImportTask {
+  verificationCaseId?: string;
+  focusBatchId?: string;
   batchId: string;
   sceneId: PilotSceneId;
   deviceId: string;
@@ -241,7 +244,7 @@ type DownloadSection = { heading: string; lines: string[] };
 
 const imports = new Map<string, ImportTask>();
 
-const PROFILES: Record<PilotSceneId, ModelDataProfile> = {
+const LEGACY_PROFILES: Partial<Record<PilotSceneId, ModelDataProfile>> = {
   'sim-visual-hydro-turbine': profile(60, 360, '未来 6 小时', [
     ['rpm', '转速', 'r/min', 140, 160, 150, 3.2, 1, 40001, 'LD0/MMXU1.RotSpd.mag.f'],
     ['temperature', '轴承温度', '°C', 35, 75, 54, 5, 1, 40003, 'LD0/TTMP1.Tmp.mag.f'],
@@ -275,7 +278,7 @@ const PROFILES: Record<PilotSceneId, ModelDataProfile> = {
   ]),
 };
 
-const WARNING_PARTS: Record<PilotSceneId, Record<string, string>> = {
+const LEGACY_WARNING_PARTS: Partial<Record<PilotSceneId, Record<string, string>>> = {
   'sim-visual-hydro-turbine': {
     rpm: '调速器与旋转轴系', temperature: '主轴承及润滑冷却回路', vibration: '主轴、联轴器与转轮',
     pressure: '引水流道与导叶机构', flow_rate: '进水口、导叶与转轮流道', power_output: '发电机及励磁系统',
@@ -303,13 +306,22 @@ function profile(sampleIntervalSeconds: number, forecastSteps: number, forecastL
   };
 }
 
+const PROFILES = new Proxy({} as Record<PilotSceneId, ModelDataProfile>, {
+  get: (_target, key: string) => getModelOperationalProfile(key as PilotSceneId),
+});
+const WARNING_PARTS = new Proxy({} as Record<PilotSceneId, Record<string, string>>, {
+  get: (_target, key: string) => Object.fromEntries(getModelOperationalProfile(key as PilotSceneId).fields.map(field => [field.field, field.part])),
+});
+void LEGACY_PROFILES;
+void LEGACY_WARNING_PARTS;
+
 function isPilotSceneId(value: string): value is PilotSceneId {
-  return (PILOT_DATA_SCENE_IDS as readonly string[]).includes(value);
+  return isModelShowcaseSceneId(value);
 }
 
 function safeScene(req: Request): PilotSceneId {
   const value = Array.isArray(req.params.sceneId) ? req.params.sceneId[0] : req.params.sceneId;
-  if (!isPilotSceneId(value)) throw httpError(404, '该页面尚未启用数据管理功能');
+  if (!isPilotSceneId(value)) throw httpError(404, '未找到对应的模型数据页面');
   return value;
 }
 
@@ -324,7 +336,7 @@ function rootFor(dataDirectory: string, sceneId: PilotSceneId): string {
 
 function ensureDirectories(dataDirectory: string, sceneId: PilotSceneId): string {
   const root = rootFor(dataDirectory, sceneId);
-  for (const child of ['current', 'batches', 'imports', 'reference', path.join('protocol', 'scl')]) fs.mkdirSync(path.join(root, child), { recursive: true });
+  for (const child of ['current', 'batches', 'imports', 'reference', path.join('protocol', 'scl'), path.join('validation','unified')]) fs.mkdirSync(path.join(root, child), { recursive: true });
   if (sceneId === 'sim-visual-hydro-turbine') {
     for (const child of [path.join('validation', 'cases'), path.join('validation', 'uploads')]) fs.mkdirSync(path.join(root, child), { recursive: true });
   }
@@ -356,6 +368,7 @@ function schemaFor(sceneId: PilotSceneId) {
     qualityValues: ['good', 'uncertain', 'bad'],
     sampleIntervalSeconds: p.sampleIntervalSeconds,
     forecast: { steps: p.forecastSteps, label: p.forecastLabel },
+    verification: { entry: '使用独立的“导入验证数据”按钮', reference: '只使用所选设备的当前历史生成预测；验证数据不参与预测拟合', optionalFields: ['actual_tag','actual_fault_code','actual_fault_name','actual_fault_part'], tags: ['normal','abnormal'], faultCodes: getModelOperationalProfile(sceneId).faultProfiles.map(fault=>fault.code), timeAlignment: '匹配原预测时间戳；部分覆盖补齐前不计入完整核验；缺少标签只计算误差', storage: 'validation/unified，保存原预测与参考快照' },
   };
 }
 
@@ -365,7 +378,7 @@ function ensureReferenceDocuments(root: string, sceneId: PilotSceneId): void {
   const p = PROFILES[sceneId];
   const schema = schemaFor(sceneId);
   const files: Record<string, string> = {
-    'README.md': `# ${config.title} 数据目录\n\n- 页面：${sceneId}\n- 模型 ID：${config.modelId}\n- current：当前活动数据和版本\n- batches：已接收的原始批次\n- imports：尚未完成的分块上传与导入预检\n- reference：数据规范、算法、固定协议字段说明和三格式样例\n- protocol/scl：确认导入后永久保存的 IEC 61850 SCL 文件${sceneId === 'sim-visual-hydro-turbine' ? '\n- validation：水轮机预测验证的冻结预测、后续实测和累计结果' : ''}\n\n通用表格、Modbus 和 IEC 61850 来源文件只在解析入口不同，字段标准化后进入同一存储、展示、预测和诊断链路。SCL 文件用于辅助核对 IEC 61850 点位模型，不作为历史测量记录，但会与所属导入批次关联并永久保存。\n`,
+    'README.md': `# ${config.title} 数据目录\n\n- 页面：${sceneId}\n- 模型 ID：${config.modelId}\n- current：当前活动数据和版本\n- batches：已接收的原始批次\n- imports：尚未完成的分块上传与导入预检\n- reference：数据规范、算法、固定协议字段说明和三格式样例\n- protocol/scl：确认导入后永久保存的 IEC 61850 SCL 文件\n- validation/unified：保存预测、后续实测和累计核验结果\n\n通用表格、Modbus 和 IEC 61850 来源文件只在解析入口不同，字段标准化后进入同一存储、展示、预测和诊断链路。SCL 文件用于辅助核对 IEC 61850 点位模型，不作为历史测量记录，但会与所属导入批次关联并永久保存。\n`,
     'data-schema.json': JSON.stringify(schema, null, 2),
     '协议长表固定字段与异常处理.md': `# 协议长表固定字段与异常处理\n\n## Modbus 固定字段\n\n${requiredProtocolColumns('modbus').join(',')}\n\n## IEC 61850 固定字段\n\n${requiredProtocolColumns('iec61850').join(',')}\n\n字段名称固定且区分用途，可增加额外列，但不能缺少上述列。每行允许个别值缺位；空值、非数值和明显越界值会在预检中计数并剔除。某一时间点缺少任一模型必需点位时，该完整时间记录不导入。简单空白、小数分隔符和质量值大小写会自动规范化。同一时间同一点位重复时保留文件中最后一个值并给出计数。\n\nIEC 61850 可附带 ICD/CID/SCD/SSD/XML；确认导入后保存到 protocol/scl，并在批次清单中记录文件名、大小、相对路径和 SHA-256。删除运行数据、删除批次或重置不自动删除已归档 SCL。\n`,
     'algorithm.md': `# 预测与诊断算法\n\n推荐采样间隔：${p.sampleIntervalSeconds} 秒。预测窗口：${p.forecastLabel}。\n\n每个指标使用最近最多 720 个连续等间隔有效点，先进行稳健局部水平和抗异常斜率估计，再通过滚动起点回测比较指数平滑基线、阻尼趋势和周期趋势三类候选。周期候选要求重复相关性不低于 0.55，且多步 MAE 比非周期基线改善至少 8%；否则使用更保守的非周期模型。预测值不按正常上下限裁剪，仅约束非负物理量。误差带按滚动回测绝对误差 90% 分位和短期噪声共同估计，并随预测距离扩展，不代表已校准置信区间。质量 bad 或采样缺口会切断训练段。\n\n预警不是由单个预测点触发：未来预测需要持续越过模型参考范围后才形成预警。系统输出首次越界时间、方向、峰值、持续点数及模型对应部位，再将当前偏离、趋势、残差和未来持续越界共同计入故障风险。参考范围用于工程筛查，不替代现场保护定值。\n`,
@@ -630,7 +643,7 @@ function normalizeStandardRows(sceneId: PilotSceneId, task: ImportTask, rows: Re
   let invalidValueCount = 0;
   let incompleteRecordCount = 0;
   let duplicatePointCount = 0;
-  const metadataKeys = new Set(['timestamp', 'time', 'datetime', 'recorded_at', 'device_id', 'deviceid', 'quality', 'values']);
+  const metadataKeys = new Set(['timestamp', 'time', 'datetime', 'recorded_at', 'device_id', 'deviceid', 'quality', 'values', 'case_id', 'actual_tag', 'actual_fault_code', 'actual_fault_name', 'actual_fault_part']);
   for (const row of rows) {
     const millis = rowTimestamp(row);
     const quality = rowQuality(row);
@@ -757,6 +770,10 @@ function buildImportPreview(dataDirectory: string, sceneId: PilotSceneId, task: 
   validateSclFile(task);
   const rows = rowsFromFile(task);
   const normalized = normalizeRows(sceneId, task, rows);
+  const sourceDevices = [...new Set(rows.map(row => String(cell(row, ['device_id', 'deviceId']) || '').trim()).filter(Boolean))];
+  if (sourceDevices.length > 1) throw httpError(400, '一个数据文件只能属于一个具体设备，请拆分后导入');
+  normalized.records.forEach(record => { record.source_device_id = sourceDevices[0] || task.deviceId; });
+  const verification = task.verificationCaseId ? checkVerification(rootFor(dataDirectory, sceneId), task.verificationCaseId, task.deviceId, normalized.records, rows, false, sceneId) : null;
   if (!normalized.records.length) throw httpError(400, task.source === 'standard' ? '文件中没有通过校验的记录' : '协议文件没有形成包含全部必需点位的完整时间记录');
   fs.writeFileSync(task.normalizedPath, JSON.stringify(normalized.records), 'utf8');
   const rules = PROFILES[sceneId].fields;
@@ -773,9 +790,11 @@ function buildImportPreview(dataDirectory: string, sceneId: PilotSceneId, task: 
   const quality = [...uniqueIncoming.values()].reduce((counts, record) => ({ ...counts, [record.quality]: counts[record.quality] + 1 }), { good: 0, uncertain: 0, bad: 0 });
   const missingRequiredPoints = rules.filter((rule) => !normalized.observedFields.has(rule.field)).map((rule) => rule.label);
   const warnings = [
+    sourceDevices[0] && sourceDevices[0] !== task.deviceId ? `文件设备 ${sourceDevices[0]} 将归入所选设备 ${task.deviceId}；确认导入表示确认此归属` : '',
+    task.verificationCaseId ? '本次数据仅用于当前预测的后续实测核验，不修改历史参考或原预测。' : '',
     normalized.rejected ? `${normalized.rejected} 个时间记录因时间无效或必需点位不完整而被拒绝` : '',
     normalized.unmappedPoints.size ? `${normalized.unmappedPoints.size} 个文件点位未配置映射，将被忽略` : '',
-    duplicateTimes ? `${duplicateTimes} 个时间点与设备现有数据重复，将按当前重复时间策略处理` : '',
+    duplicateTimes && !verification ? `${duplicateTimes} 个时间点与设备现有数据重复，将按当前重复时间策略处理` : '',
     normalized.correctedValueCount ? `${normalized.correctedValueCount} 个简单格式值已自动规范化` : '',
     normalized.invalidValueCount ? `${normalized.invalidValueCount} 个空值、非数值或明显越界值已剔除` : '',
     normalized.incompleteRecordCount ? `${normalized.incompleteRecordCount} 个时间点因必需点位不全未进入导入数据` : '',
@@ -783,6 +802,7 @@ function buildImportPreview(dataDirectory: string, sceneId: PilotSceneId, task: 
   ].filter(Boolean);
   return {
     source: task.source,
+    ...(verification ? {verification:{matched:verification.matched,excluded:verification.excluded,coverage:verification.run.coverage || 0}} : {}),
     sourceLabel: sourceLabel(task.source),
     fileFormat: task.format,
     sourceRowCount: rows.length,
@@ -805,7 +825,7 @@ function buildImportPreview(dataDirectory: string, sceneId: PilotSceneId, task: 
   };
 }
 
-export function analyse(sceneId: PilotSceneId, state: StoredState, deviceId?: string | null) {
+export function analyse(sceneId: PilotSceneId, state: StoredState, deviceId?: string | null, enhanced = false) {
   const p = PROFILES[sceneId];
   const selectedDevice = deviceId || [...new Set(state.records.map(r=>r.device_id))].sort()[0];
   const scoped = state.records.filter(record=>record.device_id===selectedDevice).sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
@@ -827,7 +847,7 @@ export function analyse(sceneId: PilotSceneId, state: StoredState, deviceId?: st
     const boundaryDistance = last < rule.normalMin ? rule.normalMin - last : last > rule.normalMax ? last - rule.normalMax : Math.max(0, Math.abs(last - (rule.normalMin + rule.normalMax) / 2) - span * 0.32);
     let forecastRisk = 0;
     if(training.records.length>=6) {
-      const fitted=adaptiveForecast(training.records.map(r=>r.values[rule.field]),p.forecastSteps,rule.normalMin>=0?0:-Infinity);
+      const fitted=(enhanced ? harmonicForecast : adaptiveForecast)(training.records.map(r=>r.values[rule.field]),p.forecastSteps,rule.normalMin>=0?0:-Infinity);
       const {points,...metadata}=fitted;forecastModels.push({field:rule.field,...metadata});
       const outside = points.filter((point) => point.predicted < rule.normalMin || point.predicted > rule.normalMax);
       const maximumDeviation = outside.reduce((maximum, point) => Math.max(maximum, point.predicted < rule.normalMin ? rule.normalMin - point.predicted : point.predicted - rule.normalMax), 0);
@@ -977,7 +997,8 @@ function removeBatchFiles(dataDirectory: string, sceneId: PilotSceneId, batchIds
 
 function cleanupAbandonedImports(dataDirectory: string): void {
   for (const sceneId of PILOT_DATA_SCENE_IDS) {
-    const directory = path.join(ensureDirectories(dataDirectory, sceneId), 'imports');
+    const directory = path.join(rootFor(dataDirectory, sceneId), 'imports');
+    if (!fs.existsSync(directory)) continue;
     for (const fileName of fs.readdirSync(directory)) {
       if (!fileName.endsWith('.part') && !fileName.endsWith('.normalized.json')) continue;
       const batchId = fileName.endsWith('.scl.part')
@@ -1072,7 +1093,9 @@ function writePdf(res: Response, fileName: string, title: string, sections: Down
 
 function specificationSections(sceneId: PilotSceneId): DownloadSection[] {
   const p = PROFILES[sceneId];
+  const faults=getModelOperationalProfile(sceneId).faultProfiles;
   return [
+    { heading: '预测与后续实测核验', lines: ['历史数据统一传入并选择已有设备追加/替换，或新增设备保存。选中设备后使用其唯一当前历史生成预测。至少需要 24 条连续有效历史，采样缺口可能减少可用于预测的连续窗口。', '后续实测仍使用相同格式与协议字段，点击独立的“导入验证数据”按钮。时间戳应覆盖原预测区间；原预测不会被验证数据改写。', `可增加 actual_tag（normal / abnormal）、actual_fault_code、actual_fault_name、actual_fault_part。实际故障代码：${faults.map(fault=>fault.code).join('、')}。缺少标签只计算误差，缺少故障依据不统计故障结论准确率。`, '每个模型随数据样例提供三套观测—验证数据，一套正常、两套异常。部分覆盖显示核验覆盖率；补齐后计入累计统计。'] },
     { heading: '通用表格', lines: ['支持 CSV、XLSX、JSON。每行一条完整时序记录；JSON 可直接使用数组或 records 数组。', '必填列：timestamp、device_id、quality，以及下列全部模型字段。上传表单中的设备 ID 作为本批全部记录的最终标签。'] },
     { heading: 'Modbus 固定长表字段', lines: [`固定列：${requiredProtocolColumns('modbus').join('、')}。允许增加额外列，但固定列不能缺少。`, '相同 timestamp 的全部必需寄存器聚合为一条模型记录；未映射寄存器忽略并在导入预检中列出。'] },
     { heading: 'IEC 61850 固定长表字段', lines: [`固定列：${requiredProtocolColumns('iec61850').join('、')}。允许增加额外列，但固定列不能缺少。`, 'SCL 的 ICD/CID/SCD/SSD/XML 文件用于核对设备与点位模型；确认导入后永久保存到当前模型 protocol/scl 目录，并与导入批次关联。'] },
@@ -1226,25 +1249,39 @@ function validationFileSummary(fileName: string, content: string, records: DataR
   };
 }
 
-export function validationPrediction(records: DataRecord[]) {
+export function validationPredictionForScene(sceneId: PilotSceneId, records: DataRecord[], enhanced = false) {
+  const operational = getModelOperationalProfile(sceneId);
   const state: StoredState = { schemaVersion: 1, dataVersion: randomUUID(), updatedAt: new Date().toISOString(), records, batches: [] };
-  const result = analyse(HYDRO_VALIDATION_SCENE_ID, state, records[0].device_id);
+  const result = analyse(sceneId, state, records[0].device_id, enhanced);
   const riskLevel = (['healthy', 'attention', 'warning', 'critical'] as const).find((level) => level === result.diagnosis.riskLevel) || 'attention';
-  const predictedAbnormal = result.alerts.length > 0 || result.diagnosis.riskLevel === 'warning' || result.diagnosis.riskLevel === 'critical';
+  const latest=records.filter(record=>record.quality!=='bad').sort((a,b)=>a.timestamp.localeCompare(b.timestamp)).at(-1);
+  const currentOutOfRange=Boolean(latest&&operational.fields.some(field=>latest.values[field.field]<field.normalMin||latest.values[field.field]>field.normalMax));
+  const predictedAbnormal = currentOutOfRange || result.alerts.length > 0 || result.diagnosis.riskLevel === 'warning' || result.diagnosis.riskLevel === 'critical';
   const primary = predictedAbnormal ? result.diagnosis.predictions[0] : null;
-  const faultCode = primary && primary.faultCode in HYDRO_VALIDATION_FAULTS ? primary.faultCode as HydroFaultCode : null;
-  const faultName = faultCode ? HYDRO_VALIDATION_FAULTS[faultCode].name : '未发现明确故障趋势';
-  const faultPart = faultCode ? HYDRO_VALIDATION_FAULTS[faultCode].part : '无';
+  const selectedFault = primary ? operational.faultProfiles.find(fault => fault.code === primary.faultCode) : null;
+  const faultCode = selectedFault?.code || null;
+  const faultName = selectedFault?.name || '未发现明确故障趋势';
+  const faultPart = selectedFault?.part || '无';
   const tag: HydroValidationTag = predictedAbnormal ? 'abnormal' : 'normal';
+  const enhancedConclusion = predictedAbnormal
+    ? `${result.horizon}内${result.alerts.length ? `发现 ${result.alerts.length} 项持续越界趋势` : '预测中值尚未持续越界，但当前历史偏离与趋势风险已达到预警条件'}。${faultCode ? `建议优先检查${faultName}相关部位，结合现场工况核实。` : '建议结合现场工况进一步检查。'}`
+    : `${result.horizon}内预测中值未触发持续越界，当前未发现明确故障趋势。`;
   return {
     generatedAt: result.generatedAt,
     tag,
     faultCode,
     faultName,
     faultPart,
-    conclusion: `${result.diagnosis.conclusion} 预测状态为${tag === 'abnormal' ? '异常' : '正常'}${faultCode ? `，主要疑似故障为${faultName}，建议关注${faultPart}` : ''}。`,
+    conclusion: enhanced ? enhancedConclusion : `${result.diagnosis.conclusion} 预测状态为${tag === 'abnormal' ? '异常' : '正常'}${faultCode ? `，主要疑似故障为${faultName}，建议关注${faultPart}` : ''}。`,
     riskLevel,
     healthScore: result.diagnosis.healthScore,
+    models: result.forecastModels,
+    thresholdModelVersion: operational.thresholdModel.version,
+    alerts: result.alerts,
+    candidates: result.diagnosis.predictions,
+    sampleIntervalSeconds: result.sampleIntervalSeconds,
+    horizon: result.horizon,
+    fields: operational.fields.map(({field,label,unit,normalMin,normalMax})=>({field,label,unit,normalMin,normalMax})),
     forecasts: result.forecasts.map((forecast) => ({
       field: String(forecast.field),
       timestamp: String(forecast.timestamp),
@@ -1252,10 +1289,46 @@ export function validationPrediction(records: DataRecord[]) {
       lower: Number(forecast.lower),
       upper: Number(forecast.upper),
     })),
-  } satisfies HydroValidationCaseRecord['prediction'];
+  };
 }
 
-export function compareHydroValidation(record: HydroValidationCaseRecord, actualRecords: DataRecord[], actualTag: HydroValidationTag, actualFaultCode: HydroFaultCode | null): HydroValidationResult {
+export function validationPrediction(records: DataRecord[], enhanced = false) {
+  return validationPredictionForScene(HYDRO_VALIDATION_SCENE_ID, records, enhanced) as ReturnType<typeof validationPredictionForScene> & { faultCode: HydroFaultCode | null };
+}
+
+export function compareModelValidation(
+  sceneId: PilotSceneId,
+  record: { prediction: ReturnType<typeof validationPredictionForScene> },
+  actualRecords: DataRecord[],
+  actualTag: HydroValidationTag,
+  actualFaultCode: string | null,
+) {
+  const operational = getModelOperationalProfile(sceneId);
+  const forecasts = new Map(record.prediction.forecasts.map(forecast => [`${forecast.field}|${forecast.timestamp}`, forecast]));
+  const fieldMetrics = operational.fields.map(field => {
+    const pairs = actualRecords.map(actual => ({ actual: actual.values[field.field], forecast: forecasts.get(`${field.field}|${actual.timestamp}`) }))
+      .filter((pair): pair is {actual:number;forecast:{field:string;timestamp:string;predicted:number;lower:number;upper:number}} => Number.isFinite(pair.actual) && Boolean(pair.forecast));
+    if (pairs.length !== actualRecords.length) throw httpError(400, `${field.label}验证时间未与保存的预测完整对齐`);
+    const absoluteErrors = pairs.map(pair => Math.abs(pair.actual - pair.forecast.predicted));
+    const squaredErrors = pairs.map(pair => (pair.actual - pair.forecast.predicted) ** 2);
+    const smapeValues = pairs.map(pair => 2 * Math.abs(pair.actual - pair.forecast.predicted) / Math.max(.000001, Math.abs(pair.actual) + Math.abs(pair.forecast.predicted)));
+    const mae = absoluteErrors.reduce((sum,value)=>sum+value,0) / pairs.length;
+    const rmse = Math.sqrt(squaredErrors.reduce((sum,value)=>sum+value,0) / pairs.length);
+    return { field:field.field,label:field.label,unit:field.unit,mae:Number(mae.toFixed(field.decimals+2)),rmse:Number(rmse.toFixed(field.decimals+2)),
+      normalizedMae:Number((mae/(field.normalMax-field.normalMin)).toFixed(4)),smape:Number((smapeValues.reduce((sum,value)=>sum+value,0)/pairs.length).toFixed(4)),
+      intervalCoverage:Number((pairs.filter(pair=>pair.actual>=pair.forecast.lower&&pair.actual<=pair.forecast.upper).length/pairs.length).toFixed(4)) };
+  });
+  const mean=(key:'normalizedMae'|'smape'|'intervalCoverage')=>fieldMetrics.reduce((sum,metric)=>sum+metric[key],0)/fieldMetrics.length;
+  const actualFault=actualFaultCode ? operational.faultProfiles.find(fault=>fault.code===actualFaultCode) : null;
+  const statusCorrect=record.prediction.tag===actualTag;
+  const faultCorrect=actualTag==='normal' ? record.prediction.tag==='normal' : record.prediction.faultCode===actualFaultCode;
+  return {actualTag,actualFaultCode,actualFaultName:actualFault?.name||'未发现故障状态',actualFaultPart:actualFault?.part||'无',statusCorrect,faultCorrect,
+    conclusionCorrect:statusCorrect&&faultCorrect,normalizedMae:Number(mean('normalizedMae').toFixed(4)),smape:Number(mean('smape').toFixed(4)),
+    intervalCoverage:Number(mean('intervalCoverage').toFixed(4)),fieldMetrics,
+    actualSeries:actualRecords.map(item=>({timestamp:item.timestamp,values:Object.fromEntries(operational.fields.map(field=>[field.field,item.values[field.field]]))})),verifiedAt:new Date().toISOString()};
+}
+
+export function compareHydroValidation(record: Pick<HydroValidationCaseRecord, 'prediction'>, actualRecords: DataRecord[], actualTag: HydroValidationTag, actualFaultCode: HydroFaultCode | null): HydroValidationResult {
   const forecasts = new Map(record.prediction.forecasts.map((forecast) => [`${forecast.field}|${forecast.timestamp}`, forecast]));
   const fieldMetrics = HYDRO_VALIDATION_FIELDS.map((field) => {
     const pairs = actualRecords.map((actual) => ({ actual: actual.values[field.field], forecast: forecasts.get(`${field.field}|${actual.timestamp}`) })).filter((pair): pair is { actual: number; forecast: { field: string; timestamp: string; predicted: number; lower: number; upper: number } } => Boolean(pair.forecast));
@@ -1363,6 +1436,69 @@ function validationDatasetRoot(dataDirectory: string): string {
   return path.join(rootFor(dataDirectory, HYDRO_VALIDATION_SCENE_ID), 'reference', 'forecast-validation');
 }
 
+function pairedDatasetRoot(dataDirectory:string,sceneId:PilotSceneId):string {
+  return path.join(ensureDirectories(dataDirectory,sceneId),'reference','forecast-validation');
+}
+
+function deterministicSeed(value:string):number {
+  return Number.parseInt(createHash('sha256').update(value).digest('hex').slice(0,8),16);
+}
+
+export function modelPairedDatasetRows(sceneId:PilotSceneId,setIndex:number,phase:'observation'|'verification') {
+  const config=getModelShowcaseConfig(sceneId)!;
+  const operational=getModelOperationalProfile(sceneId);
+  const observationCount=180;
+  const verificationCount=operational.forecastSteps;
+  const start=Date.parse(`2026-08-${String(8+setIndex*3).padStart(2,'0')}T00:00:00.000Z`);
+  const offset=phase==='observation'?0:observationCount;
+  const count=phase==='observation'?observationCount:verificationCount;
+  const abnormal=setIndex>1;
+  const fault=abnormal?operational.faultProfiles[Math.min(setIndex-2,operational.faultProfiles.length-1)]:null;
+  const seed=deterministicSeed(`${sceneId}:${setIndex}`);
+  return Array.from({length:count},(_,localIndex)=>{
+    const index=offset+localIndex;
+    const progress=Math.max(0,(index-observationCount*.5)/(observationCount+verificationCount-observationCount*.5));
+    const values=Object.fromEntries(operational.fields.map((field,fieldIndex)=>{
+      const span=field.normalMax-field.normalMin;
+      const period=15+(seed+fieldIndex*7)%21;
+      const wave=Math.sin(index/period+fieldIndex*.83)*field.amplitude*.62+Math.cos(index/(period*.43)+fieldIndex)*field.amplitude*.14;
+      let shift=0;
+      if(fault?.fields.includes(field.field)){
+        const direction=field.riskDirection==='low'?-1:1;
+        shift=direction*span*Math.min(.82,2.25*progress);
+      }
+      const verificationVariation=phase==='verification' ? Math.sin((localIndex+1)*.47+fieldIndex*1.17)*field.amplitude*.08 : 0;
+      const value=field.base+wave+shift+verificationVariation;
+      return [field.field,Number(value.toFixed(field.decimals))];
+    }));
+    return {timestamp:new Date(start+index*operational.sampleIntervalSeconds*1000).toISOString(),device_id:`${config.modelId}-SET-${String(setIndex).padStart(2,'0')}`,quality:'good',...values,
+      ...(phase==='verification'?{actual_tag:abnormal?'abnormal':'normal',actual_fault_code:fault?.code||'',actual_fault_name:fault?.name||'',actual_fault_part:fault?.part||''}:{})};
+  });
+}
+
+function ensurePairedDatasets(dataDirectory:string,sceneId:PilotSceneId):string {
+  const root=pairedDatasetRoot(dataDirectory,sceneId);
+  fs.mkdirSync(root,{recursive:true});
+  const config=getModelShowcaseConfig(sceneId)!;
+  const operational=getModelOperationalProfile(sceneId);
+  const manifest={schemaVersion:2,sceneId,modelId:config.modelId,modelName:config.expectedRemoteName,generatedFor:'预测与后续实测核验',sets:[1,2,3].map(setIndex=>({setId:`SET-${String(setIndex).padStart(2,'0')}`,tag:setIndex===1?'normal':'abnormal',faultCode:setIndex===1?null:operational.faultProfiles[Math.min(setIndex-2,operational.faultProfiles.length-1)].code,observationCount:180,verificationCount:operational.forecastSteps,sampleIntervalSeconds:operational.sampleIntervalSeconds}))};
+  for(const setIndex of [1,2,3]){
+    const setId=`SET-${String(setIndex).padStart(2,'0')}`;
+    const directory=path.join(root,setId);
+    fs.mkdirSync(directory,{recursive:true});
+    const observation=modelPairedDatasetRows(sceneId,setIndex,'observation');
+    const verification=modelPairedDatasetRows(sceneId,setIndex,'verification');
+    const observationFile=`${config.modelId}-${config.expectedRemoteName}-${setId}-观测数据.csv`;
+    const verificationFile=`${config.modelId}-${config.expectedRemoteName}-${setId}-验证数据.csv`;
+    fs.writeFileSync(path.join(directory,observationFile),`\ufeff${xlsx.utils.sheet_to_csv(xlsx.utils.json_to_sheet(observation))}`,'utf8');
+    fs.writeFileSync(path.join(directory,verificationFile),`\ufeff${xlsx.utils.sheet_to_csv(xlsx.utils.json_to_sheet(verification))}`,'utf8');
+    fs.writeFileSync(path.join(directory,'数据组说明.md'),`# ${config.expectedRemoteName} ${setId}\n\n- 观测数据：${observationFile}\n- 验证数据：${verificationFile}\n- 实际状态：${setIndex===1?'正常':'异常'}\n- 故障类型：${setIndex===1?'无':operational.faultProfiles[Math.min(setIndex-2,operational.faultProfiles.length-1)].name}\n- 使用顺序：先将观测数据导入设备历史并生成预测，再通过“导入验证数据”核验原预测。\n- 验证数据不参与预测拟合；预测生成后保持冻结。\n`,'utf8');
+  }
+  fs.writeFileSync(path.join(root,'manifest.json'),JSON.stringify(manifest,null,2),'utf8');
+  fs.writeFileSync(path.join(root,'三组预测核验数据说明.md'),`# ${config.expectedRemoteName} 预测核验数据\n\n本目录包含三套相互独立的观测—验证数据：一套正常工况、两套异常工况。各套数据均使用本模型专属字段、单位、参考范围与故障代码。数据保留连续波动、负载变化和测量扰动；验证段与观测段时间连续，但不复制观测值。\n\n预测误差范围由观测历史的滚动回测误差估计。少量验证点可能位于范围外，用于反映工况变化和测量扰动；是否异常以实际状态标签及持续趋势共同核验，不由单点偏差决定。\n`,'utf8');
+  return root;
+}
+
 function errorResponse(res: Response, error: unknown): void {
   const normalized = error instanceof Error ? error : new Error('请求处理失败');
   const status = 'status' in normalized && typeof normalized.status === 'number' ? normalized.status : 500;
@@ -1372,6 +1508,9 @@ function errorResponse(res: Response, error: unknown): void {
 
 export function registerPilotDataRoutes(app: { get: Function; post: Function; put: Function; delete: Function }, dataDirectory: string): void {
   cleanupAbandonedImports(dataDirectory);
+  for (const modelSceneId of PILOT_DATA_SCENE_IDS) {
+    registerUnifiedHydroRoutes(app, () => ensureState(dataDirectory, modelSceneId), () => rootFor(dataDirectory, modelSceneId), modelSceneId);
+  }
   const route = (handler: (req: Request, res: Response) => Promise<unknown> | void | Response) => async (req: Request, res: Response) => {
     try { await handler(req, res); } catch (error) { errorResponse(res, error); }
   };
@@ -1496,11 +1635,28 @@ export function registerPilotDataRoutes(app: { get: Function; post: Function; pu
   }));
 
   app.get('/api/model-showcase/:sceneId/data/validation/datasets', route((req, res) => {
+    const sceneId=safeScene(req);
+    if(sceneId!==HYDRO_VALIDATION_SCENE_ID){
+      const datasetRoot=ensurePairedDatasets(dataDirectory,sceneId);
+      const config=getModelShowcaseConfig(sceneId)!;
+      const deviceId=req.query.deviceId?requestedDeviceId(req):`${config.modelId}-01`;
+      setDownloadHeaders(res,'application/zip',downloadFileName(sceneId,deviceId,'三组预测核验成对样例','zip'));
+      const archive=new ZipArchive({zlib:{level:9}});
+      archive.on('error',error=>res.destroy(error));
+      archive.pipe(res);
+      for(const setId of ['SET-01','SET-02','SET-03']){
+        const directory=path.join(datasetRoot,setId);
+        for(const fileName of fs.readdirSync(directory))archive.file(path.join(directory,fileName),{name:`${setId}/${fileName}`});
+      }
+      for(const fileName of ['manifest.json','三组预测核验数据说明.md'])archive.file(path.join(datasetRoot,fileName),{name:fileName});
+      void archive.finalize();
+      return;
+    }
     safeHydroValidationScene(req);
     const requestedCase = req.query.caseId ? validationDefinition(req.query.caseId).caseId : null;
     const datasetRoot = validationDatasetRoot(dataDirectory);
     if (!fs.existsSync(datasetRoot)) throw httpError(404, '预测验证数据集尚未生成');
-    const archiveName = requestedCase ? `2326-水轮机预测验证-${requestedCase}-数据包.zip` : '2326-水轮机预测验证-50组数据包.zip';
+    const archiveName = req.query.deviceId ? downloadFileName(HYDRO_VALIDATION_SCENE_ID, requestedDeviceId(req), '预测核验成对样例', 'zip') : requestedCase ? `2326-水轮机预测验证-${requestedCase}-数据包.zip` : '2326-水轮机预测验证-50组数据包.zip';
     setDownloadHeaders(res, 'application/zip', archiveName);
     const archive = new ZipArchive({ zlib: { level: 9 } });
     archive.on('error', (error) => res.destroy(error));
@@ -1534,6 +1690,13 @@ export function registerPilotDataRoutes(app: { get: Function; post: Function; pu
     if (sclFileName && source !== 'iec61850') throw httpError(400, '只有 IEC 61850 数据来源可以附带 SCL 文件');
     if (sclFileName && (!Number.isSafeInteger(sclFileSize) || sclFileSize < 1)) throw httpError(400, 'SCL 文件大小无效');
     const deviceId = validateDeviceId(req.body?.deviceId);
+    const verificationCaseId = req.body?.verificationCaseId ? String(req.body.verificationCaseId) : undefined;
+    if (verificationCaseId) {
+      safeScene(req);
+      const run = readRun(rootFor(dataDirectory, sceneId), verificationCaseId);
+      if (run.deviceId !== deviceId) throw httpError(400, '所选预测不属于当前设备');
+      if (mode !== 'append') throw httpError(400, '实测核验不允许覆盖参考历史');
+    }
     const deviceSource = req.body?.deviceSource === 'existing' || req.body?.deviceSource === 'new' ? req.body.deviceSource : null;
     const existingDevices = new Set(ensureState(dataDirectory, sceneId).records.map((record) => record.device_id));
     if (deviceSource === 'existing' && !existingDevices.has(deviceId)) throw httpError(400, '所选已有设备不存在，请刷新设备清单后重试');
@@ -1545,7 +1708,7 @@ export function registerPilotDataRoutes(app: { get: Function; post: Function; pu
     const normalizedPath = path.join(importRoot, `${batchId}.normalized.json`);
     const sclTempPath = sclFileName ? path.join(importRoot, `${batchId}.scl.part`) : null;
     const now = new Date().toISOString();
-    const task: ImportTask = { batchId, sceneId, deviceId, fileName, fileSize, format: parseFormat(fileName), source, mode, conflictPolicy, uploadedBytes: 0, parsedRows: 0, totalRows: null, stage: 'uploading', error: null, createdAt: now, updatedAt: now, tempPath, normalizedPath, sclFileName, sclFileSize, sclUploadedBytes: 0, sclTempPath, preview: null };
+    const task: ImportTask = { verificationCaseId, batchId, sceneId, deviceId, fileName, fileSize, format: parseFormat(fileName), source, mode, conflictPolicy, uploadedBytes: 0, parsedRows: 0, totalRows: null, stage: 'uploading', error: null, createdAt: now, updatedAt: now, tempPath, normalizedPath, sclFileName, sclFileSize, sclUploadedBytes: 0, sclTempPath, preview: null };
     fs.writeFileSync(tempPath, Buffer.alloc(0));
     if (sclTempPath) fs.writeFileSync(sclTempPath, Buffer.alloc(0));
     imports.set(batchId, task);
@@ -1639,6 +1802,21 @@ export function registerPilotDataRoutes(app: { get: Function; post: Function; pu
       try {
         const normalizedRecords = JSON.parse(fs.readFileSync(task.normalizedPath, 'utf8')) as DataRecord[];
         if (!normalizedRecords.length) throw httpError(400, '预检数据中没有可导入记录');
+        if (task.verificationCaseId) {
+          const modelRoot = rootFor(dataDirectory, sceneId);
+          // Validate fully before changing persisted results. Raw inputs are archived by import ID.
+          const rawRows = rowsFromFile(task);
+          checkVerification(modelRoot, task.verificationCaseId, task.deviceId, normalizedRecords, rawRows, false, sceneId);
+          const archive = path.join(unifiedRoot(modelRoot), 'uploads');
+          fs.mkdirSync(archive, { recursive: true });
+          fs.copyFileSync(task.tempPath, path.join(archive, `${task.verificationCaseId}-${task.batchId}.${task.format}`));
+          if (task.sclTempPath) fs.copyFileSync(task.sclTempPath, path.join(modelRoot, 'protocol', 'scl', `${task.batchId}-${task.sclFileName}`));
+          checkVerification(modelRoot, task.verificationCaseId, task.deviceId, normalizedRecords, rawRows, true, sceneId);
+          for (const file of [task.tempPath, task.normalizedPath, task.sclTempPath]) if (file && fs.existsSync(file)) fs.unlinkSync(file);
+          task.stage = 'completed';
+          task.updatedAt = new Date().toISOString();
+          return;
+        }
         const state = ensureState(dataDirectory, sceneId);
         const fileHash = createHash('sha256').update(fs.readFileSync(task.tempPath)).digest('hex');
         const duplicateBatch = state.batches.find((batch) => batch.sha256 === fileHash && batch.deviceId === task.deviceId);
@@ -1673,6 +1851,7 @@ export function registerPilotDataRoutes(app: { get: Function; post: Function; pu
         }
         const manifest: BatchManifest = { batchId: task.batchId, fileName: task.fileName, fileSize: task.fileSize, sha256: fileHash, format: task.format, source: task.source, deviceId: task.deviceId, mode: task.mode, conflictPolicy: task.conflictPolicy, importedAt: new Date().toISOString(), rowCount: task.preview!.sourceRowCount, acceptedCount: accepted, rejectedCount: task.preview!.rejectedRecordCount, duplicateCount: duplicates, status: 'completed', ...sclMetadata };
         const next: StoredState = { ...state, records: [...indexed.values()].sort((a, b) => a.timestamp.localeCompare(b.timestamp)), batches: task.mode === 'replace' ? [...state.batches.filter((batch) => batch.deviceId !== task.deviceId), manifest] : [...state.batches, manifest] };
+        task.focusBatchId = accepted > 0 ? task.batchId : duplicateBatch && next.records.some(r=>r.batch_id===duplicateBatch.batchId) ? duplicateBatch.batchId : '';
         fs.copyFileSync(task.tempPath, path.join(rootFor(dataDirectory, sceneId), 'batches', `${task.batchId}.${task.format}`));
         writeState(dataDirectory, sceneId, next);
         removeBatchFiles(dataDirectory, sceneId, replacedBatchIds);
@@ -1827,6 +2006,19 @@ export function registerPilotDataRoutes(app: { get: Function; post: Function; pu
     const sceneId = safeScene(req);
     const deviceId = requestedDeviceId(req);
     const format = requestedFormat(req, ['csv', 'xlsx', 'json'], 'xlsx');
+    if (req.query.runId) {
+      safeScene(req);
+      const run = readRun(rootFor(dataDirectory, sceneId), String(req.query.runId));
+      if (run.deviceId !== deviceId) throw httpError(400, '下载设备与预测不一致');
+      if (format === 'json') return sendJsonDownload(res, downloadFileName(sceneId, deviceId, '预测结果', 'json'), run);
+      const sheet = xlsx.utils.json_to_sheet(run.prediction.forecasts.map(f => ({ ...f, device_id: deviceId, predicted_tag: run.prediction.tag, fault: run.prediction.faultName, part: run.prediction.faultPart })));
+      if (format === 'csv') return sendCsvDownload(res, downloadFileName(sceneId, deviceId, '预测结果', 'csv'), sheet);
+      const book = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(book, sheet, '预测结果');
+      if (run.result) xlsx.utils.book_append_sheet(book, xlsx.utils.json_to_sheet(run.result.fieldMetrics), '核验误差');
+      setDownloadHeaders(res, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', downloadFileName(sceneId, deviceId, '预测结果', 'xlsx'));
+      return res.send(xlsx.write(book, { type: 'buffer', bookType: 'xlsx' }));
+    }
     const result = analyse(sceneId, ensureState(dataDirectory, sceneId), deviceId);
     if (format === 'json') return sendJsonDownload(res, downloadFileName(sceneId, deviceId, '预测结果', 'json'), result);
     const forecastRows = result.forecasts.map((row) => ({ ...row, health_score: result.diagnosis.healthScore, risk_level: result.diagnosis.riskLevel }));
@@ -1844,6 +2036,25 @@ export function registerPilotDataRoutes(app: { get: Function; post: Function; pu
     const sceneId = safeScene(req);
     const deviceId = requestedDeviceId(req);
     const format = requestedFormat(req, ['pdf', 'docx', 'json'], 'pdf');
+    if (req.query.runId) {
+      safeScene(req);
+      const run = readRun(rootFor(dataDirectory, sceneId), String(req.query.runId));
+      if (run.deviceId !== deviceId) throw httpError(400, '下载设备与预测不一致');
+      const summary = unifiedSummary(rootFor(dataDirectory, sceneId));
+      if (format === 'json') return sendJsonDownload(res, downloadFileName(sceneId, deviceId, '分析报告', 'json'), { run, summary });
+      const sections: DownloadSection[] = [
+        { heading: '参考数据', lines: [`设备：${deviceId}`, `文件：${run.observation.fileName}`, `${run.observation.startAt} 至 ${run.observation.endAt}，${run.history.length} 条`, `预测时间：${run.prediction.generatedAt}`] },
+        { heading: '预测结论', lines: [run.prediction.conclusion, `预警部位：${run.prediction.faultPart}`, `阈值诊断模型：${run.prediction.thresholdModelVersion || getModelOperationalProfile(sceneId).thresholdModel.version}`] },
+        { heading: '预测依据', lines: (run.prediction.models || []).map(m=>`${m.field}：${m.method}；拟合 ${m.trainingRecords} 条；回测 MAE ${m.validationMae ?? '--'}；基线 MAE ${m.baselineMae ?? '--'}；周期 ${m.period ?? '未识别'} 个采样点；回测跨度 ${m.validationHorizon} 个采样点。`) },
+        { heading: '预警指标与处置', lines: (run.prediction.alerts || []).length ? run.prediction.alerts.map(a=>`${a.label}：${a.part}，${a.firstAt} 起持续 ${a.durationMinutes} 分钟，峰值 ${a.peakValue} ${a.unit}，参考范围 ${a.normalMin}—${a.normalMax}。`) : ['预测中值未触发持续越界预警。'] },
+        { heading: '检查建议', lines: (run.prediction.candidates || []).map(c=>`${c.faultName}：${c.recommendation}`) },
+        { heading: '本次核验', lines: run.result ? [`覆盖率：${((run.coverage || 0)*100).toFixed(1)}%`, `状态核验：${run.labelKnown ? run.result.statusCorrect ? '一致' : '有偏差' : '未提供实际标签'}`, ...run.result.fieldMetrics.map(m=>`${m.label} MAE ${m.mae} ${m.unit}，RMSE ${m.rmse} ${m.unit}，归一化误差 ${(m.normalizedMae*100).toFixed(2)}%`)] : ['尚未传入后续实测'] },
+        { heading: '累计核验', lines: [`已完成 ${summary.verifiedCases} 次，具有状态标签 ${summary.statusCount} 次`, `状态准确率：${summary.metrics.statusAccuracy == null ? '--' : (summary.metrics.statusAccuracy*100).toFixed(1)+'%'}`] },
+      ];
+      const title = '水轮机预测与实测核验报告';
+      if (format === 'docx') return writeDocx(res, downloadFileName(sceneId, deviceId, '分析报告', 'docx'), title, sections);
+      return writePdf(res, downloadFileName(sceneId, deviceId, '分析报告', 'pdf'), title, sections);
+    }
     const state = ensureState(dataDirectory, sceneId);
     const result = analyse(sceneId, state, deviceId);
     const config = getModelShowcaseConfig(sceneId)!;

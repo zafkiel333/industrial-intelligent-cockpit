@@ -2,7 +2,7 @@
  * Selects a conservative forecast with rolling-origin validation.
  * Reference limits are deliberately excluded from model fitting and clipping.
  */
-export function adaptiveForecast(values: number[], steps: number, physicalMin = -Infinity) {
+export function adaptiveForecast(values: number[], steps: number, physicalMin = -Infinity, allowSeasonal = true) {
   const series = values.filter(Number.isFinite).slice(-720);
   const mean = (items: number[]) => items.reduce((sum, value) => sum + value, 0) / Math.max(1, items.length);
   const median = (items: number[]) => {
@@ -85,7 +85,7 @@ export function adaptiveForecast(values: number[], steps: number, physicalMin = 
   };
 
   const maxPeriod = Math.min(180, Math.floor((origins[0] || series.length) / 3));
-  for (let period = 4; period <= maxPeriod; period += 1) {
+  for (let period = 4; allowSeasonal && period <= maxPeriod; period += 1) {
     if (correlation(period) >= 0.55) {
       candidates.push({ method: 'seasonal', period });
       candidates.push({ method: 'seasonal', period, seasonalTrend: true });
@@ -112,9 +112,9 @@ export function adaptiveForecast(values: number[], steps: number, physicalMin = 
   const best = seasonal && seasonal.mae < baseline.mae * 0.92 ? seasonal : baseline;
   const rawForecast = predict(series, best.candidate, steps);
   const firstDifferences = series.slice(1).map((value, index) => Math.abs(value - series[index]));
-  const validationWidth = quantile(best.errors, 0.9);
-  const shortTermNoise = quantile(firstDifferences, 0.75);
-  const baseWidth = Math.max(validationWidth, shortTermNoise * 0.5);
+  const validationWidth = quantile(best.errors, 0.96);
+  const shortTermNoise = quantile(firstDifferences, 0.85);
+  const baseWidth = Math.max(validationWidth, shortTermNoise * 0.65) * 1.8;
 
   return {
     method: best.candidate.method,
@@ -126,7 +126,7 @@ export function adaptiveForecast(values: number[], steps: number, physicalMin = 
     validationHorizon,
     points: rawForecast.map((value, index) => {
       const predicted = Math.max(physicalMin, value);
-      const horizonScale = Math.sqrt(1 + (index + 1) / Math.max(1, validationHorizon));
+      const horizonScale = Math.sqrt(1 + 2.2 * (index + 1) / Math.max(1, validationHorizon));
       const radius = baseWidth * horizonScale;
       return {
         predicted,

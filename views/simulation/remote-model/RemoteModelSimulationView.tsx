@@ -1,5 +1,7 @@
 // 2026-08-09 新增：组合外部模型、实时参数、趋势、分析预测和资源信息页面；
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { beginTiming, cancelTimings, finishAfterPaint, type TimingTicket } from '../../../src/remoteModelShowcase/responseTiming';
+import { ResponseTimingStrip } from '../../../components/remote-model-showcase/ResponseTiming';
 import {
   Activity,
   AlertCircle,
@@ -30,8 +32,6 @@ import { AssessmentPanel } from '../../../components/remote-model-showcase/Asses
 import { ConnectionDetailDrawer } from '../../../components/remote-model-showcase/ConnectionDetailDrawer';
 import { ProjectConnectionMap } from '../../../components/remote-model-showcase/ProjectConnectionMap';
 import { ModelDataWorkspace } from '../../../components/remote-model-showcase/ModelDataWorkspace';
-import { HydroForecastValidation } from '../../../components/remote-model-showcase/HydroForecastValidation';
-import { PilotPredictionDashboard } from '../../../components/remote-model-showcase/PilotPredictionDashboard';
 import { RemoteMetricCard } from '../../../components/remote-model-showcase/RemoteMetricCard';
 import { RemoteModelViewer } from '../../../components/remote-model-showcase/RemoteModelViewer';
 import { openHostModelDetail } from '../../../src/integration/hostModelNavigation';
@@ -57,17 +57,20 @@ const riskLabels = {
   critical: '高风险',
 } as const;
 
-const pilotDataScenes = new Set<ModelShowcaseSceneId>([
-  'sim-visual-hydro-turbine',
-  'sim-visual-wastewater-pump',
-  'sim-visual-bridge-crane',
-  'sim-visual-haul-truck',
-]);
-
 export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps> = ({ sceneId }) => {
   const config = getModelShowcaseConfig(sceneId)!;
-  const pilotDataEnabled = pilotDataScenes.has(sceneId);
+  const pilotDataEnabled = true;
+  const PilotWorkspace = ModelDataWorkspace;
+  const initializationTiming=useRef<TimingTicket>(null);
+  useEffect(()=>{
+    initializationTiming.current=beginTiming(sceneId,'页面基础信息读取');
+    return()=>cancelTimings(sceneId);
+  },[sceneId]);
   const telemetry = useRemoteModelTelemetry(sceneId, !pilotDataEnabled);
+  useEffect(()=>{
+    if(telemetry.initialLoading)return;
+    return finishAfterPaint(initializationTiming.current,()=>Boolean(document.querySelector(telemetry.bootstrap?'.remote-model-showcase-header':'.remote-model-showcase-state')),telemetry.bootstrap?'completed':'failed');
+  },[telemetry.initialLoading,telemetry.bootstrap]);
   // 2026-08-10 新增：连接快照与业务遥测独立请求，任一链路失败都不会清空另一方已有数据；
   const connection = useModelShowcaseConnection(sceneId);
   const [connectionDetailsOpen, setConnectionDetailsOpen] = useState(false);
@@ -208,6 +211,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
           <LoaderCircle className="mx-auto animate-spin text-cyan-400" size={34} />
           <div className="mt-4 text-sm tracking-[0.22em]">正在初始化数字孪生数据链路</div>
           <div className="mt-2 text-[10px] text-slate-600">模型元数据 · 实时参数 · 诊断服务</div>
+          <ResponseTimingStrip scope={sceneId} action="页面基础信息读取"/>
         </div>
       </div>
     );
@@ -221,6 +225,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
           <WifiOff className="mx-auto text-rose-400" size={34} />
           <h2 className="mt-4 text-lg font-semibold">设备页面正在准备</h2>
           <p className="mt-2 text-xs leading-6 text-slate-500">当前资源尚未完成同步，请稍后重试。</p>
+          <ResponseTimingStrip scope={sceneId} action="页面基础信息读取"/>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
             <button type="button" onClick={() => window.location.reload()} className="border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-xs text-cyan-200 hover:bg-cyan-500/20">
               重新建立连接
@@ -316,6 +321,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
               {connection.modelRefreshFeedback.message}
             </div>
           )}
+          <ResponseTimingStrip scope={sceneId} actions={['页面基础信息读取','运行数据刷新']} placement="header"/>
         </header>
 
         {modelNavigationError && (
@@ -348,7 +354,7 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
         />
 
         {/* 2026-08-09 修复：固定模型与参数卡边界，超量数据仅在组件内部滚动； */}
-        {pilotDataEnabled ? <PilotPredictionDashboard
+        {pilotDataEnabled ? <PilotWorkspace
           sceneId={sceneId}
           viewer={<SciFiCard title="三维设备数字孪生" subtitle={(displayedModel?.format || bootstrap.model.format).toUpperCase()} subtitleIsCode noPadding highlight className="remote-model-showcase-viewer-card h-[492px] min-h-0 overflow-hidden">
             <RemoteModelViewer
@@ -443,8 +449,6 @@ export const RemoteModelSimulationView: React.FC<RemoteModelSimulationViewProps>
         </div>
         </>}
 
-        {sceneId === 'sim-visual-hydro-turbine' && <HydroForecastValidation />}
-        {pilotDataEnabled && <ModelDataWorkspace sceneId={sceneId} />}
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0",
-  "menuVersion": "20260909-083801",
-  "generatedAt": "2026-09-09T00:46:57.059Z",
-  "sourceCommit": "04209ba1eda3a74ff54e0010befda078bfb6ac6b",
+  "menuVersion": "20260910-194728",
+  "generatedAt": "2026-09-10T11:47:28.284Z",
+  "sourceCommit": "5870ee02b123bbdbe379c018ff5439557fbafdea",
   "sourceDirty": true,
   "defaultViewId": "smart-ops",
   "menuContentSha256": "2df4367183435500d65a9ea095a6d78d9ea6ba0c1e488b097ee8f9f9b139ca2d",

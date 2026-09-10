@@ -10,6 +10,7 @@ import type {
   TelemetryHistoryPoint,
 } from './types';
 import { apiUrl } from '../integration/apiClient';
+import { beginTiming, finishAfterPaint } from './responseTiming';
 
 const POLL_INTERVAL_MS = 5_000;
 const HISTORY_LIMIT = 60;
@@ -256,6 +257,8 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId, diagnosis
   }, [diagnosisEnabled, sceneId]);
 
   const refresh = useCallback(async (foreground = false) => {
+    const timing=foreground?beginTiming(sceneId,'运行数据刷新'):null;
+    let timingFailed=false;
     const version = (telemetryRequestVersions.get(sceneId) || 0) + 1;
     telemetryRequestVersions.set(sceneId, version);
     if (foreground && mounted.current) setRefreshing(true);
@@ -266,6 +269,7 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId, diagnosis
       hydrateFromRuntime(cache);
       void loadDiagnosis();
     } catch (refreshError) {
+      timingFailed=true;
       if (telemetryRequestVersions.get(sceneId) !== version) return;
       const cache = getRuntimeCache(sceneId);
       cache.error = errorMessage(refreshError);
@@ -273,6 +277,7 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId, diagnosis
       hydrateFromRuntime(cache);
     } finally {
       if (foreground && mounted.current && telemetryRequestVersions.get(sceneId) === version) setRefreshing(false);
+      if(mounted.current)finishAfterPaint(timing,undefined,timingFailed?'failed':'completed');
     }
   }, [hydrateFromRuntime, loadDiagnosis, sceneId]);
 
@@ -291,6 +296,8 @@ export function useRemoteModelTelemetry(sceneId: ModelShowcaseSceneId, diagnosis
         .then((loaded) => {
           hydrateFromRuntime(loaded);
           void loadDiagnosis();
+          // 初始化接口优先快速返回最近可用数据；页面渲染后立即异步同步最新数据。
+          void refresh(false);
         })
         .catch(() => hydrateFromRuntime(getRuntimeCache(sceneId)))
         .finally(() => {

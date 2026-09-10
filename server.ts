@@ -613,6 +613,7 @@ const modelMetadataRequests = new Map<ModelShowcaseSceneId, Promise<ResolvedMode
 const modelMetadataFailures = new Map<ModelShowcaseSceneId, { retryAt: number; error: unknown }>();
 const modelBinaryCache = new Map<ModelShowcaseSceneId, CachedModelBinary>();
 const dashboardRuntimeCache = new Map<ModelShowcaseSceneId, RemoteDashboardData>();
+const dashboardRequests = new Map<ModelShowcaseSceneId, Promise<RemoteDashboardData>>();
 const modelBinaryLastAccessedAt = new Map<ModelShowcaseSceneId, number>();
 const modelRefreshRequests = new Map<ModelShowcaseSceneId, Promise<ModelRefreshOperationResult>>();
 const modelPersistenceRequests = new Map<ModelShowcaseSceneId, Promise<void>>();
@@ -807,16 +808,27 @@ async function resolveModelAsset(sceneId: ModelShowcaseSceneId, forceRefresh = f
 }
 
 async function fetchDashboard(sceneId: ModelShowcaseSceneId): Promise<RemoteDashboardData> {
+  const pending = dashboardRequests.get(sceneId);
+  if (pending) return pending;
+
   const modelId = getModelShowcaseConfig(sceneId)!.modelId;
-  // 2026-08-10 调整：Dashboard 请求同步写入跨项目连接通道状态；
-  const dashboard = await fetchUpstreamJson<RemoteDashboardData>(
-    `/api/visual-models/${modelId}/dashboard`,
-    undefined,
-    MODEL_DASHBOARD_TIMEOUT_MS,
-    { sceneId, channel: "dashboard" },
-  );
-  dashboardRuntimeCache.set(sceneId, dashboard);
-  return dashboard;
+  // 同一场景的初始化、前端刷新与轮询共用在途请求，避免上游波动时叠加等待。
+  const request = (async () => {
+    const dashboard = await fetchUpstreamJson<RemoteDashboardData>(
+      `/api/visual-models/${modelId}/dashboard`,
+      undefined,
+      MODEL_DASHBOARD_TIMEOUT_MS,
+      { sceneId, channel: "dashboard" },
+    );
+    dashboardRuntimeCache.set(sceneId, dashboard);
+    return dashboard;
+  })();
+  dashboardRequests.set(sceneId, request);
+  try {
+    return await request;
+  } finally {
+    if (dashboardRequests.get(sceneId) === request) dashboardRequests.delete(sceneId);
+  }
 }
 
 function dashboardFallback(sceneId: ModelShowcaseSceneId): RemoteDashboardData {
@@ -1263,11 +1275,11 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
   if (hasBoundCachedModel && !knownAsset) {
     void resolveModelAsset(sceneId).catch(() => undefined);
   }
-  const [asset, dashboard] = await Promise.all([
-    // 三维资源异常只影响视窗；已存实测、预测和文件管理仍需进入页面。
-    hasBoundCachedModel ? Promise.resolve(knownAsset) : resolveModelAsset(sceneId).catch(() => null),
-    fetchDashboard(sceneId).catch(() => dashboardFallback(sceneId)),
-  ]);
+  // 页面先使用最近一次可用数据进入；实时数据检查在后台完成，不再让上游超时阻塞首屏。
+  const dashboard = dashboardFallback(sceneId);
+  void fetchDashboard(sceneId).catch(() => undefined);
+  // 三维资源异常只影响视窗；已存实测、预测和文件管理仍需进入页面。
+  const asset = hasBoundCachedModel ? knownAsset : await resolveModelAsset(sceneId).catch(() => null);
   // 2026-08-28 修复：页面改绑模型 ID 后，sceneId 对应的旧持久缓存不能继续作为当前资源返回。
   // 配置指纹不一致时同步取得新模型；若新模型不可用则明确报错，不能把旧模型伪装成新模型。
   if (!hasBoundCachedModel && asset && restoredModel && !cachedModelMatchesAsset(restoredModel, asset)) {
@@ -1290,7 +1302,8 @@ app.get("/api/model-showcase/:sceneId/bootstrap", showcaseRoute(async (req, res)
     title: config.title,
     model: {
       name: asset?.metadata.model_name || config.expectedRemoteName,
-      description: asset?.metadata.model_description || config.description,
+      // 页面说明属于场景库审核文案，不能透传模型平台中的维护备注或实施记录。
+      description: config.description,
       industry: asset?.metadata.industry || "工业设备",
       fileName: asset?.file.file_name || restoredModel?.fileName || `${config.expectedRemoteName}.fbx`,
       fileSize: asset ? Number(asset.file.file_size || 0) : restoredModel?.fileSize || 0,

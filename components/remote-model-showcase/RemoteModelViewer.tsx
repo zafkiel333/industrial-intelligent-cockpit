@@ -1,6 +1,8 @@
 // 2026-08-09 新增：通过本地 BFF 加载并交互展示 FBX/GLB/GLTF 外部模型；
 // 2026-08-12 调整：模型按版本获取 ArrayBuffer，并以候选解析成功后再替换旧模型的方式无损更新；
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { beginTiming, finishAfterPaint, finishTiming, pendingTiming } from '../../src/remoteModelShowcase/responseTiming';
+import { ResponseTimingStrip } from './ResponseTiming';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
@@ -59,7 +61,8 @@ interface SharedModelBufferTask {
 // 2026-08-27 优化：同一模型下载任务共享字节进度；版本轮询或组件重挂载不再重复拉取大文件。
 const modelBufferTasks = new Map<string, SharedModelBufferTask>();
 const allModelBufferTasks = new Set<SharedModelBufferTask>();
-const MAX_RESOLVED_MODEL_BUFFERS = 1;
+const MAX_RESOLVED_MODEL_BUFFERS = 3;
+const MODEL_TASK_ABORT_GRACE_MS = 2_000;
 const MODEL_PREPARE_TIMEOUT_MS = 30_000;
 const MODEL_STREAM_STALL_TIMEOUT_MS = 30_000;
 const MAX_AUTOMATIC_MODEL_RETRIES = 2;
@@ -122,7 +125,7 @@ function subscribeToTask(
   return () => {
     task.subscribers.delete(subscriber);
     if (!task.settled && task.subscribers.size === 0 && task.abortTimer === null) {
-      // React 会先清理旧 effect 再挂载新 effect；延迟到下一任务可避免版本别名切换误取消同一下载。
+      // 主平台切页和 React 重挂载期间保留短暂接续窗口，避免刚发起的有效下载被立即取消。
       task.abortTimer = window.setTimeout(() => {
         task.abortTimer = null;
         if (!task.settled && task.subscribers.size === 0) {
@@ -130,7 +133,7 @@ function subscribeToTask(
           task.controller.abort();
           removeTask(task);
         }
-      }, 0);
+      }, MODEL_TASK_ABORT_GRACE_MS);
     }
     pruneResolvedTasks();
   };
@@ -328,6 +331,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
   accent,
   autoRotateSpeed,
 }) => {
+  const timingScope=asset.localAssetUrl.match(/model-showcase\/([^/]+)/)?.[1] || '';
   const modelAssetReady = asset.fileSize > 0 && !asset.version.startsWith('unavailable-');
   const containerRef = useRef<HTMLDivElement>(null);
   const fieldsRef = useRef(fields);
@@ -548,6 +552,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
   // 2026-08-12 新增：候选版本独立下载和解析，失败不清理当前 rootRef；
   useEffect(() => {
     if (activeVersionRef.current === asset.version && rootRef.current) return;
+    const modelTiming=pendingTiming(timingScope,'三维模型更新') || beginTiming(timingScope,'三维资源显示');
     const generation = ++loadGenerationRef.current;
     let candidateObject: THREE.Object3D | null = null;
     const retainingPrevious = Boolean(rootRef.current);
@@ -568,6 +573,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
       setFailureStage(stage);
       setLoadError(error instanceof Error ? error.message : '3D 模型加载失败，请稍后重试。');
       setUpdatingModel(false);
+      finishAfterPaint(modelTiming,undefined,'failed');
     };
 
     void (async () => {
@@ -607,6 +613,7 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
           receivedBytes: result.buffer.byteLength,
           expectedBytes: result.buffer.byteLength,
         });
+        finishAfterPaint(modelTiming,()=>containerRef.current?.getAttribute('data-model-ready')==='true');
       } catch (error) {
         if (candidateObject) disposeObject(candidateObject);
         candidateObject = null;
@@ -616,13 +623,15 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
 
     return () => {
       unsubscribe();
+      if(modelTiming?.action==='三维资源显示')finishTiming(modelTiming,'cancelled');
       if (loadGenerationRef.current === generation) loadGenerationRef.current += 1;
       if (candidateObject) disposeObject(candidateObject);
     };
   }, [asset.localAssetUrl, asset.version, asset.format, reloadKey, viewerSettingsKey]);
 
   return (
-    <div className="remote-model-viewer industrial-visual-surface relative h-full min-h-0 max-h-full overflow-hidden bg-[#29485e] [contain:layout_paint]" data-model-ready={hasRenderableModel?'true':'false'} ref={containerRef}>
+    <div className="remote-model-timed-wrapper">
+    <div className="remote-model-viewer industrial-visual-surface relative h-full min-h-0 max-h-full overflow-hidden bg-[#29485e] [contain:layout_paint]" data-model-version={activeVersionRef.current || ''} data-model-ready={hasRenderableModel?'true':'false'} ref={containerRef}>
       {loadProgress.phase !== 'ready' && !loadError && !hasRenderableModel && (
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#07111f]/90">
           <div className="mb-3 text-xs tracking-[0.2em] text-cyan-300">
@@ -692,6 +701,8 @@ export const RemoteModelViewer: React.FC<RemoteModelViewerProps> = ({
           ? `${asset.fileName} · ${(asset.fileSize / 1024 / 1024).toFixed(1)} MB · v${asset.version.slice(0, 8)}`
           : '三维模型资源 · 正在同步'}
       </div>
+    </div>
+    <ResponseTimingStrip scope={timingScope} actions={['三维资源显示','三维模型更新']} placement="footer"/>
     </div>
   );
 };

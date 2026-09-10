@@ -1,6 +1,7 @@
 // 2026-08-09 新增：集中维护外部模型场景、指标映射、图表分组和故障知识；
 import { PAGE_MODEL_BINDINGS } from './pageModelBindings';
 import type { PageModelBinding } from './pageModelBindings';
+import { getModelOperationalProfile } from './modelOperationalProfiles';
 import type { ExistingModelShowcaseSceneId, ModelShowcaseSceneId, RiskDirection } from './types';
 
 export interface ShowcaseFieldConfig {
@@ -144,7 +145,7 @@ const EXISTING_MODEL_SHOWCASE_CATALOG: Record<ExistingModelShowcaseSceneId, Mode
     modelId: 2310,
     title: '矿卡牵引运输状态与故障分析',
     englishTitle: 'Haul Truck Transport Condition & Fault Analysis',
-    description: '以拖车牵引车资源承载矿卡运输场景，融合动力、热状态、振动、液压与燃油数据输出诊断结论。',
+    description: '围绕矿卡运输工况，融合动力、冷却、车体振动、液压、有效载荷与牵引功率数据输出诊断结论。',
     expectedRemoteName: '拖车牵引车',
     sourceAssetLabel: '远端模型：拖车牵引车',
     sourceDetailUrl: 'https://8.146.211.204:3100/three-model/detail?id=2310',
@@ -173,16 +174,16 @@ const EXISTING_MODEL_SHOWCASE_CATALOG: Record<ExistingModelShowcaseSceneId, Mode
   },
 };
 
-const GENERIC_FIELDS: Record<string, ShowcaseFieldConfig> = {
-  rpm: { label: '运行转速', riskDirection: 'high', weight: 0.16 },
-  temperature: { label: '设备温度', riskDirection: 'high', weight: 0.2 },
-  vibration: { label: '设备振动', riskDirection: 'high', weight: 0.2 },
-  pressure: { label: '系统压力', riskDirection: 'both', weight: 0.15 },
-  flow_rate: { label: '介质流量', riskDirection: 'both', weight: 0.14 },
-  power_output: { label: '输出功率', riskDirection: 'both', weight: 0.15 },
+const PUBLIC_DESCRIPTION_OVERRIDES: Partial<Record<PageModelBinding['viewId'], string>> = {
+  'eq-0': '面向水轮机智能运维，关联轴流式水轮机的三维结构、运行参数和状态指标，呈现关键部件状态、变化趋势及风险信息。',
+  'eq-1': '面向发电机智能运维，关联混流式水轮发电机组的定子、转子、轴承等关键结构及运行指标，呈现设备状态、变化趋势与风险信息。',
+  'eq-2': '面向输电装置智能运维，关联输电塔、绝缘子及线路结构与运行指标，呈现设备状态、变化趋势与风险信息。',
 };
 
 function createPublicDescription(binding: PageModelBinding): string {
+  const override = PUBLIC_DESCRIPTION_OVERRIDES[binding.viewId];
+  if (override) return override;
+
   const businessName = binding.pageTitle.trim();
   const modelName = binding.modelName.trim();
 
@@ -202,6 +203,10 @@ function createPublicDescription(binding: PageModelBinding): string {
 }
 
 function createExpandedConfig(binding: PageModelBinding): ModelShowcaseConfig {
+  const operational = getModelOperationalProfile(binding.viewId as ModelShowcaseSceneId);
+  const fields = Object.fromEntries(operational.fields.map(field => [field.field, {
+    label: field.label, riskDirection: field.riskDirection, weight: field.weight,
+  }]));
   return {
     sceneId: binding.viewId as ModelShowcaseSceneId,
     modelId: binding.modelId,
@@ -213,17 +218,14 @@ function createExpandedConfig(binding: PageModelBinding): ModelShowcaseConfig {
     sourceDetailUrl: `https://8.146.211.204:3100/three-model/detail?id=${binding.modelId}`,
     domain: 'industrial',
     accent: binding.grade === 'A' ? '#22d3ee' : binding.grade === 'B' ? '#38bdf8' : '#a78bfa',
-    fields: GENERIC_FIELDS,
-    chartGroups: [
-      { title: '转速 / 输出', fields: ['rpm', 'power_output'] },
-      { title: '压力 / 流量', fields: ['pressure', 'flow_rate'] },
-      { title: '温度 / 振动', fields: ['temperature', 'vibration'] },
-    ],
-    faultProfiles: [
-      { code: 'OPERATING_DEVIATION', name: '运行参数偏离', fields: ['rpm', 'pressure', 'flow_rate', 'power_output'], recommendation: '复核当前工况、控制设定值及上下游系统状态。' },
-      { code: 'THERMAL_ANOMALY', name: '温升异常风险', fields: ['temperature', 'power_output'], recommendation: '检查散热、润滑、负载与环境温度，必要时安排现场测温。' },
-      { code: 'MECHANICAL_ANOMALY', name: '机械状态异常', fields: ['vibration', 'rpm'], recommendation: '复核紧固、对中、轴承与传动部件，并结合频谱确认异常来源。' },
-    ],
+    fields,
+    chartGroups: Array.from({length: Math.ceil(operational.fields.length / 2)}, (_, index) => {
+      const groupFields = operational.fields.slice(index * 2, index * 2 + 2);
+      return { title: groupFields.map(field => field.label).join(' / '), fields: groupFields.map(field => field.field) };
+    }),
+    faultProfiles: operational.faultProfiles.map(fault => ({
+      code: fault.code, name: fault.name, fields: fault.fields, recommendation: fault.recommendation,
+    })),
     viewer: { autoRotateSpeed: 0.4 },
   };
 }
@@ -232,8 +234,34 @@ const EXPANDED_MODEL_SHOWCASE_CATALOG = Object.fromEntries(
   PAGE_MODEL_BINDINGS.map((binding) => [binding.viewId, createExpandedConfig(binding)]),
 ) as Record<(typeof PAGE_MODEL_BINDINGS)[number]['viewId'], ModelShowcaseConfig>;
 
+function applyOperationalProfile(config: ModelShowcaseConfig): ModelShowcaseConfig {
+  const operational = getModelOperationalProfile(config.sceneId);
+  return {
+    ...config,
+    fields: Object.fromEntries(operational.fields.map(field => [field.field, {
+      label: field.label,
+      riskDirection: field.riskDirection,
+      weight: field.weight,
+    }])),
+    chartGroups: Array.from({ length: Math.ceil(operational.fields.length / 2) }, (_, index) => {
+      const groupFields = operational.fields.slice(index * 2, index * 2 + 2);
+      return { title: groupFields.map(field => field.label).join(' / '), fields: groupFields.map(field => field.field) };
+    }),
+    faultProfiles: operational.faultProfiles.map(fault => ({
+      code: fault.code,
+      name: fault.name,
+      fields: fault.fields,
+      recommendation: fault.recommendation,
+    })),
+  };
+}
+
+const OPERATIONAL_EXISTING_MODEL_SHOWCASE_CATALOG = Object.fromEntries(
+  Object.values(EXISTING_MODEL_SHOWCASE_CATALOG).map(config => [config.sceneId, applyOperationalProfile(config)]),
+) as Record<ExistingModelShowcaseSceneId, ModelShowcaseConfig>;
+
 export const MODEL_SHOWCASE_CATALOG: Record<ModelShowcaseSceneId, ModelShowcaseConfig> = {
-  ...EXISTING_MODEL_SHOWCASE_CATALOG,
+  ...OPERATIONAL_EXISTING_MODEL_SHOWCASE_CATALOG,
   ...EXPANDED_MODEL_SHOWCASE_CATALOG,
 };
 
