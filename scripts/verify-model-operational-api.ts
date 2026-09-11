@@ -62,11 +62,13 @@ try {
     predictions += 1;
 
     const sceneLogs = await json(`${base}/data/forecast/logs/scene`);
-    assert.ok(sceneLogs.entries.length >= 8, `${sceneId} 场景日志数量不足`);
+    assert.ok(sceneLogs.entries.length >= 34, `${sceneId} 场景日志数量不足`);
     const times = sceneLogs.entries.map((entry: any) => Date.parse(entry.timestamp)).filter(Number.isFinite).sort((a: number, b: number) => a - b);
     assert.ok(times.at(-1)! - times[0] >= 150 * 24 * 60 * 60 * 1000, `${sceneId} 场景日志时间跨度不足`);
     assert.ok(sceneLogs.entries.some((entry: any) => entry.category === 'prediction'), `${sceneId} 缺少预测业务日志`);
     assert.ok(sceneLogs.entries.some((entry: any) => entry.category === 'operation'), `${sceneId} 缺少运行业务日志`);
+    assert.ok(sceneLogs.entries.some((entry: any) => entry.category === 'verification'), `${sceneId} 缺少实测核验业务日志`);
+    assert.ok(sceneLogs.entries.filter((entry: any) => entry.level === 'critical').length <= 1, `${sceneId} 严重预警记录过多`);
     assert.ok(!forbidden.test(JSON.stringify(sceneLogs.entries)), `${sceneId} 场景日志出现不应面向用户的措辞`);
     seededLogs += sceneLogs.entries.length;
   }

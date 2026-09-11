@@ -22,6 +22,8 @@
     "audit:model-assets": "node scripts/run-tsx.mjs scripts/audit-upstream-model-assets.ts",
     "verify:https-integration": "node scripts/run-tsx.mjs scripts/verify-https-integration.ts",
     "verify:scene-backgrounds": "node scripts/run-tsx.mjs scripts/verify-scene-backgrounds.ts",
+    "verify:scene-logs": "node scripts/run-tsx.mjs scripts/verify-scenario-log-coverage.ts",
+    "verify:scene-logs-ui": "node scripts/run-tsx.mjs scripts/verify-scenario-log-ui.ts",
     "verify:simulated-maintenance-backgrounds": "node scripts/run-tsx.mjs scripts/verify-simulated-maintenance-backgrounds.ts",
     "verify:knowledge-management-visuals": "node scripts/run-tsx.mjs scripts/verify-knowledge-management-visuals.ts",
     "verify:maintenance-planning": "node scripts/run-tsx.mjs scripts/verify-maintenance-planning-redesign.ts",

@@ -140,20 +140,101 @@ function writeSceneLog(modelRoot: string, entry: HydroSceneLogEntry | null) {
   if (!entry) return;
   try { appendUnique(sceneLogFile(modelRoot), entry); } catch (error) { console.error('[hydro-log] failed to persist scene log:', error); }
 }
-function ensureOperationalHistory(modelRoot:string,sceneId:ModelShowcaseSceneId){
+type OperationalHistoryKind = 'current' | 'operation' | 'plan' | 'closure' | 'normal-prediction' | 'attention-prediction' | 'warning-prediction' | 'critical-prediction' | 'normal-verification' | 'attention-verification' | 'abnormal-verification';
+interface OperationalHistoryBlueprint {
+  days: number;
+  level: HydroSceneLogLevel;
+  category: HydroSceneLogEntry['category'];
+  kind: OperationalHistoryKind;
+  faultSlot?: number;
+}
+const OPERATIONAL_HISTORY_BLUEPRINTS: OperationalHistoryBlueprint[] = [
+  {days:0,level:'normal',category:'operation',kind:'current'},
+  {days:1,level:'normal',category:'verification',kind:'normal-verification'},
+  {days:3,level:'normal',category:'prediction',kind:'normal-prediction'},
+  {days:6,level:'info',category:'operation',kind:'operation'},
+  {days:10,level:'normal',category:'verification',kind:'normal-verification'},
+  {days:14,level:'normal',category:'prediction',kind:'normal-prediction'},
+  {days:20,level:'normal',category:'operation',kind:'closure'},
+  {days:27,level:'info',category:'verification',kind:'abnormal-verification',faultSlot:0},
+  {days:31,level:'warning',category:'prediction',kind:'warning-prediction',faultSlot:0},
+  {days:38,level:'normal',category:'operation',kind:'closure'},
+  {days:46,level:'normal',category:'verification',kind:'normal-verification'},
+  {days:52,level:'normal',category:'prediction',kind:'normal-prediction'},
+  {days:61,level:'info',category:'operation',kind:'plan'},
+  {days:70,level:'normal',category:'operation',kind:'closure'},
+  {days:76,level:'info',category:'verification',kind:'attention-verification'},
+  {days:83,level:'attention',category:'prediction',kind:'attention-prediction'},
+  {days:96,level:'normal',category:'operation',kind:'operation'},
+  {days:110,level:'normal',category:'verification',kind:'normal-verification'},
+  {days:118,level:'normal',category:'prediction',kind:'normal-prediction'},
+  {days:131,level:'info',category:'operation',kind:'operation'},
+  {days:145,level:'normal',category:'operation',kind:'closure'},
+  {days:154,level:'info',category:'verification',kind:'attention-verification'},
+  {days:165,level:'attention',category:'prediction',kind:'attention-prediction'},
+  {days:179,level:'normal',category:'operation',kind:'operation'},
+  {days:196,level:'normal',category:'operation',kind:'closure'},
+  {days:205,level:'info',category:'verification',kind:'abnormal-verification',faultSlot:1},
+  {days:218,level:'warning',category:'prediction',kind:'warning-prediction',faultSlot:1},
+  {days:236,level:'info',category:'operation',kind:'plan'},
+  {days:257,level:'normal',category:'operation',kind:'closure'},
+  {days:269,level:'info',category:'verification',kind:'abnormal-verification',faultSlot:2},
+  {days:284,level:'critical',category:'prediction',kind:'critical-prediction',faultSlot:2},
+  {days:315,level:'normal',category:'operation',kind:'operation'},
+  {days:342,level:'normal',category:'verification',kind:'normal-verification'},
+  {days:350,level:'normal',category:'prediction',kind:'normal-prediction'},
+];
+
+export function buildOperationalHistoryEntries(modelRoot:string,sceneId:ModelShowcaseSceneId,now=Date.now()):HydroSceneLogEntry[]{
   const profile=getModelOperationalProfile(sceneId);
   const device=`${path.basename(modelRoot).match(/model-(\d+)/)?.[1]||'DEV'}-01`;
-  const events=[
-    {days:176,level:'info' as const,content:`设备 ${device} 完成数据点位核对，${profile.fields.map(field=>field.label).join('、')}已纳入连续趋势监测。`},
-    {days:142,level:'normal' as const,content:`设备 ${device} 周期趋势复核完成，${profile.normalLog}`},
-    {days:111,level:'info' as const,content:`设备 ${device} 完成${profile.reviewTarget}例行检查，运行数据与现场状态相符。`},
-    {days:79,level:'attention' as const,content:`设备 ${device} 个别指标短时接近参考边界，复核工况后未形成持续越界，继续跟踪相邻周期。`},
-    {days:47,level:'normal' as const,content:`设备 ${device} 趋势复核完成，关键指标恢复稳定并保持在参考范围。`},
-    {days:19,level:'info' as const,content:`设备 ${device} 完成预测窗口复核，建议继续按既定周期检查${profile.reviewTarget}。`},
-    {days:6,level:'normal' as const,content:`设备 ${device} 最近运行趋势稳定，未形成需要升级处置的持续异常。`},
-  ];
-  const now=Date.now();
-  for(const [index,event] of events.entries())writeSceneLog(modelRoot,{id:`operational:${sceneId}:${index}`,timestamp:new Date(now-event.days*86400000-index*3600000).toISOString(),level:event.level,category:'operation',deviceId:device,caseId:'operational-history',content:event.content});
+  const seed=Number.parseInt(createHash('sha256').update(sceneId).digest('hex').slice(0,8),16);
+  const faults=profile.faultProfiles;
+  const seriousFault=faults.find(fault=>fault.serious);
+  const allowCritical=Boolean(seriousFault)&&seed%17===0;
+  const field=(index:number)=>profile.fields[index%profile.fields.length];
+  const fault=(index:number)=>faults[index%faults.length];
+  const smape=(index:number)=>(6.2+((seed+index*19)%67)/10).toFixed(1);
+  const content=(kind:OperationalHistoryKind,index:number,faultSlot?:number)=>{
+    const currentField=field(index);
+    const currentFault=fault(faultSlot??index);
+    switch(kind){
+      case 'current': return `设备 ${device} 最新运行复核完成，${profile.fields.map(item=>item.label).join('、')}保持协调，当前未形成需要升级处置的持续异常。`;
+      case 'operation': return `设备 ${device} 完成${profile.reviewTarget}例行检查，重点核查${currentField.part}及${currentField.label}趋势，运行数据与现场状态相符。`;
+      case 'plan': return `设备 ${device} 下一周期检查计划已确认，将结合${currentField.label}变化重点复核${profile.reviewTarget}，相关测点和工况记录已准备。`;
+      case 'closure': return `设备 ${device} 前期关注事项完成闭环，${currentField.part}复核正常，相关指标恢复稳定并继续纳入周期趋势监测。`;
+      case 'normal-prediction': return `预测完成：设备 ${device} 的${profile.forecastLabel}趋势判断为正常，${profile.fields.length}项关键指标未形成持续越界。${profile.normalLog}`;
+      case 'attention-prediction': return `预测关注：设备 ${device} 的${currentField.label}在${profile.forecastLabel}内短时接近参考边界，尚未形成持续越界；建议结合工况复核${currentField.part}。`;
+      case 'warning-prediction': return `预测预警：设备 ${device} 的${profile.forecastLabel}趋势显示${currentFault.name}，主要关联${currentFault.fields.map(name=>profile.fields.find(item=>item.field===name)?.label||name).join('、')}，重点检查${currentFault.part}。`;
+      case 'critical-prediction': {
+        const selected=allowCritical?seriousFault!:currentFault;
+        return `${allowCritical?'严重风险预测':'预测预警'}：设备 ${device} 的${profile.forecastLabel}趋势显示${selected.name}并存在持续扩大迹象，重点部位为${selected.part}；已按计划组织现场复核并控制相关运行条件。`;
+      }
+      case 'normal-verification': return `实测核验完成：设备 ${device} 的预测状态为正常、实际状态为正常，状态判断一致；${profile.fields.length}项指标对齐完整，本次 sMAPE 为 ${smape(index)}%。`;
+      case 'attention-verification': return `实测核验完成：设备 ${device} 的预测状态与实际状态一致；${currentField.label}存在局部偏差但未改变总体判断，本次 sMAPE 为 ${smape(index)}%。`;
+      case 'abnormal-verification': return `实测核验完成：设备 ${device} 的预测状态为异常、实际状态为异常，${currentFault.name}结论与现场复核一致；本次 sMAPE 为 ${smape(index)}%。`;
+    }
+  };
+  return OPERATIONAL_HISTORY_BLUEPRINTS.map((blueprint,index)=>{
+    const minuteOffset=(seed+index*97)%720;
+    const isCritical=blueprint.kind==='critical-prediction'&&allowCritical;
+    const criticalFallback=blueprint.faultSlot===2&&!allowCritical;
+    const effectiveKind=criticalFallback
+      ? blueprint.kind==='critical-prediction'?'attention-prediction':blueprint.kind==='abnormal-verification'?'attention-verification':blueprint.kind
+      : blueprint.kind;
+    return {
+      id:`operational-v2:${sceneId}:${index}`,
+      timestamp:new Date(now-blueprint.days*86400000-minuteOffset*60000).toISOString(),
+      level:blueprint.level==='critical'?(isCritical?'critical':'attention'):blueprint.level,
+      category:blueprint.category,
+      deviceId:device,
+      caseId:`operational-history-${String(index+1).padStart(2,'0')}`,
+      content:content(effectiveKind,index,blueprint.faultSlot),
+    };
+  });
+}
+function ensureOperationalHistory(modelRoot:string,sceneId:ModelShowcaseSceneId){
+  for(const event of buildOperationalHistoryEntries(modelRoot,sceneId))writeSceneLog(modelRoot,event);
 }
 export function readHydroSceneLogs(modelRoot: string, sceneId:ModelShowcaseSceneId=HYDRO_SCENE) {
   ensureOperationalHistory(modelRoot,sceneId);

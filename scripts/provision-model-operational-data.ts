@@ -27,7 +27,7 @@ for (const sceneId of MODEL_SHOWCASE_SCENE_IDS) {
     overviewCount += 1;
 
     const logs = await readJson(`/api/model-showcase/${encodedSceneId}/data/forecast/logs/scene`);
-    assert.ok(Array.isArray(logs.entries) && logs.entries.length >= 7);
+    assert.ok(Array.isArray(logs.entries) && logs.entries.length >= 30);
     logCount += logs.entries.length;
 
     if (sceneId !== hydroSceneId) {

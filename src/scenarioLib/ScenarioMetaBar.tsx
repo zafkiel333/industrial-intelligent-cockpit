@@ -70,7 +70,7 @@ function SystemResponseLog({entries}:{entries:Array<ResponseTiming|RemoteRespons
 export const ScenarioMetaBar: React.FC<{ scenarioId: string }> = ({ scenarioId }) => {
   const meta = getScenarioMeta(scenarioId);
   const { snapshot, reportMockTiming } = useScenarioTelemetry(scenarioId);
-  const staticLogEntries = useScenarioLog(scenarioId, meta.name);
+  const staticLogEntries = useScenarioLog(scenarioId, meta.name, meta.categoryName);
   const timingRows = useSyncExternalStore(subscribeTiming, () => timingSnapshot(scenarioId), () => []);
   const [remoteSceneLogs, setRemoteSceneLogs] = useState<RemoteSceneLogEntry[]>([]);
   const [remoteResponseLogs, setRemoteResponseLogs] = useState<RemoteResponseTiming[]>([]);
