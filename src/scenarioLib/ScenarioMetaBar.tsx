@@ -49,7 +49,7 @@ function responseStatus(status: ResponseTiming['status']) {
 function SceneBusinessLog({entries}:{entries:Array<ScenarioLogEntry|RemoteSceneLogEntry>}) {
   return <div className="platform-log-panel scene-business-log" aria-label="场景日志">{entries.length?entries.map((entry,index)=>{
     const remote='timestamp' in entry,level=entry.level as BusinessLogLevel;
-    return <div className={`platform-business-log-row ${LOG_LEVEL_STYLE[level]}`} key={remote?entry.id:`${entry.time}-${index}`}>
+    return <div className={`platform-business-log-row ${remote?'has-category':'is-static'} ${LOG_LEVEL_STYLE[level]}`} key={remote?entry.id:`${entry.time}-${index}`}>
       <time>{remote?formatDateTime(Date.parse(entry.timestamp)):entry.time}</time><span className="platform-log-level">{LOG_LEVEL_LABEL[level]}</span>
       {remote&&<span className="platform-log-category">{{operation:'运行记录',prediction:'预测结果',verification:'实测核验'}[entry.category]}</span>}<p>{entry.content}</p>
     </div>;
